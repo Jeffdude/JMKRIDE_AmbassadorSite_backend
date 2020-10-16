@@ -2,14 +2,16 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const secret = require('../config.js').jwt_secret;
-
-const ADMIN_PERMISSION = 4096;
+const permissionHelpers = require('../modules/permissions.js');
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
     let user_permission_level = req.jwt.permissionLevel;
     let userId = req.jwt.userId;
-    if (user_permission_level & required_permission_level) {
+    if(permissionHelpers.permissionLevelPasses(
+      required_permission_level,
+      user_permission_level,
+    )) {
       return next();
     } else {
       return res.status(403).send();

@@ -1,36 +1,41 @@
+const UsersController = require('./usersController.js');
 
-const config = require('../config.js');
+const DebugMiddleware = require('../middleware/debug.js');
+const PermissionMiddleware = require('../middleware/permission.js');
+const ValidationMiddleware = require('../middleware/validation.js');
 
-const usersController = require('./usersController.js');
-
-const PermissionMiddleware = require('../auth/permission-middleware.js');
-const ValidationMiddleware = require('../auth/validation-middleware.js');
+const PERMISSION_LEVELS = require('../config.js').permissionLevels;
 
 
-exports.configureUsersRoutes = (app) => {
+exports.configRoutes = (app) => {
   app.post('/users', [
+    DebugMiddleware.printRequest,
     UsersController.insert
   ]);
   app.get('/users', [
+    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PAID),
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     UsersController.list
   ]);
   app.get('/users/:userId', [
+    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(FREE),
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById
   ]);
   app.patch('/users/:userId', [
+    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(FREE),
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.patchById
   ]);
   app.delete('/users/:userId', [
+    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(ADMIN),
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     PermissionMiddleware.sameUserCantDoThisAction,
     UsersController.removeById
   ]);

@@ -1,20 +1,22 @@
 const config = require('../config.js');
 
-const UsersMiddleware = require('./users-middleware.js');
-const AuthValidationMiddleware = require('./validation-middleware.js');
+const DebugMiddleware = require('../middleware/debug.js');
+const UsersMiddleware = require('../middleware/users.js');
+const AuthValidationMiddleware = require('../middleware/validation.js');
 
 const AuthController = require('./authController.js');
 
 
-
-exports.configureAuthRoutes = (app) => {
+exports.configRoutes = (app) => {
   app.post('/auth', [
+    DebugMiddleware.printRequest,
     UsersMiddleware.hasAuthValidFields,
     UsersMiddleware.passwordAndUserMatch,
     AuthController.login
   ]);
 
   app.post('/auth/refresh', [
+    DebugMiddleware.printRequest,
     AuthValidationMiddleware.validJWTNeeded,
     AuthValidationMiddleware.verifyRefreshBodyField,
     AuthValidationMiddleware.validRefreshNeeded,

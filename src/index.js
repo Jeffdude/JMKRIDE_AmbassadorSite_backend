@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 
 const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
-//import configUserRoutes from './users/routes.js';
+const UsersRouter = require('./users/routes.js');
 
 
 const app = express();
@@ -22,8 +22,8 @@ app.use(function (req, res, next) {
 });
 
 app.use(bodyParser.json());
-AuthRouter.configureAuthRoutes(app);
-//UsersRouter.configRoutes(app);
+AuthRouter.configRoutes(app);
+UsersRouter.configRoutes(app);
 
 
 app.listen(config.port, function () {
