@@ -1,37 +1,37 @@
 
-import { config } from '../config.js';
+const config = require('../config.js');
 
-import { usersController } from './usersController.js';
+const usersController = require('./usersController.js');
 
-import { PermissionMiddleware } from '../middleware/permissions.js';
-import { ValidationMiddleware } from '../middleware/validation.js';
+const PermissionMiddleware = require('../auth/permission-middleware.js');
+const ValidationMiddleware = require('../auth/validation-middleware.js');
 
 
-export default function configureUsersRoutes(app) {
-    app.post('/users', [
-        UsersController.insert
-    ]);
-    app.get('/users', [
-        ValidationMiddleware.validJWTNeeded,
-        PermissionMiddleware.minimumPermissionLevelRequired(PAID),
-        UsersController.list
-    ]);
-    app.get('/users/:userId', [
-        ValidationMiddleware.validJWTNeeded,
-        PermissionMiddleware.minimumPermissionLevelRequired(FREE),
-        PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-        UsersController.getById
-    ]);
-    app.patch('/users/:userId', [
-        ValidationMiddleware.validJWTNeeded,
-        PermissionMiddleware.minimumPermissionLevelRequired(FREE),
-        PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-        UsersController.patchById
-    ]);
-    app.delete('/users/:userId', [
-        ValidationMiddleware.validJWTNeeded,
-        PermissionMiddleware.minimumPermissionLevelRequired(ADMIN),
-        UsersController.removeById
-    ]);
-
+exports.configureUsersRoutes = (app) => {
+  app.post('/users', [
+    UsersController.insert
+  ]);
+  app.get('/users', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PAID),
+    UsersController.list
+  ]);
+  app.get('/users/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(FREE),
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    UsersController.getById
+  ]);
+  app.patch('/users/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(FREE),
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    UsersController.patchById
+  ]);
+  app.delete('/users/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(ADMIN),
+    PermissionMiddleware.sameUserCantDoThisAction,
+    UsersController.removeById
+  ]);
 };
