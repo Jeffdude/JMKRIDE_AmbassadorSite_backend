@@ -4,10 +4,14 @@ const crypto = require('crypto');
 const PERMISSION_LEVELS = require('../config.js').permissionLevels;
 
 exports.insert = (req, res) => {
+  if( !(req.body.email && req.body.password)) {
+    return res.status(400).send({error: "Missing email or password"});
+  }
   let salt = crypto.randomBytes(16).toString('base64');
   let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
   req.body.password = salt + "$" + hash;
   req.body.permissionLevel = PERMISSION_LEVELS.USER;
+
   UserModel.createUser(req.body)
     .then((result) => {
       res.status(201).send({id: result._id});
