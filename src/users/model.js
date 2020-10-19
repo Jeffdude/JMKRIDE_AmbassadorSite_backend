@@ -1,12 +1,17 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
+
+/* ------------------  User Model Definition ------------------  */
+
 const userSchema = new Schema({
   firstName: String,
   lastName: String,
   email: String,
   password: String,
   permissionLevel: String,
+  referralCode: { type: Schema.Types.ObjectId, ref: 'referralCode'},
+  challengeCompletions: [{type: Schema.Types.ObjectId, ref: 'challengeSubmission'}],
 });
 
 userSchema.virtual('id').get(function () {
@@ -22,6 +27,8 @@ userSchema.findById = function (cb) {
 
 const User = mongoose.model('Users', userSchema);
 
+
+/* ------------------  User Model Functions ------------------  */
 
 exports.findByEmail = (email) => {
   return User.find({email: email});

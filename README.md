@@ -6,14 +6,17 @@ Big ups to @makinhs for https://www.toptal.com/nodejs/secure-rest-api-in-nodejs
 
 TODO:
  * Secure secret
- * Verify no request body poisoning
  * Users:
-    * Referral Code 
-      * Code uses
     * References to...
+      * Referral Code 
       * Challenge completions
       * Ambassadors Balance
+ * Referral Code
+    * Code uses
  * Challenge:
+    * Challenge requirements
+      * url to video/photo
+      * text description
     * Description {long, short}
     * Award
     * Submission form structure
@@ -31,4 +34,4 @@ TODO:
     * Current value
     * References to...
       * All historical financial entries (in/out)
-  
+

@@ -1,6 +1,9 @@
 module.exports = {
   port: 3600,
   jwt_secret: "sup3rs3cr37pw!",
+  jwt_options: {
+    expiresIn: "2d",
+  },
   debug: true,
   permissionLevels: {
     NONE: "none",

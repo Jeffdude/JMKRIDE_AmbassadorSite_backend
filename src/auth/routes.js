@@ -4,7 +4,7 @@ const DebugMiddleware = require('../middleware/debug.js');
 const UsersMiddleware = require('../middleware/users.js');
 const ValidationMiddleware = require('../middleware/validation.js');
 
-const AuthController = require('./authController.js');
+const AuthController = require('./controller.js');
 
 
 exports.configRoutes = (app) => {
