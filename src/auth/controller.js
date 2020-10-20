@@ -18,7 +18,13 @@ exports.login = (req, res) => {
     let refreshId = req.body.userId + jwt_secret;
     let hash = crypto.createHmac('sha512', salt).update(refreshId).digest("base64");
     let refresh_token = Buffer.from(hash).toString('base64');
-    res.status(201).send({accessToken: token, refreshToken: refresh_token});
+
+    res.status(201).send({
+      accessToken: token,
+      refreshToken: refresh_token,
+      expires_in: config.jwt_options.expiresIn
+    });
+
   } catch (err) {
     res.status(500).send({errors: err});
   }
