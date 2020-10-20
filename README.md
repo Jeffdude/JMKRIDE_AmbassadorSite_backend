@@ -6,6 +6,7 @@ Big ups to @makinhs for https://www.toptal.com/nodejs/secure-rest-api-in-nodejs
 
 TODO:
  * Secure secret
+ * Prevent spam (/ maybe authenticate frontend)
  * Users:
     * References to...
       * Referral Code 
