@@ -22,7 +22,7 @@ exports.login = (req, res) => {
     res.status(201).send({
       accessToken: token,
       refreshToken: refresh_token,
-      expires_in: config.jwt_options.expiresIn
+      expiresIn: config.jwt_options.expiresIn
     });
 
   } catch (err) {

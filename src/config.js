@@ -4,7 +4,7 @@ module.exports = {
   jwt_options: {
     expiresIn: "2d",
   },
-  debug: false,
+  debug: true,
   permissionLevels: {
     NONE: "none",
     USER: "user",

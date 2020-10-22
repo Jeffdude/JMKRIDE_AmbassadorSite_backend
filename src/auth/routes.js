@@ -10,7 +10,7 @@ const AuthController = require('./controller.js');
 exports.configRoutes = (app) => {
   app.post('/api/v1/auth', [
     DebugMiddleware.printRequest,
-    ValidationMiddleware.validateCleanBodyFields(['username', 'password']),
+    ValidationMiddleware.validateCleanBodyFields(['email', 'password']),
     UsersMiddleware.hasAuthValidFields,
     UsersMiddleware.passwordAndUserMatch,
     AuthController.login
