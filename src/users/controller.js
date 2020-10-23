@@ -64,6 +64,7 @@ exports.getSelf = (req, res) => {
 exports.getById = (req, res) => {
   UserModel.findById(req.params.userId)
     .then((result) => {
+      delete(result.password);
       res.status(200).send(result);
     });
 };
