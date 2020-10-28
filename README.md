@@ -25,14 +25,14 @@ TODO:
       * Ambassador's completed
       * All submissions
  * Finance Entry
-    * Time
-    * Date
-    * Amount - Value (Credits, USD)
-      * Source - (JMK, Ambassadors Balance, Ambassadors Bank)
-      * Dest - (Ambassadors Balance, Ambassadors Bank)
-    * User <-(if challenge, self)
+    * Date & Time <- handled by mongoose
+    * Types:
+      * Referral code use
+      * Challenge completion
+      * Redeem points to...
+        * Bank
+        * Gift card
  * Ambassadors Balance
     * Current value
     * References to...
       * All historical financial entries (in/out)
-

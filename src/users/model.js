@@ -8,23 +8,21 @@ const userSchema = new Schema({
   firstName: String,
   lastName: String,
   email: String,
-  password: String,
+  password: String,  // Salted + SHA512 hashed
   permissionLevel: String,
   referralCode: { type: Schema.Types.ObjectId, ref: 'referralCode'},
-  challengeCompletions: [{type: Schema.Types.ObjectId, ref: 'challengeSubmission'}],
+  challengeCompletions: [ {type: Schema.Types.ObjectId, ref: 'challengeSubmission'} ],
+  ambassadorBalance: Number,
+  transactions: [ {type: Schema.Types.ObjectId, ref: 'transaction'} ],
 });
-
 userSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
-
 // Ensure virtual fields are serialised.
 userSchema.set('toJSON', {virtuals: true});
-
 userSchema.findById = function (cb) {
   return this.model('Users').find({id: this.id}, cb);
 };
-
 const User = mongoose.model('Users', userSchema);
 
 
