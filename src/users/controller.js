@@ -3,7 +3,18 @@ const crypto = require('crypto');
 
 const PERMISSION_LEVELS = require('../config.js').permissionLevels;
 
-exports.findOrInsert = (req, res) => {
+exports.insert = (req, res) => {
+  function createUser() {
+    let salt = crypto.randomBytes(16).toString('base64');
+    let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
+    req.body.password = salt + "$" + hash;
+    req.body.permissionLevel = PERMISSION_LEVELS.USER;
+
+    UserModel.createUser(req.body).then((result) => {
+      res.status(201).send({id: result._id});
+    });
+  }
+
   if( !(req.body.email && req.body.password)) {
     return res.status(400).send({error: "Missing email or password"});
   }
@@ -11,32 +22,19 @@ exports.findOrInsert = (req, res) => {
   // Check if user exists, check correct pw and return ID
   UserModel.findByEmail(req.body.email).then(
     (result) => {
-      if(result) {  // User Exists
-        user = result[0] 
-        let [salt, hash] = result[0].password.split('$');
-        let provided_hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-        if (hash === provided_hash) {
-          res.status(200).send({id: result[0]._id});
-        } else {
-          res.status(401).send();
-        }
+      if(result && result.length) {  // User Exists
+        res.status(409).send();
+      } else {
+        createUser()
       }
     }
-  ).catch((error) => {   // Else, create user
-    let salt = crypto.randomBytes(16).toString('base64');
-    let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-    req.body.password = salt + "$" + hash;
-    req.body.permissionLevel = PERMISSION_LEVELS.USER;
-
-    UserModel.createUser(req.body)
-      .then((result) => {
-        res.status(201).send({id: result._id});
-      });
-    }
-  );
+  // Else, create user
+  ).catch(error => createUser());
 };
 
-
+exports.lookup = (req, res) => {
+  res.status(200).send({id: req.jwt.userId});
+};
 
 exports.list = (req, res) => {
   let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 10;

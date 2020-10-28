@@ -10,7 +10,11 @@ const UsersController = require('./controller.js');
 exports.configRoutes = (app) => {
   app.post('/api/v1/users', [
     DebugMiddleware.printRequest,
-    UsersController.findOrInsert
+    UsersController.insert
+  ]);
+  app.get('/api/v1/user-lookup', [
+    ValidationMiddleware.validJWTNeeded,
+    UsersController.lookup,
   ]);
   app.get('/api/v1/users', [
     DebugMiddleware.printRequest,
