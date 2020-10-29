@@ -12,25 +12,33 @@ const challengeSchema = new Schema({
   completions: [{type: Schema.Types.ObjectId, ref: 'challengeSubmission'}],
   structure: [{type: Schema.Types.ObjectId, ref: 'challengeFormField'}],
 });
-
 const Challenge = mongoose.model('challenge', challengeSchema);
 
+
+const SUBMISSION_STATUS = ["SUBMITTED", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'Users'},
   content: [{type: Schema.Types.ObjectId, ref: 'challengeFormField'}],
+  status: {type: String, enum: SUBMISSIONS_STATUS},
+  note: String, // If rejected, why? If accepted, a "good job" or something
 })
-
 const ChallengeSubmission = mongoose.model(
   'challengeSubmission',
   challengeSubmissionSchema,
 );
 
+const FIELD_TYPES = [
+  "NUMBER",                                 // Number
+  "DATE",                                   // String - iso format
+  "SWITCH",                                 // [String] - each selectable choice
+  "LEGAL_CHECK",                            // Boolean - has been checked
+  "TEXT_SHORT", "TEXT_MEDIUM", "TEXT_LONG", // String
+];
 const challengeFormFieldSchema = new Schema({
   title: String,
-  fieldType: String,
+  fieldType: {type: String, enum: FIELD_TYPES},
   content: Schema.Types.Mixed,
 });
-
 const ChallengeFormField = mongoose.model(
   'challengeFormField',
   challengeFormFieldSchema,

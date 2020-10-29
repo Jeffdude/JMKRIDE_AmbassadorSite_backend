@@ -10,10 +10,11 @@ const userSchema = new Schema({
   email: String,
   password: String,  // Salted + SHA512 hashed
   permissionLevel: String,
-  referralCode: { type: Schema.Types.ObjectId, ref: 'referralCode'},
-  challengeCompletions: [ {type: Schema.Types.ObjectId, ref: 'challengeSubmission'} ],
+  ambassadorApplication: { type: Schema.Types.ObjectId, ref: 'challengeSubmission' },
+  referralCode: { type: Schema.Types.ObjectId, ref: 'referralCode' },
+  challengeCompletions: [ { type: Schema.Types.ObjectId, ref: 'challengeSubmission' } ],
   ambassadorBalance: Number,
-  transactions: [ {type: Schema.Types.ObjectId, ref: 'transaction'} ],
+  transactions: [ { type: Schema.Types.ObjectId, ref: 'transaction' } ],
 });
 userSchema.virtual('id').get(function () {
   return this._id.toHexString();
@@ -35,9 +36,6 @@ exports.findByEmail = (email) => {
 exports.findById = (id) => {
   return User.findById(id)
     .then((result) => {
-      result = result.toJSON();
-      delete result._id;
-      delete result.__v;
       return result;
     });
 };

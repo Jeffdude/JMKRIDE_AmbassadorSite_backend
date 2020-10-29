@@ -2,16 +2,24 @@ const crypto = require('crypto');
 const uuid = require('uuid');
 const jwt = require('jsonwebtoken');
 
+const sessionModel = require('./model.js');
 const config = require('../config.js');
 
 const jwt_secret = config.jwt_secret;
 const jwt_options = config.jwt_options;
 
 exports.login = (req, res) => {
-  console.log(jwt_secret);
   try {
     let salt = crypto.randomBytes(16).toString('base64');
     req.body.refreshKey = salt;
+
+    sessionModel.createSession({
+      userId: req.body.userId.toHexString(),
+      sourceIP: req.ip,
+    }).then(result => {
+      console.log("result:", result);
+      req.body.sessionId = result._id.toHexString();
+    }).catch(error => {console.log("error:", error)});
 
     let token = jwt.sign(req.body, jwt_secret, jwt_options);
 

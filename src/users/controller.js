@@ -55,7 +55,7 @@ exports.getSelf = (req, res) => {
   UserModel.findById(req.jwt.userId)
     .then((result) => {
       delete(result.password);
-      res.status(200).send(result);
+      res.status(200).send(result.toJSON());
     });
 };
 
@@ -63,7 +63,7 @@ exports.getById = (req, res) => {
   UserModel.findById(req.params.userId)
     .then((result) => {
       delete(result.password);
-      res.status(200).send(result);
+      res.status(200).send(result.toJSON());
     });
 };
 exports.patchById = (req, res) => {
