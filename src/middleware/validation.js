@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const jwt_secret = require('../config.js').jwt_secret;
+const sessionModel = require('../auth/model.js');
 
 exports.verifyRefreshBodyField = (req, res, next) => {
   if (req.body && req.body.refresh_token) {
@@ -32,16 +33,21 @@ exports.validJWTNeeded = (req, res, next) => {
         return res.status(401).send();
       } else {
         req.jwt = jwt.verify(authorization[1], jwt_secret);
+
+        debugger;
+        sessionModel.updateSession({sessionId: req.jwt.sessionId, sourceIP: req.ip})
         return next();
       }
 
     } catch (err) {
+      console.log("error:", err);
       return res.status(403).send();
     }
   } else {
     return res.status(401).send();
   }
 };
+
 
 exports.validateCleanBodyFields = (allowedFields) => (req, res, next) => {
   for (let key in req.body) {

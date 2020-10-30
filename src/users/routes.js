@@ -14,6 +14,7 @@ exports.configRoutes = (app) => {
   ]);
   app.get('/api/v1/user-lookup', [
     ValidationMiddleware.validJWTNeeded,
+    DebugMiddleware.printJWT,
     UsersController.lookup,
   ]);
   app.get('/api/v1/users', [

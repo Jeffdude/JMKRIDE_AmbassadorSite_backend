@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const sessionModel = require('./model.js');
 const config = require('../config.js');
+const asyncRoute = require('../modules/async.js').asyncRoute;
 
 const jwt_secret = config.jwt_secret;
 const jwt_options = config.jwt_options;
@@ -13,13 +14,15 @@ exports.login = (req, res) => {
     let salt = crypto.randomBytes(16).toString('base64');
     req.body.refreshKey = salt;
 
+    req.body.sessionId = sessionModel.getId();
+
     sessionModel.createSession({
       userId: req.body.userId.toHexString(),
+      sessionId: req.body.sessionId,
       sourceIP: req.ip,
-    }).then(result => {
-      console.log("result:", result);
-      req.body.sessionId = result._id.toHexString();
-    }).catch(error => {console.log("error:", error)});
+    });
+
+    console.log("req.body:", req.body);
 
     let token = jwt.sign(req.body, jwt_secret, jwt_options);
 
