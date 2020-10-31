@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const UserModel = require('../users/model.js');
 
+const ObjectId = mongoose.Types.ObjectId;
+
 
 /* ------------------  Model Definition ------------------  */
 
@@ -19,7 +21,7 @@ const sessionModel = mongoose.model('session', sessionSchema);
 /* ------------------  Model Functions ------------------  */
 
 exports.getId = () => {
-  return mongoose.Types.ObjectID();
+  return new ObjectId;
 };
 
 exports.createSession = ({ userId, sourceIP, sessionId }, thenFn) => {
@@ -38,12 +40,15 @@ exports.createSession = ({ userId, sourceIP, sessionId }, thenFn) => {
   });
 }
 
-
 exports.updateSession = ({sessionId, sourceIP}) => {
-  sessionModel.findOneAndUpdate({ _id: sessionId }, {
+  return sessionModel.findOneAndUpdate({ _id: sessionId }, {
     lastUsedDate: Date.now(),
     lastUsedIP: sourceIP,
   });
+}
+
+exports.getById = (sessionId) => {
+  return sessionModel.findById(sessionId);
 }
 
 exports.disableUserSessions = (userId) => {

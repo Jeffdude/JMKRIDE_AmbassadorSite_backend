@@ -15,6 +15,7 @@ exports.login = (req, res) => {
     req.body.refreshKey = salt;
 
     req.body.sessionId = sessionModel.getId();
+    
 
     sessionModel.createSession({
       userId: req.body.userId.toHexString(),

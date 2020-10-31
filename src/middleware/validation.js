@@ -34,11 +34,25 @@ exports.validJWTNeeded = (req, res, next) => {
       } else {
         req.jwt = jwt.verify(authorization[1], jwt_secret);
 
-        debugger;
-        sessionModel.updateSession({sessionId: req.jwt.sessionId, sourceIP: req.ip})
-        return next();
+        sessionModel.getById(req.jwt.sessionId).then(
+          (session) => {
+            if(session.enabled) {
+                sessionModel.updateSession(
+                  {sessionId: req.jwt.sessionId, sourceIP: req.ip}
+                ).then(
+                  (result) => {return next()}
+                ).catch(error => {
+                  return res.status(500).send({errors: error});
+                })
+            } else {
+              return res.status(403).send({errors: 'Session token invalid'});
+            }
+          }
+        ).catch ((err) => {
+          console.log("session error:", err);
+          return res.status(500).send({errors: err});
+        })
       }
-
     } catch (err) {
       console.log("error:", err);
       return res.status(403).send();
