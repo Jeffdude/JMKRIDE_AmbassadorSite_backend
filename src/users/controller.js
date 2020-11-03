@@ -62,8 +62,10 @@ exports.getSelf = (req, res) => {
 exports.getById = (req, res) => {
   UserModel.findById(req.params.userId)
     .then((result) => {
-      delete(result.password);
-      res.status(200).send(result.toJSON());
+      let jsonResult = result.toJSON();
+      delete(jsonResult.password);
+      delete(jsonResult.__v);
+      res.status(200).send(jsonResult);
     });
 };
 exports.patchById = (req, res) => {

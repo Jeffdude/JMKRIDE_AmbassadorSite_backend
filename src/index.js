@@ -25,6 +25,10 @@ app.use(bodyParser.json());
 AuthRouter.configRoutes(app);
 UsersRouter.configRoutes(app);
 
+app.get('/server-status', [
+  (req, res) => res.status(200).send()
+]);
+
 
 app.listen(config.port, function () {
   console.log('AmbassadorSite-backend listening at port:', config.port);

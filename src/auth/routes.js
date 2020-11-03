@@ -24,4 +24,22 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validRefreshNeeded,
     AuthController.login
   ]);
+
+  app.get('/api/v1/auth/sessions', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.get_sessions
+  ]);
+
+  app.post('/api/v1/auth/sessions/disable-all', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.disable_all_sessions
+  ]);
+
+  app.post('/api/v1/auth/sessions/disable/:sessionId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.disable_session
+  ]);
 };

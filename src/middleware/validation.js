@@ -33,40 +33,18 @@ exports.validJWTNeeded = async (req, res, next) => {
         return res.status(401).send();
       } else {
         req.jwt = jwt.verify(authorization[1], jwt_secret);
-        let session_valid = await sessionModel.validSession(req.jwt.sessionId, req.jwt.userId);
-        debugger;
 
+        let session_valid = await sessionModel.validSession(req.jwt.sessionId, req.jwt.userId);
         if (session_valid){
           sessionModel.updateSession(
             {sessionId: req.jwt.sessionId, sourceIP: req.ip}
-          ).then(
-            (result) => {return next()}
+          ).then(() => next()
           ).catch(error => {
             return res.status(500).send({errors: error});
           });
         } else {
-          return res.status(403).send({errors: 'Session token invalid'});
+          return res.status(403).send();
         }
-        /*
-        sessionModel.getById(req.jwt.sessionId).then(
-          (session) => {
-            if(session.enabled) {
-                sessionModel.updateSession(
-                  {sessionId: req.jwt.sessionId, sourceIP: req.ip}
-                ).then(
-                  (result) => {return next()}
-                ).catch(error => {
-                  return res.status(500).send({errors: error});
-                })
-            } else {
-              return res.status(403).send({errors: 'Session token invalid'});
-            }
-          }
-        ).catch ((err) => {
-          console.log("session error:", err);
-          return res.status(500).send({errors: err});
-        })
-        */
       }
     } catch (err) {
       console.log("error:", err);

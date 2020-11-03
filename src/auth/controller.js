@@ -9,6 +9,11 @@ const asyncRoute = require('../modules/async.js').asyncRoute;
 const jwt_secret = config.jwt_secret;
 const jwt_options = config.jwt_options;
 
+const {
+  sendAndPrintErrorFn,
+  sendAndPrintError
+} = require('../modules/errors.js');
+
 exports.login = (req, res) => {
   try {
     let salt = crypto.randomBytes(16).toString('base64');
@@ -38,7 +43,7 @@ exports.login = (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).send({errors: err});
+    sendAndPrintError(err, res);
   }
 };
 
@@ -48,6 +53,28 @@ exports.refresh_token = (req, res) => {
     let token = jwt.sign(req.body, jwt_secret, jwt_options);
     res.status(201).send({id: token});
   } catch (err) {
-    res.status(500).send({errors: err});
+    sendAndPrintError(err, res);
   }
 };
+
+exports.get_sessions = (req, res) => {
+  try {
+    sessionModel.getByOwner(req.jwt.userId, true).then(  // enabled sessions
+      (sessions) => res.status(201).send(sessions)
+    ).catch(sendAndPrintErrorFn(res));
+  } catch (err) {
+    sendAndPrintError(err, res);
+  }
+};
+
+exports.disable_all_sessions = (req, res) => {}
+
+exports.disable_session = (req, res) => {
+  try {
+    sessionModel.getByOwner(req.jwt.userId, true).then(  // enabled sessions
+      (sessions) => res.status(201).send(sessions)
+    ).catch(sendAndPrintErrorFn(res));
+  } catch (err) {
+    sendAndPrintError(err, res);
+  }
+}

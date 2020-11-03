@@ -42,8 +42,10 @@ exports.updateSession = ({sessionId, sourceIP}) => {
   });
 }
 
-exports.getByOwner = (userId) => {
-  return sessionModel.find({owner: userId})
+exports.getByOwner = (userId, enabled) => {
+  return sessionModel.find(
+    {owner: userId, enabled: enabled}
+  ).select('lastUsedDate lastUsedIP -_id');
 }
 
 exports.getById = (sessionId) => {
@@ -52,7 +54,7 @@ exports.getById = (sessionId) => {
 
 exports.validSession = async (sessionId, userId) => {
   let session = await sessionModel.findById(sessionId).exec();
-  if (session && session.owner._id === userId) {
+  if (session && session.owner._id == userId) {
     return session.enabled;
   }
   return false;
