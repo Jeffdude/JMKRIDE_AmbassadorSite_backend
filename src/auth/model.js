@@ -9,7 +9,7 @@ const ObjectId = mongoose.Types.ObjectId;
 /* ------------------  Model Definition ------------------  */
 
 const sessionSchema = new Schema({
-  owner: { type: Schema.Types.ObjectId, ref: 'Users' },
+  owner: { type: Schema.Types.ObjectId, ref: 'user' },
   sessionId: String,
   lastUsedDate: Date,
   lastUsedIP: String,
@@ -25,19 +25,14 @@ exports.getId = () => {
 };
 
 exports.createSession = ({ userId, sourceIP, sessionId }, thenFn) => {
-  UserModel.findById(userId).then((user) => {
-    const newSession = new sessionModel({
-      owner: user,
-      _id: sessionId,
-      lastUsedDate: Date.now(),
-      lastUsedIP: sourceIP,
-      enabled: true,
-    });
-    return newSession.save();
-  }).catch(error => { 
-    console.log("User ID (", userId, ") not found:", error);
-    return;
+  const newSession = new sessionModel({
+    owner: userId,
+    _id: sessionId,
+    lastUsedDate: Date.now(),
+    lastUsedIP: sourceIP,
+    enabled: true,
   });
+  return newSession.save();
 }
 
 exports.updateSession = ({sessionId, sourceIP}) => {
@@ -47,8 +42,20 @@ exports.updateSession = ({sessionId, sourceIP}) => {
   });
 }
 
+exports.getByOwner = (userId) => {
+  return sessionModel.find({owner: userId})
+}
+
 exports.getById = (sessionId) => {
   return sessionModel.findById(sessionId);
+}
+
+exports.validSession = async (sessionId, userId) => {
+  let session = await sessionModel.findById(sessionId).exec();
+  if (session && session.owner._id === userId) {
+    return session.enabled;
+  }
+  return false;
 }
 
 exports.disableUserSessions = (userId) => {

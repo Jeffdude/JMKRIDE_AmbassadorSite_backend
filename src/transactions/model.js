@@ -11,16 +11,22 @@ const Schema = mongoose.Schema;
  *   source -> destination
  *   whereby each subject's type is either JMKRIDE, the User's bank
  *   or a User. 
- *   type: USER => Id: 'Users'
+ *   type: USER => Id: 'user'
  *   type: CODE => Id: 'referralCode'
  *   type: CHALLENGE => Id: 'challengeSubmission'
  *   type: USERSBANK => Id: TBD
  *
  */
-const transactionSubjects = ['USER', 'CODE', 'CHALLENGE', 'USERSBANK']
+const transactionSubjects = ['user', 'CODE', 'CHALLENGE', 'USERSBANK']
 const transactionSchema = new Schema({
-  sourceType: { type: String, enum: transactionSubjects } 
-  sourceId: Schema.Types.ObjectId,
+  sourceType: { 
+    type: String,
+    enum: transactionSubjects } 
+  source: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    refPath: 'sourceType',
+  },
   destinationType: { type: String, enum: transactionSubjects } 
   destinationId: Schema.Types.ObjectId,
   amount: Number,
@@ -29,7 +35,7 @@ const transaction = mongoose.model('transaction', transactionSchema);
 
 const referralCodeSchema = new Schema({
   name: String,
-  owner: { type: Schema.Types.ObjectId, ref: 'Users' },
+  owner: { type: Schema.Types.ObjectId, ref: 'user' },
   transcations: [ { type: Schema.Types.ObjectId, ref: 'transaction' } ],
 });
 const referralCode = mongoose.model('referralCode', referralCodeSchema);

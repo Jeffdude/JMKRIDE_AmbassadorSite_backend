@@ -16,15 +16,7 @@ const userSchema = new Schema({
   ambassadorBalance: Number,
   transactions: [ { type: Schema.Types.ObjectId, ref: 'transaction' } ],
 });
-userSchema.virtual('id').get(function () {
-  return this._id.toHexString();
-});
-// Ensure virtual fields are serialised.
-userSchema.set('toJSON', {virtuals: true});
-userSchema.findById = function (cb) {
-  return this.model('Users').find({id: this.id}, cb);
-};
-const User = mongoose.model('Users', userSchema);
+const User = mongoose.model('user', userSchema);
 
 
 /* ------------------  User Model Functions ------------------  */

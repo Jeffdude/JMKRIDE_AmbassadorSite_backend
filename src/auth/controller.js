@@ -18,7 +18,7 @@ exports.login = (req, res) => {
     
 
     sessionModel.createSession({
-      userId: req.body.userId.toHexString(),
+      userId: req.body.userId,
       sessionId: req.body.sessionId,
       sourceIP: req.ip,
     });
