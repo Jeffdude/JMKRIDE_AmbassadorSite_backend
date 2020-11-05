@@ -59,20 +59,43 @@ exports.refresh_token = (req, res) => {
 
 exports.get_sessions = (req, res) => {
   try {
-    sessionModel.getByOwner(req.jwt.userId, true).then(  // enabled sessions
-      (sessions) => res.status(201).send(sessions)
+    sessionModel.getByOwner(req.jwt.userId, true).lean().then(  // enabled sessions
+      (sessions) => {
+        let to_return = sessions.map((session) => {
+          if (session._id == req.jwt.sessionId) {
+            session.current = true;
+          }
+          session.id = session._id;
+          delete(session._id);
+          return session;
+        });
+        res.status(201).send(to_return)
+      }
     ).catch(sendAndPrintErrorFn(res));
   } catch (err) {
     sendAndPrintError(err, res);
   }
 };
 
-exports.disable_all_sessions = (req, res) => {}
+exports.disable_all_sessions = (req, res) => {
+  try {
+    sessionModel.disableUserSessions(req.jwt.userId).then(  // enabled sessions
+      return res.status(200).send()
+    ).catch(sendAndPrintErrorFn(res));
+  } catch (err) {
+    sendAndPrintError(err, res);
+  }
+}
 
 exports.disable_session = (req, res) => {
   try {
-    sessionModel.getByOwner(req.jwt.userId, true).then(  // enabled sessions
-      (sessions) => res.status(201).send(sessions)
+    sessionModel.disableSession(req.params.sessionId).then(  // enabled sessions
+      (session) => {
+        if(session){
+          return res.status(200).send()
+        }
+        return res.status(500).send()
+      }
     ).catch(sendAndPrintErrorFn(res));
   } catch (err) {
     sendAndPrintError(err, res);

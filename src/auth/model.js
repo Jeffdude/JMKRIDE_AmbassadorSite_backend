@@ -42,10 +42,14 @@ exports.updateSession = ({sessionId, sourceIP}) => {
   });
 }
 
+exports.disableSession = (sessionId) => {
+  return sessionModel.findOneAndUpdate({_id: sessionId}, {enabled: false})
+}
+
 exports.getByOwner = (userId, enabled) => {
   return sessionModel.find(
     {owner: userId, enabled: enabled}
-  ).select('lastUsedDate lastUsedIP -_id');
+  ).select('lastUsedDate lastUsedIP');
 }
 
 exports.getById = (sessionId) => {
