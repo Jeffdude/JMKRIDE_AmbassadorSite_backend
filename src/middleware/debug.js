@@ -5,12 +5,19 @@ exports.printRequest = (req, res, next) => {
     console.log("[DEBUG] Received request:", req);
   }
 
-  next();
+  return next();
 }
 
 exports.printJWT = (req, res, next) => {
   if (debug_enabled) {
     console.log("[DEBUG] JWT:", req.jwt);
   }
-  next();
+  return next();
+}
+
+exports.printBody = (req, res, next) => {
+  if (debug_enabled) {
+    console.log("[DEBUG] req.body:", req.body);
+  }
+  return next();
 }

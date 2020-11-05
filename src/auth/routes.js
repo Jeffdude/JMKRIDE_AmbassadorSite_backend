@@ -13,6 +13,7 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateCleanBodyFields(['email', 'password']),
     UsersMiddleware.hasAuthValidFields,
     UsersMiddleware.passwordAndUserMatch,
+    DebugMiddleware.printBody,
     AuthController.login
   ]);
 
@@ -20,8 +21,10 @@ exports.configRoutes = (app) => {
     DebugMiddleware.printRequest,
     ValidationMiddleware.validateCleanBodyFields(['refresh_token']),
     ValidationMiddleware.validJWTNeeded,
+    DebugMiddleware.printJWT,
     ValidationMiddleware.verifyRefreshBodyField,
     ValidationMiddleware.validRefreshNeeded,
+    DebugMiddleware.printBody,
     AuthController.login
   ]);
 
