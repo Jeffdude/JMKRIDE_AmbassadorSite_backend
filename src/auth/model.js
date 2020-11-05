@@ -13,6 +13,8 @@ const sessionSchema = new Schema({
   sessionId: String,
   lastUsedDate: Date,
   lastUsedIP: String,
+  // only one set of access_token/refresh_tokens is valid per session
+  refreshKey: String, 
   enabled: Boolean,
 });
 const sessionModel = mongoose.model('session', sessionSchema);
@@ -24,10 +26,11 @@ exports.getId = () => {
   return new ObjectId;
 };
 
-exports.createSession = ({ userId, sourceIP, sessionId }, thenFn) => {
+exports.createSession = ({ userId, sourceIP, sessionId, refreshKey }) => {
   const newSession = new sessionModel({
     owner: userId,
     _id: sessionId,
+    refreshKey: refreshKey,  
     lastUsedDate: Date.now(),
     lastUsedIP: sourceIP,
     enabled: true,
@@ -35,10 +38,18 @@ exports.createSession = ({ userId, sourceIP, sessionId }, thenFn) => {
   return newSession.save();
 }
 
+// called everytime session is seen and authenticated with API
 exports.updateSession = ({sessionId, sourceIP}) => {
   return sessionModel.findOneAndUpdate({ _id: sessionId }, {
     lastUsedDate: Date.now(),
     lastUsedIP: sourceIP,
+  });
+}
+
+// called when jwt is refreshed
+exports.refreshSession = ({sessionId, refreshKey}) => {
+  return sessionModel.findOneAndUpdate({ _id: sessionId }, {
+    refreshKey: refreshKey,
   });
 }
 
@@ -56,12 +67,14 @@ exports.getById = (sessionId) => {
   return sessionModel.findById(sessionId);
 }
 
-exports.validSession = async (sessionId, userId) => {
+exports.validSession = async ({sessionId, userId, refreshKey}) => {
   let session = await sessionModel.findById(sessionId).exec();
-  if (session && session.owner._id == userId) {
-    return session.enabled;
-  }
-  return false;
+  return (
+    session 
+    && session.owner._id == userId
+    && session.refreshKey == refreshKey
+    && session.enabled
+  )
 }
 
 exports.disableUserSessions = (userId) => {

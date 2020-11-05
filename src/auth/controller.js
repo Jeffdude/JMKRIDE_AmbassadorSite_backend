@@ -14,19 +14,27 @@ const {
   sendAndPrintError
 } = require('../modules/errors.js');
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
   try {
     let salt = crypto.randomBytes(16).toString('base64');
     req.body.refreshKey = salt;
 
-    req.body.sessionId = sessionModel.getId();
-    
+    if (req.body.sessionId) {
+      await sessionModel.refreshSession({
+        sessionId: req.body.sessionId,
+        refreshKey: salt,
+      }).exec();
+    } else {
+      req.body.sessionId = sessionModel.getId();
+      
 
-    sessionModel.createSession({
-      userId: req.body.userId,
-      sessionId: req.body.sessionId,
-      sourceIP: req.ip,
-    });
+      sessionModel.createSession({
+        userId: req.body.userId,
+        sessionId: req.body.sessionId,
+        sourceIP: req.ip,
+        refreshKey: salt,
+      });
+    }
 
     console.log("req.body:", req.body);
 
@@ -80,7 +88,7 @@ exports.get_sessions = (req, res) => {
 exports.disable_all_sessions = (req, res) => {
   try {
     sessionModel.disableUserSessions(req.jwt.userId).then(  // enabled sessions
-      return res.status(200).send()
+      () => res.status(200).send()
     ).catch(sendAndPrintErrorFn(res));
   } catch (err) {
     sendAndPrintError(err, res);
