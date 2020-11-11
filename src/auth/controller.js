@@ -95,9 +95,9 @@ exports.disable_all_sessions = (req, res) => {
   }
 }
 
-exports.disable_session = (req, res) => {
+const disable_session_id = (req, res, sessionId) => {
   try {
-    sessionModel.disableSession(req.params.sessionId).then(  // enabled sessions
+    sessionModel.disableSession(sessionId).then(  // enabled sessions
       (session) => {
         if(session){
           return res.status(200).send()
@@ -108,4 +108,12 @@ exports.disable_session = (req, res) => {
   } catch (err) {
     sendAndPrintError(err, res);
   }
+}
+
+exports.disable_session = (req, res) => {
+  disable_session_id(req, res, req.params.sessionId);
+}
+
+exports.disable_current_session = (req, res) => {
+  disable_session_id(req, res, req.jwt.sessionId);
 }

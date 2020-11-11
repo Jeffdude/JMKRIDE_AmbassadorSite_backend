@@ -45,4 +45,11 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     AuthController.disable_session
   ]);
+
+  app.post('/api/v1/auth/sessions/disable-self', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    DebugMiddleware.printJWT,
+    AuthController.disable_current_session
+  ]);
 };
