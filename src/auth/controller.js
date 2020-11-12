@@ -1,10 +1,8 @@
 const crypto = require('crypto');
-const uuid = require('uuid');
 const jwt = require('jsonwebtoken');
 
 const sessionModel = require('./model.js');
 const config = require('../config.js');
-const asyncRoute = require('../modules/async.js').asyncRoute;
 
 const jwt_secret = config.jwt_secret;
 const jwt_options = config.jwt_options;

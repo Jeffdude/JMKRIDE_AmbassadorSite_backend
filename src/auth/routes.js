@@ -1,5 +1,3 @@
-const config = require('../config.js');
-
 const DebugMiddleware = require('../middleware/debug.js');
 const UsersMiddleware = require('../middleware/users.js');
 const ValidationMiddleware = require('../middleware/validation.js');

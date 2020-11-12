@@ -19,7 +19,7 @@ const SUBMISSION_STATUS = ["SUBMITTED", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'user'},
   content: [{type: Schema.Types.ObjectId, ref: 'challengeFormField'}],
-  status: {type: String, enum: SUBMISSIONS_STATUS},
+  status: {type: String, enum: SUBMISSION_STATUS},
   note: String, // If rejected, why? If accepted, a "good job" or something
 })
 const ChallengeSubmission = mongoose.model(
