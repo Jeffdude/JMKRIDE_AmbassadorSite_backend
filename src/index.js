@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
+const ChallengesRouter = require('./challenges/routes.js');
 
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(function (req, res, next) {
 app.use(bodyParser.json());
 AuthRouter.configRoutes(app);
 UsersRouter.configRoutes(app);
+ChallengesRouter.configRoutes(app);
 
 app.get('/server-status', [
   (req, res) => res.status(200).send()

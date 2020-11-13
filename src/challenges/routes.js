@@ -7,11 +7,23 @@ const ValidationMiddleware = require('../middleware/validation.js');
 const ChallengeController = require('./controller.js');
 
 
-exports.configRouters = (app) => {
+exports.configRoutes = (app) => {
   app.post('/api/v1/challenges/create', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     ChallengeController.create
+  ]);
+  app.get('/api/v1/challenges/id/:challengeId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    ChallengeController.getById,
+  ]);
+  app.get('/api/v1/challenges/id/:challengeId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    ChallengeController.submitChallenge
   ]);
 }

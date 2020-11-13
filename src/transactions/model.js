@@ -5,23 +5,34 @@ const Schema = mongoose.Schema;
 /* ------------------- Model Definitions ------------------  */
 
 
+
+const bankInfoSchema = new Schema({
+  owner: {type: Schema.Types.ObjectId, ref: 'user'},
+}
+const bankInfo = mongoose.model(
+  'bankInfo',
+  bankInfoSchema,
+);
+
 /*
  * transactionSchema:
  *   transfer of (amount) exchange of ambassador points
  *   source -> destination
  *   whereby each subject's type is either JMKRIDE, the User's bank
  *   or a User. 
- *   type: USER => Id: 'user'
- *   type: CODE => Id: 'referralCode'
- *   type: CHALLENGE => Id: 'challengeSubmission'
- *   type: USERSBANK => Id: TBD
- *
+ *   source/destination can be of type: {
+ *     'user'
+ *     'referralCode'
+ *     'challengeSubmission'
+ *     'bankInfo'
+ *   }
  */
-const transactionSubjects = ['user', 'CODE', 'CHALLENGE', 'USERSBANK']
+const transactionSubjects = ['user', 'referralCode', 'challengeSubmission', 'bankInfo']
 const transactionSchema = new Schema({
   sourceType: { 
     type: String,
-    enum: transactionSubjects } 
+    enum: transactionSubjects,
+  }, 
   source: {
     type: Schema.Types.ObjectId,
     required: true,

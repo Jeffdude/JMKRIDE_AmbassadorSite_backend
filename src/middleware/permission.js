@@ -7,7 +7,6 @@ const permissionHelpers = require('../modules/permissions.js');
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
     let user_permission_level = req.jwt.permissionLevel;
-    let userId = req.jwt.userId;
     if(permissionHelpers.permissionLevelPasses(
       required_permission_level,
       user_permission_level,

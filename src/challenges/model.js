@@ -4,28 +4,6 @@ const Schema = mongoose.Schema;
 
 /* ------------------- Model Definitions ------------------  */
 
-const challengeSchema = new Schema({
-  title: String,
-  shortDescription: String,
-  longDescription: String,
-  award: Number,
-  completions: [{type: Schema.Types.ObjectId, ref: 'challengeSubmission'}],
-  structure: [{type: Schema.Types.ObjectId, ref: 'challengeFormField'}],
-});
-const Challenge = mongoose.model('challenge', challengeSchema);
-
-
-const SUBMISSION_STATUS = ["SUBMITTED", "APPROVED", "DENIED"];
-const challengeSubmissionSchema = new Schema({
-  author: {type: Schema.Types.ObjectId, ref: 'user'},
-  content: [{type: Schema.Types.ObjectId, ref: 'challengeFormField'}],
-  status: {type: String, enum: SUBMISSION_STATUS},
-  note: String, // If rejected, why? If accepted, a "good job" or something
-})
-const ChallengeSubmission = mongoose.model(
-  'challengeSubmission',
-  challengeSubmissionSchema,
-);
 
 const FIELD_TYPES = [
   "NUMBER",                                 // Number
@@ -37,25 +15,73 @@ const FIELD_TYPES = [
 const challengeFormFieldSchema = new Schema({
   title: String,
   fieldType: {type: String, enum: FIELD_TYPES},
-  content: Schema.Types.Mixed,
 });
 const ChallengeFormField = mongoose.model(
   'challengeFormField',
   challengeFormFieldSchema,
 );
 
+const challengeSchema = new Schema({
+  title: String,
+  shortDescription: String,
+  longDescription: String,
+  award: Number,
+  creator: {type: Schema.Types.ObjectId, ref: 'user'},
+  structure: [challengeFormFieldSchema],
+});
+const Challenge = mongoose.model('challenge', challengeSchema);
+
+
+const challengeSubmissionFormFieldSchema = new Schema({
+  field: {type: Schema.Types.ObjectId, ref: 'challengeFormField'},
+  content: {type: Schema.Types.Mixed}
+});
+const ChallengeSubmissionFormField = mongoose.model(
+  'challengeSubmissionFormField',
+  challengeSubmissionFormFieldSchema,
+);
+
+const SUBMISSION_STATUS = ["SUBMITTED", "APPROVED", "DENIED"];
+const challengeSubmissionSchema = new Schema({
+  author: {type: Schema.Types.ObjectId, ref: 'user'},
+  challenge: {type: Schema.Types.ObjectId, ref: 'challenge'},
+  content: [challengeSubmissionFormFieldSchema],
+  status: {type: String, enum: SUBMISSION_STATUS},
+  note: String, // If rejected, why? If accepted, a "good job" or something
+})
+const ChallengeSubmission = mongoose.model(
+  'challengeSubmission',
+  challengeSubmissionSchema,
+);
+
 
 /* ------------------- Model Functions ------------------  */
 
-exports.findChallengeById = (id) => {
-  return Challenge.findById(id)
-    .then((result) => {
-      result = result.toJSON();
-      delete result._id;
-      delete result.__v;
-      return result;
-    });
+exports.createChallenge = (challengeData) => {
+  const challenge = new Challenge(challengeData);
+  return challenge.save();
+}
+
+exports.updateChallengeById = (id, challengeData) => {
+  return Challenge.findOneAndUpdate({
+    _id: id,
+  }, challengeData);
+}
+
+exports.deleteChallengeById = (id) => {
+  return Challenge.deleteOne({_id: id});
+}
+
+exports.getChallengeById = (id) => {
+  return Challenge.findById(id);
 };
+
+exports.submitChallenge = (challengeId, challengeSubmissionData) => {
+  const submission = new ChallengeSubmission(challengeSubmissionData);
+  submission.challenge = challengeId;
+  submission.status = "SUBMITTED";
+  return submission.save();
+}
 
 exports.list = (perPage, page) => {
   return new Promise((resolve, reject) => {
