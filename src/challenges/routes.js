@@ -20,7 +20,7 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     ChallengeController.getById,
   ]);
-  app.get('/api/v1/challenges/id/:challengeId', [
+  app.post('/api/v1/challenges/id/:challengeId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
