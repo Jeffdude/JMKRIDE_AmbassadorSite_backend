@@ -1,22 +1,20 @@
 const mongoose = require('mongoose');
+const { mongooseOptions, prod_db_url, test_db_url } = require('../config.js');
+const { operationMode } = require('../environment.js');
+
+const db_url = {
+  production: prod_db_url,
+  development: prod_db_url,
+  unittest: test_db_url,
+}[operationMode]
 
 let count = 0;
 
-const options = {
-  autoIndex: false, // Don't build indexes
-  poolSize: 10, // Maintain up to 10 socket connections
-  // If not connected, return errors immediately rather than waiting for reconnect
-  bufferMaxEntries: 0,
-  // all other approaches are now deprecated by MongoDB:
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false
-};
 const connectWithRetry = () => {
   console.log('MongoDB connection with retry')
-  mongoose.connect("mongodb://localhost:27017/ambassadorsite-backend", options).then(()=>{
+  mongoose.connect(db_url, mongooseOptions).then(()=>{
     console.log('MongoDB is connected')
-  }).catch(err=>{
+  }).catch(() => {
     console.log('MongoDB connection unsuccessful, retry after 5 seconds. ', ++count);
     setTimeout(connectWithRetry, 5000)
   })

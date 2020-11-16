@@ -17,4 +17,16 @@ module.exports = {
     "ambassador": 5,
     "admin": 100,
   },
+  prod_db_url: "mongodb://localhost:27017/ambassadorsite-backend",
+  test_db_url: "mongodb://localhost:27017/ambassadorsite-backend-test",
+  mongooseOptions: {
+    autoIndex: false, // Don't build indexes
+    poolSize: 10, // Maintain up to 10 socket connections
+    // If not connected, return errors immediately rather than waiting for reconnect
+    bufferMaxEntries: 0,
+    // all other approaches are now deprecated by MongoDB:
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
+  },
 };

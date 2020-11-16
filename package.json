@@ -4,8 +4,8 @@
   "description": "The backend service for our ambassador site.",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "export NODE_ENV=development; node --inspect src/index.js",
+    "test": "export NODE_ENV=unittest; mocha"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,11 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "eslint": "^7.12.1"
+    "async": "^3.2.0",
+    "chai": "^4.2.0",
+    "eslint": "^7.12.1",
+    "mocha": "^8.2.1",
+    "mongodb-memory-server": "^6.9.2",
+    "supertest": "^6.0.1"
   }
 }

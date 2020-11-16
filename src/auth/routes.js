@@ -26,28 +26,37 @@ exports.configRoutes = (app) => {
     AuthController.login
   ]);
 
-  app.get('/api/v1/auth/sessions', [
+  /* ----------------------- Sessions ----------------------- */
+
+  app.get('/api/v1/auth/sessions/all', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    AuthController.get_sessions
+    AuthController.get_user_sessions
   ]);
 
-  app.post('/api/v1/auth/sessions/disable-all', [
+  app.delete('/api/v1/auth/sessions/all', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.disable_all_sessions
   ]);
 
-  app.post('/api/v1/auth/sessions/disable/:sessionId', [
-    DebugMiddleware.printRequest,
-    ValidationMiddleware.validJWTNeeded,
-    AuthController.disable_session
-  ]);
-
-  app.post('/api/v1/auth/sessions/disable-self', [
+  app.delete('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     DebugMiddleware.printJWT,
     AuthController.disable_current_session
   ]);
+
+  app.get('/api/v1/auth/sessions/id/:sessionId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.get_session
+  ]);
+
+  app.delete('/api/v1/auth/sessions/id/:sessionId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.disable_session
+  ]);
+
 };

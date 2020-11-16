@@ -12,6 +12,8 @@ const {
   sendAndPrintError
 } = require('../modules/errors.js');
 
+const { controller_run } = require('../modules/templates.js');
+
 exports.login = async (req, res) => {
   try {
     let salt = crypto.randomBytes(16).toString('base64');
@@ -63,7 +65,7 @@ exports.refresh_token = (req, res) => {
   }
 };
 
-exports.get_sessions = (req, res) => {
+exports.get_user_sessions = (req, res) => {
   try {
     sessionModel.getByOwner(req.jwt.userId, true).lean().then(  // enabled sessions
       (sessions) => {
@@ -83,29 +85,30 @@ exports.get_sessions = (req, res) => {
   }
 };
 
+exports.get_session = (req, res) => {
+  controller_run(req, res)(
+    () => sessionModel.getById(req.params.sessionId),
+    (result) => res.status(200).send(result),
+  )
+}
+
 exports.disable_all_sessions = (req, res) => {
-  try {
-    sessionModel.disableUserSessions(req.jwt.userId).then(  // enabled sessions
-      () => res.status(200).send()
-    ).catch(sendAndPrintErrorFn(res));
-  } catch (err) {
-    sendAndPrintError(err, res);
-  }
+  controller_run(req, res)(
+    () => sessionModel.disableUserSessions(req.jwt.userId), // enabled sessions
+    () => res.status(200).send(),
+  );
 }
 
 const disable_session_id = (req, res, sessionId) => {
-  try {
-    sessionModel.disableSession(sessionId).then(  // enabled sessions
-      (session) => {
-        if(session){
-          return res.status(200).send()
-        }
-        return res.status(500).send()
+  controller_run(req, res)(
+    () => sessionModel.disableSession(sessionId), // enabled sessions
+    (session) => {
+      if(session){
+        return res.status(200).send()
       }
-    ).catch(sendAndPrintErrorFn(res));
-  } catch (err) {
-    sendAndPrintError(err, res);
-  }
+      return res.status(500).send()
+    },
+  );
 }
 
 exports.disable_session = (req, res) => {

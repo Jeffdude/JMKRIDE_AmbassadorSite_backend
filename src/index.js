@@ -6,6 +6,9 @@ const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
 const ChallengesRouter = require('./challenges/routes.js');
 
+const { operationMode } = require('./environment.js');
+
+console.log("[+] Server running in", operationMode, "mode.")
 
 const app = express();
 
