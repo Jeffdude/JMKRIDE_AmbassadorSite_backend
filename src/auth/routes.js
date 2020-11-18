@@ -28,7 +28,7 @@ exports.configRoutes = (app) => {
 
   /* ----------------------- Sessions ----------------------- */
 
-  app.get('/api/v1/auth/sessions/all', [
+  app.get('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.get_user_sessions

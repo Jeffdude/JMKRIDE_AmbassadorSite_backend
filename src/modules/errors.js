@@ -1,6 +1,6 @@
 exports.sendAndPrintErrorFn = (res) => (error) => {
   console.log("[!] Caught error:", error);
-  res.status(500).send({errors: err});
+  res.status(500).send({errors: error});
 }
 
 exports.printErrorFn = (res) => (error) => {
@@ -10,7 +10,7 @@ exports.printErrorFn = (res) => (error) => {
 
 exports.sendAndPrintError = (error, res) => {
   console.log("[!] Caught error:", error);
-  res.status(500).send({errors: err});
+  res.status(500).send({errors: error});
 }
 
 exports.sendAndPrintError = (error, res) => {

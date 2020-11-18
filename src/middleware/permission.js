@@ -1,8 +1,6 @@
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-
-const secret = require('../config.js').jwt_secret;
 const permissionHelpers = require('../modules/permissions.js');
+
+const { permissionLevels } = require('../config.js')
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
@@ -24,7 +22,7 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
   if (req.params && req.params.userId && userId === req.params.userId) {
     return next();
   } else {
-    if (user_permission_level === config.permissionLevels.ADMIN) {
+    if (user_permission_level === permissionLevels.ADMIN) {
       return next();
     } else {
       return res.status(403).send();

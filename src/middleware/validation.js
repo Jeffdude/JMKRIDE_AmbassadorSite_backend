@@ -64,7 +64,7 @@ exports.validJWTNeeded = async (req, res, next) => {
 
 exports.validateCleanBodyFields = (allowedFields) => (req, res, next) => {
   for (let key in req.body) {
-    if (req.body.hasOwnProperty(key)){
+    if (Object.prototype.hasOwnProperty.call(req.body, key)){
       if (! allowedFields.includes(key)) {
         return res.status(400).send({error: 'Invalid request body'});
       }

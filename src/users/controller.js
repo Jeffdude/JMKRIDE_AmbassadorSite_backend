@@ -29,7 +29,7 @@ exports.insert = (req, res) => {
       }
     }
   // Else, create user
-  ).catch(error => createUser());
+  ).catch(createUser);
 };
 
 exports.lookup = (req, res) => {
@@ -76,7 +76,7 @@ exports.patchById = (req, res) => {
   }
 
   UserModel.patchUser(req.params.userId, req.body)
-    .then((result) => {
+    .then(() => {
       res.status(204).send({});
     });
 
@@ -84,7 +84,7 @@ exports.patchById = (req, res) => {
 
 exports.removeById = (req, res) => {
   UserModel.removeById(req.params.userId)
-    .then((result)=>{
+    .then(()=>{
       res.status(204).send({});
     });
 };

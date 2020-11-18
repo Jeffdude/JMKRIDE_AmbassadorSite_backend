@@ -8,7 +8,7 @@ const Schema = mongoose.Schema;
 
 const bankInfoSchema = new Schema({
   owner: {type: Schema.Types.ObjectId, ref: 'user'},
-}
+});
 const bankInfo = mongoose.model(
   'bankInfo',
   bankInfoSchema,
@@ -38,7 +38,7 @@ const transactionSchema = new Schema({
     required: true,
     refPath: 'sourceType',
   },
-  destinationType: { type: String, enum: transactionSubjects } 
+  destinationType: { type: String, enum: transactionSubjects },
   destinationId: Schema.Types.ObjectId,
   amount: Number,
 });
