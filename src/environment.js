@@ -1,9 +1,9 @@
 let operationMode = process.env.NODE_ENV;
-if (![
+if (!([
     "production",
     "development",
     "unittest",
-  ].contains(operationMode)
+  ].includes(operationMode))
 ){
   console.log("[!] Invalid NODE_ENV Environment Variable. Defaulting to \"development\".");
   operationMode = "development";
