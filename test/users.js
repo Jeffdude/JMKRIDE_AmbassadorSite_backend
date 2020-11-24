@@ -3,13 +3,13 @@ const { expect } = require('chai');
 const request = require('supertest');
 const test_db = require('./db.js');
 
-const request = require('supertest-as-promised');
+//const request = require('supertest-as-promised');
 const httpStatus = require('http-status');
 const sinon = require('sinon');
-const app = require('../index.js');
+const app = require('../src/index.js');
 
-require('sinon-mongoose');
-require('sinon-as-promised');
+require('../src/external/sinon-mongoose');
+//require('sinon-as-promised');
 
 
 describe('# Users API Requests #', () => {

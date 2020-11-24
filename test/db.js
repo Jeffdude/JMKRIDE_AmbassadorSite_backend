@@ -1,7 +1,7 @@
 const async = require('async');
 
-const mongoose = require('../modules/mongoose.js');
-const { operationMode } = require('../environment.js');
+const mongoose = require('../src/modules/mongoose.js');
+const { operationMode } = require('../src/environment.js');
 
 
 module.exports.clearDatabase = (callback) => {
