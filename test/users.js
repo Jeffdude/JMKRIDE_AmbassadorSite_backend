@@ -32,16 +32,17 @@ describe('# Users API Requests #', () => {
           email: "unittest@test.com",
           password: "unittest",
         })
+        .set('Accept', 'application/json')
         .expect(httpStatus.Created)
         .expect('Content-type', /json/)
-        .end((err, res) => {
+        .then(res => {
           console.log(res);
-          expect(res.created && res.ok);
-          expect(!err);
+          expect(res.created);
+          expect(res.ok);
+          expect(res.body);
           expect(res.body.id);
-          done();
-        });
-      done();
+        })
+        .end(done);
     });
   });
 
