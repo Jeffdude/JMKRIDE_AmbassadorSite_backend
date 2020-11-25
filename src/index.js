@@ -38,3 +38,5 @@ app.get('/server-status', [
 app.listen(config.port, function () {
   console.log('AmbassadorSite-backend listening at port:', config.port);
 });
+
+module.exports = app;

@@ -1,7 +1,9 @@
 const debug_enabled = require('../config.js').debug;
 
+const operationMode = require('../environment.js').operationMode;
+
 exports.printRequest = (req, res, next) => {
-  if (debug_enabled) {
+  if (debug_enabled && operationMode !== 'unittest') {
     console.log("[DEBUG] Received request:", req);
   }
 

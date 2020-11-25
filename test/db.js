@@ -13,7 +13,7 @@ module.exports.clearDatabase = (callback) => {
 
   function createAsyncFn(index) {
     fns.push((done) => {
-      mongoose.connection.collections[index].remove(() => {
+      mongoose.connection.collections[index].drop(() => {
         done();
       });
     });

@@ -17,7 +17,7 @@ describe('# Users API Requests #', () => {
 
   beforeEach((done) => {
     test_db.clearDatabase(() => {
-      sandbox = sinon.sandbox.create();
+      sandbox = sinon.createSandbox();
       done();
     });
   });
@@ -33,10 +33,15 @@ describe('# Users API Requests #', () => {
           password: "unittest",
         })
         .expect(httpStatus.Created)
-        .then(res => {
-          expect(res.body).to.have.property('id').which.is.not.undefined;
+        .expect('Content-type', /json/)
+        .end((err, res) => {
+          console.log(res);
+          expect(res.created && res.ok);
+          expect(!err);
+          expect(res.body.id);
           done();
         });
+      done();
     });
   });
 
