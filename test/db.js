@@ -13,9 +13,7 @@ module.exports.clearDatabase = (callback) => {
 
   function createAsyncFn(index) {
     fns.push((done) => {
-      mongoose.connection.collections[index].drop(() => {
-        done();
-      });
+      mongoose.connection.collections[index].drop(done);
     });
   }
 
@@ -25,5 +23,5 @@ module.exports.clearDatabase = (callback) => {
     }
   }
 
-  async.parallel(fns, () => callback());
+  async.parallel([], () => callback());
 }

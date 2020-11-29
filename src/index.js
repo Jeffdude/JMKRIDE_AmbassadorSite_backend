@@ -8,35 +8,41 @@ const ChallengesRouter = require('./challenges/routes.js');
 
 const { operationMode } = require('./environment.js');
 
-console.log("[+] Server running in", operationMode, "mode.")
 
-const app = express();
+function makeServer() {
+  const app = express();
 
-app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.header('Access-Control-Expose-Headers', 'Content-Length');
-  res.header('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type, X-Requested-With, Range');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  } else {
-    return next();
-  }
-});
+  console.log("[+] Server running in", operationMode, "mode.")
 
-app.use(bodyParser.json());
-AuthRouter.configRoutes(app);
-UsersRouter.configRoutes(app);
-ChallengesRouter.configRoutes(app);
+  app.use(function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+    res.header('Access-Control-Expose-Headers', 'Content-Length');
+    res.header('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type, X-Requested-With, Range');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    } else {
+      return next();
+    }
+  });
 
-app.get('/server-status', [
-  (req, res) => res.status(200).send()
-]);
+  app.use(bodyParser.json());
+  AuthRouter.configRoutes(app);
+  UsersRouter.configRoutes(app);
+  ChallengesRouter.configRoutes(app);
 
+  app.get('/server-status', [
+    (req, res) => res.status(200).send()
+  ]);
+  let server = app.listen(config.port, function () {
+    console.log('AmbassadorSite-backend listening at port:', config.port);
+  });
+  return server;
+}
 
-app.listen(config.port, function () {
-  console.log('AmbassadorSite-backend listening at port:', config.port);
-});
+module.exports = makeServer;
 
-module.exports = app;
+if (require.main === module) {
+  makeServer();
+}
