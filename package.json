@@ -35,6 +35,7 @@
     "eslint": "^7.12.1",
     "http-status": "^1.5.0",
     "mocha": "^8.2.1",
-    "run-sequence": "^2.2.1"
+    "run-sequence": "^2.2.1",
+    "sinon": "^9.2.1"
   }
 }
