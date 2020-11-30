@@ -51,7 +51,7 @@ exports.login = async (req, res) => {
     });
 
   } catch (err) {
-    sendAndPrintError(err, res);
+    sendAndPrintError(res, err);
   }
 };
 
@@ -61,7 +61,7 @@ exports.refresh_token = (req, res) => {
     let token = jwt.sign(req.body, jwt_secret, jwt_options);
     res.status(201).send({id: token});
   } catch (err) {
-    sendAndPrintError(err, res);
+    sendAndPrintError(res, err);
   }
 };
 

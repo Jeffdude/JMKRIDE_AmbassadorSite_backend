@@ -7,7 +7,7 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
   firstName: String,
   lastName: String,
-  email: String,
+  email: {type: String, unique: true},
   password: String,  // Salted + SHA512 hashed
   permissionLevel: String,
   ambassadorApplication: { type: Schema.Types.ObjectId, ref: 'challengeSubmission' },

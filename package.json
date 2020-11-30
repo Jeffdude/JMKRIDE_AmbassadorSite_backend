@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "export NODE_ENV=development; node --inspect src/index.js",
-    "test": "export NODE_ENV=unittest; mocha"
+    "test": "export NODE_ENV=unittest; mocha --inspect"
   },
   "repository": {
     "type": "git",
@@ -30,19 +30,11 @@
     "@babel/register": "^7.12.1",
     "async": "^3.2.0",
     "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "del": "^6.0.0",
     "eslint": "^7.12.1",
-    "gulp": "^4.0.2",
-    "gulp-env": "^0.4.0",
-    "gulp-mocha": "^7.0.2",
-    "gulp-plumber": "^1.2.1",
     "http-status": "^1.5.0",
     "mocha": "^8.2.1",
-    "mongodb-memory-server": "^6.9.2",
-    "run-sequence": "^2.2.1",
-    "sinon": "^9.2.1",
-    "sinon-as-promised": "^4.0.3",
-    "sinon-mongoose": "^2.3.0",
-    "supertest": "^6.0.1"
+    "run-sequence": "^2.2.1"
   }
 }

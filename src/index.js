@@ -5,7 +5,6 @@ const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
 const ChallengesRouter = require('./challenges/routes.js');
-
 const { operationMode } = require('./environment.js');
 
 
@@ -19,7 +18,10 @@ function makeServer() {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
     res.header('Access-Control-Expose-Headers', 'Content-Length');
-    res.header('Access-Control-Allow-Headers', 'Accept, Authorization, Content-Type, X-Requested-With, Range');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Accept, Authorization, Content-Type, X-Requested-With, Range'
+    );
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     } else {
@@ -28,6 +30,7 @@ function makeServer() {
   });
 
   app.use(bodyParser.json());
+
   AuthRouter.configRoutes(app);
   UsersRouter.configRoutes(app);
   ChallengesRouter.configRoutes(app);
@@ -35,6 +38,7 @@ function makeServer() {
   app.get('/server-status', [
     (req, res) => res.status(200).send()
   ]);
+
   let server = app.listen(config.port, function () {
     console.log('AmbassadorSite-backend listening at port:', config.port);
   });
@@ -44,5 +48,6 @@ function makeServer() {
 module.exports = makeServer;
 
 if (require.main === module) {
+  console.log('[+] Server is in standalone mode.');
   makeServer();
 }

@@ -1,35 +1,30 @@
 const UserModel = require('../users/model.js');
 const crypto = require('crypto');
 
+const {
+  sendAndPrintErrorFn,
+  sendAndPrintError
+} = require('../modules/errors.js');
+
 const PERMISSION_LEVELS = require('../config.js').permissionLevels;
 
 exports.insert = (req, res) => {
-  function createUser() {
-    let salt = crypto.randomBytes(16).toString('base64');
-    let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-    req.body.password = salt + "$" + hash;
-    req.body.permissionLevel = PERMISSION_LEVELS.USER;
-
-    UserModel.createUser(req.body).then((result) => {
-      res.status(201).send({id: result._id});
-    });
-  }
-
   if( !(req.body.email && req.body.password)) {
     return res.status(400).send({error: "Missing email or password"});
   }
 
-  // Check if user exists, check correct pw and return ID
-  UserModel.findByEmail(req.body.email).then(
-    (result) => {
-      if(result && result.length) {  // User Exists
-        res.status(409).send();
-      } else {
-        createUser()
-      }
-    }
-  // Else, create user
-  ).catch(createUser);
+  let salt = crypto.randomBytes(16).toString('base64');
+  let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
+  req.body.password = salt + "$" + hash;
+  req.body.permissionLevel = PERMISSION_LEVELS.USER;
+
+  try {
+    return UserModel.createUser(req.body).then((result) => {
+      return res.status(201).send({id: result._id});
+    }).catch(sendAndPrintErrorFn(res))
+  } catch (err) {
+    return sendAndPrintError(res, err);
+  }
 };
 
 exports.lookup = (req, res) => {

@@ -1,60 +1,87 @@
 const express = require('express');
 const { expect } = require('chai');
-const request = require('supertest');
-const test_db = require('./db.js');
 
-const httpStatus = require('http-status');
+const chai = require('chai');
+const chaiHttp = require('chai-http');
+chai.use(chaiHttp);
+
 const sinon = require('sinon');
 
-require('../src/external/sinon-mongoose');
-//require('sinon-as-promised');
+const test_db = require('./db.js');
 
-
-let server, sandbox;
+let server, agent;
 
 describe('# Server Endpoint Tests', function () {
-  beforeEach((done) => {
+  before((done) => {
     server = require('../src/index.js')();
-    sandbox = sinon.createSandbox();
-    test_db.clearDatabase(done);
+    done();
+  });
+
+  beforeEach((done) => {
+    agent = chai.request(server).keepOpen()
+    done();
   });
 
   afterEach((done) => {
-    sandbox.restore();
-    require('../src/modules/mongoose.js').connection.close(
-      () => server.close(done)
-    );
+    agent.close();
+    done();
+  });
+
+  after((done) => {
+    require('../src/modules/mongoose.js').connection.close(done);
   });
 
   it('server-status is OK', function testServerStatus(done) {
-    request(server)
-    .get('/server-status')
-    .expect(200, done);
+    agent
+      .get('/server-status')
+      .end(function(err, res) {
+        expect(res).to.have.status(200);
+        done(err)
+      });
   });
-
   describe('## Users API Requests #', () => {
     describe('### POST /users/create', () => {
-      it('should return the created task successfully', function testUserCreate(done) {
-        request(server)
+      it('should not create without email', function (done) {
+        agent
           .post('/api/v1/users/create')
           .send({
             firstName: "Unittest",
             lastName: "User",
-            email: "unittest@test.com",
-            password: "unittest",
+            password: "pass",
           })
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(201, done)
-          /*.end((err, res) => {
-            console.log(res);
-            expect(res.created);
-            expect(res.ok);
-            expect(res.body);
-            expect(res.body.id);
+          .end(function(err, res) {
+            expect(res).to.have.status(400);
+            expect(res.body.error).to.be.a('string');
+            expect(res.error).to.exist;
             done(err);
+          });
+      });
+      it('should not create without password', function (done) {
+        agent
+          .post('/api/v1/users/create')
+          .send({
+            firstName: "Unittest",
+            lastName: "User",
+            email: "testemail@email.com",
           })
-          */
+          .end(function(err, res) {
+            expect(res).to.have.status(400);
+            expect(res.body.error).to.be.a('string');
+            expect(res.error).to.exist;
+            done(err);
+          });
+      });
+      it('should create user', function (done) {
+        agent
+          .post('/api/v1/users/create')
+          .send({
+            email: "testemail@email.com",
+            password: "pass",
+          })
+          .end(function(err, res) {
+            expect(res).to.have.status(201);
+            done(err);
+          });
       });
     });
   });
