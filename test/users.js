@@ -20,24 +20,7 @@ const ValidationMiddleware = require(
   '../src/middleware/validation.js'
 )
 
-const mockValidJWTNeeded = (sandbox) => {
-  const fakeValidJWTNeeded = async (req, res, next) => {
-    //FIXME
-    // This must not be how you mock the jwt object. Hangs here.
-    req.jwt = {userId: mockid, permissionLevel: PERMISSION_LEVELS.USER}
-    return next()
-  }
-
-  let validJWTNeededMock = sandbox.replace(
-    ValidationMiddleware,
-    'validJWTNeeded',
-    fakeValidJWTNeeded
-  )
-
-  return validJWTNeededMock
-}
-
-let server, sandbox, agent, validJWTNeededMock;
+let server, sandbox, agent;
 
 describe('# Server Endpoint Tests', function () {
   before((done) => {
@@ -46,7 +29,6 @@ describe('# Server Endpoint Tests', function () {
 
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    validJWTNeededMock = mockValidJWTNeeded(sandbox);
     server = require('../src/index.js')(false);
     agent = chai.request(server).keepOpen();
     done();
@@ -55,11 +37,14 @@ describe('# Server Endpoint Tests', function () {
   afterEach((done) => {
     agent.close();
     sandbox.restore();
-    test_db.clearDatabase(done);
+    try {
+      test_db.clearDatabase(done);
+    } catch (error) {
+      done();
+    }
   });
 
   after((done) => {
-    console.log("after")
     require('../src/modules/mongoose.js').connection.close(done);
   });
 
@@ -125,7 +110,7 @@ describe('# Server Endpoint Tests', function () {
             done(err);
           });
       });
-      it('should find present user', function (done) {
+      it('should not find unauthenticated user', function (done) {
         let mockid = 'mockid';
         let mockuser = {
           _id: mockid,
@@ -133,30 +118,62 @@ describe('# Server Endpoint Tests', function () {
           password: 'shouldnotbereturned',
         };
 
-        //let mockFindById = sandbox.stub(
-        //  mongoose.model('user'), 'findById',
-        //).resolves(mockuser);
+        let mockFindById = sandbox.stub(
+          mongoose.model('user'), 'findById',
+        ).resolves(mockuser);
 
-        //let spyFindById = sandbox.spy(
-        //  UserModel, 'findById'
-        //);
-        console.log('before agent')
+        let spyFindById = sandbox.spy(
+          UserModel, 'findById'
+        );
 
         agent
           .get('/api/v1/users/id/' + mockid)
           .end(function(err, res) {
-            console.log('before agent')
-            expect(res).to.have.status(200);
-            expect(res._id).to.equal(mockid)
-            expect(res.email).to.be.a.string;
-            expect(res.password).to.be.undefined;
-            //assert(mockFindById.calledWith(mockid))
-            //assert(SpyFindById.calledWith(mockid))
-            assert(validJWTNeededMock.called);
+            expect(res).to.have.status(401);
+            assert(mockFindById.notCalled)
+            assert(spyFindById.notCalled)
             done(err)
           })
       });
-
+      it('should create, authenticate then find', function(done) {
+        agent
+          .post('/api/v1/users/create')
+          .send({
+            email: "testemail@email.com",
+            password: "pass",
+          })
+          .end(function(err, res) {
+            expect(res).to.have.status(201);
+            expect(res.body.id).to.exist;
+            let userid = res.body.id;
+            agent
+              .post('/api/v1/auth')
+              .send({
+                email: "testemail@email.com",
+                password: "pass",
+              })
+              .end(function(err, res) {
+                expect(res).to.have.status(201);
+                expect(res.body.accessToken).to.exist;
+                let accessToken = res.body.accessToken;
+                expect(res.body.refreshToken).to.exist;
+                expect(res.body.expiresIn).to.exist;
+                agent
+                  .get('/api/v1/users/id/' + userid)
+                  .set(
+                    'Authorization',
+                    'Bearer ' + accessToken,
+                  )
+                  .end(function(err, res) {
+                    expect(res).to.have.status(200);
+                    expect(res.body._id).to.exist;
+                    expect(res.body.email).to.equal('testemail@email.com');
+                    expect(res.body.permissionLevel).to.equal('user');
+                    done(err)
+                  })
+              })
+          })
+      });
     });
   });
 });

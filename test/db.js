@@ -12,16 +12,18 @@ module.exports.clearDatabase = (callback) => {
   const fns = [];
 
   function createAsyncFn(index) {
-    fns.push((done) => {
-      mongoose.connection.collections[index].drop(done);
+    fns.push(async () => {
+      await mongoose.connection.collections[index].drop().catch(() => {})
     });
   }
 
   for (const i in mongoose.connection.collections) {
-    if (Object.prototype.hasOwnProperty.call(mongoose.connection.collections, i)) {
+    if (
+      Object.prototype.hasOwnProperty.call(mongoose.connection.collections, i)
+    ) {
       createAsyncFn(i);
     }
   }
 
-  async.parallel([], callback);
+  async.parallel(fns, callback);
 }

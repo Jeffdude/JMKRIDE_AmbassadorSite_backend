@@ -11,14 +11,14 @@ exports.printRequest = (req, res, next) => {
 }
 
 exports.printJWT = (req, res, next) => {
-  if (debug_enabled) {
+  if (debug_enabled && operationMode !== 'unittest') {
     console.log("[DEBUG] JWT:", req.jwt);
   }
   return next();
 }
 
 exports.printBody = (req, res, next) => {
-  if (debug_enabled) {
+  if (debug_enabled && operationMode !== 'unittest') {
     console.log("[DEBUG] req.body:", req.body);
   }
   return next();

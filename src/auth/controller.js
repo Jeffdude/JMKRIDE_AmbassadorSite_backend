@@ -36,8 +36,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    console.log("req.body:", req.body);
-
     let token = jwt.sign(req.body, jwt_secret, jwt_options);
 
     let refreshId = req.body.userId + jwt_secret;
