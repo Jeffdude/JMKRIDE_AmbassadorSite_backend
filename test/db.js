@@ -23,5 +23,5 @@ module.exports.clearDatabase = (callback) => {
     }
   }
 
-  async.parallel([], () => callback());
+  async.parallel([], callback);
 }

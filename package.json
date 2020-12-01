@@ -28,6 +28,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.7",
     "@babel/register": "^7.12.1",
+    "@sinonjs/referee": "github:sinonjs/referee",
     "async": "^3.2.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
@@ -36,6 +37,8 @@
     "http-status": "^1.5.0",
     "mocha": "^8.2.1",
     "run-sequence": "^2.2.1",
-    "sinon": "^9.2.1"
+    "sinon": "^9.2.1",
+    "sinon-mongoose": "^2.3.0",
+    "sinon-promise": "^0.1.3"
   }
 }
