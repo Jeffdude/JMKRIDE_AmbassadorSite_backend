@@ -14,6 +14,7 @@ const assert = require('@sinonjs/referee').assert
 const mongoose = require('../src/modules/mongoose.js');
 
 const test_db = require('./db.js');
+const PERMISSION_LEVELS = require('../src/config.js').permissionLevels;
 const UserModel = require('../src/users/model.js');
 const ValidationMiddleware = require(
   '../src/middleware/validation.js'
@@ -21,13 +22,17 @@ const ValidationMiddleware = require(
 
 const mockValidJWTNeeded = (sandbox) => {
   const fakeValidJWTNeeded = async (req, res, next) => {
-    req.jwt = {userId: mockid}
+    //FIXME
+    // This must not be how you mock the jwt object. Hangs here.
+    req.jwt = {userId: mockid, permissionLevel: PERMISSION_LEVELS.USER}
     return next()
   }
 
-  let validJWTNeededMock = sandbox.stub(
-    ValidationMiddleware, 'validJWTNeeded'
-  ).callsFake(fakeValidJWTNeeded)
+  let validJWTNeededMock = sandbox.replace(
+    ValidationMiddleware,
+    'validJWTNeeded',
+    fakeValidJWTNeeded
+  )
 
   return validJWTNeededMock
 }
@@ -36,14 +41,14 @@ let server, sandbox, agent, validJWTNeededMock;
 
 describe('# Server Endpoint Tests', function () {
   before((done) => {
-    server = require('../src/index.js')();
     done();
   });
 
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
     validJWTNeededMock = mockValidJWTNeeded(sandbox);
-    agent = chai.request(server).keepOpen()
+    server = require('../src/index.js')(false);
+    agent = chai.request(server).keepOpen();
     done();
   });
 
@@ -54,6 +59,7 @@ describe('# Server Endpoint Tests', function () {
   });
 
   after((done) => {
+    console.log("after")
     require('../src/modules/mongoose.js').connection.close(done);
   });
 
@@ -127,23 +133,25 @@ describe('# Server Endpoint Tests', function () {
           password: 'shouldnotbereturned',
         };
 
-        let mockFindById = sandbox.stub(
-          mongoose.model('user'), 'findById',
-        ).resolves(mockuser);
+        //let mockFindById = sandbox.stub(
+        //  mongoose.model('user'), 'findById',
+        //).resolves(mockuser);
 
-        let spyFindById = sandbox.spy(
-          UserModel, 'findById'
-        );
+        //let spyFindById = sandbox.spy(
+        //  UserModel, 'findById'
+        //);
+        console.log('before agent')
 
         agent
           .get('/api/v1/users/id/' + mockid)
           .end(function(err, res) {
+            console.log('before agent')
             expect(res).to.have.status(200);
             expect(res._id).to.equal(mockid)
             expect(res.email).to.be.a.string;
             expect(res.password).to.be.undefined;
-            assert(mockFindById.calledWith(mockid))
-            assert(SpyFindById.calledWith(mockid))
+            //assert(mockFindById.calledWith(mockid))
+            //assert(SpyFindById.calledWith(mockid))
             assert(validJWTNeededMock.called);
             done(err)
           })

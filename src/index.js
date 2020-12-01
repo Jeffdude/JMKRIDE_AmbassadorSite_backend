@@ -8,10 +8,12 @@ const ChallengesRouter = require('./challenges/routes.js');
 const { operationMode } = require('./environment.js');
 
 
-function makeServer() {
+function makeServer(log = true) {
   const app = express();
 
-  console.log("[+] Server running in", operationMode, "mode.")
+  if (log) {
+    console.log("[+] Server running in", operationMode, "mode.")
+  }
 
   app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -40,7 +42,9 @@ function makeServer() {
   ]);
 
   let server = app.listen(config.port, function () {
-    console.log('AmbassadorSite-backend listening at port:', config.port);
+    if(log) {
+      console.log('AmbassadorSite-backend listening at port:', config.port);
+    }
   });
   return server;
 }
