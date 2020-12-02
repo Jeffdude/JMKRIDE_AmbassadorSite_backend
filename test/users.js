@@ -22,7 +22,7 @@ const ValidationMiddleware = require(
 
 let server, sandbox, agent;
 
-describe('# Server Endpoint Tests', function () {
+describe('# Users Endpoint Tests', function () {
   before((done) => {
     done();
   });
@@ -37,11 +37,7 @@ describe('# Server Endpoint Tests', function () {
   afterEach((done) => {
     agent.close();
     sandbox.restore();
-    try {
-      test_db.clearDatabase(done);
-    } catch (error) {
-      done();
-    }
+    test_db.clearDatabase(done);
   });
 
   after((done) => {

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "export NODE_ENV=development; node --inspect src/index.js",
-    "test": "export NODE_ENV=unittest; mocha --require test/async-dump.js --inspect"
+    "test": "export NODE_ENV=unittest; mocha --inspect"
   },
   "repository": {
     "type": "git",
