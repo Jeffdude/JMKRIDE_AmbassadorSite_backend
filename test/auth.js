@@ -19,9 +19,6 @@ const sessionModel = require('../src/auth/model.js');
 let server, sandbox, agent;
 
 describe('# Auth Endpoint Tests', function () {
-  before((done) => {
-    done();
-  });
 
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
@@ -33,7 +30,7 @@ describe('# Auth Endpoint Tests', function () {
   afterEach((done) => {
     agent.close();
     sandbox.restore();
-    test_db.clearDatabase(done);
+    test_db.clearDB(done);
   });
 
   after((done) => {
@@ -76,7 +73,7 @@ describe('# Auth Endpoint Tests', function () {
         .then(done)
         .catch(done)
     });
-    it('should auth with valid email and password', (done) => {
+    it('should succeed with valid email and password', (done) => {
       let UserModelMock = sandbox.stub(
         UserModel, 'findByEmail',
       ).resolves([
@@ -87,6 +84,11 @@ describe('# Auth Endpoint Tests', function () {
         }
       ])
 
+      let sessionModelCreateMock = sandbox.stub(
+        sessionModel, 'createSession'
+      ).resolves(true)
+
+
       agent
         .post('/api/v1/auth')
         .send({"email": "valid@test.com", "password": "valid"})
@@ -96,6 +98,7 @@ describe('# Auth Endpoint Tests', function () {
           expect(res.body.refreshToken).to.exist;
           expect(res.body.expiresIn).to.exist;
           assert(UserModelMock.called); 
+          assert(sessionModelCreateMock.called); 
         })
         .then(done)
         .catch(done)
@@ -122,7 +125,11 @@ describe('# Auth Endpoint Tests', function () {
         }
       ])
 
-      let sessionModelMock = sandbox.stub(
+      let sessionModelCreateMock = sandbox.stub(
+        sessionModel, 'createSession'
+      ).resolves(true)
+
+      let sessionModelValidMock = sandbox.stub(
         sessionModel, 'validSession'
       ).resolves(true)
  
@@ -139,6 +146,7 @@ describe('# Auth Endpoint Tests', function () {
           refreshToken = res.body.refreshToken;
           expect(res.body.expiresIn).to.exist;
           assert(UserModelMock.called); 
+          assert(sessionModelCreateMock.called); 
         })
         .then(() => {
           UserModelMock.resetHistory();
@@ -147,19 +155,131 @@ describe('# Auth Endpoint Tests', function () {
             .set('Authorization', 'Bearer ' + accessToken)
             .send({"refresh_token": refreshToken})
             .then((res) => {
-              //console.log(res)
               expect(res).to.have.status(201);
               expect(res.body.accessToken).to.exist;
               accessToken = res.body.accessToken;
               expect(res.body.refreshToken).to.exist;
               refreshToken = res.body.refreshToken;
               expect(res.body.expiresIn).to.exist;
-              assert(sessionModelMock.called)
+              assert(sessionModelValidMock.called)
             })
             .then(done)
             .catch(done)
         })
         .catch(done)
     });
+  });
+  describe('### GET /auth/sessions/self', () => {
+    it('should fail with invalid auth', (done) => {
+      agent
+        .get('/api/v1/auth/sessions/self')
+        .set(
+          'Authorization',
+          'Bearer ' +
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZmM3ZWU4MjEyN2ZiNGYzNmQwNjAxMDkiLCJlbWFpbCI6InZhbGlkQHRlc3QuY29tIiwicGVybWlzc2lvbkxldmVsIjoidXNlciIsInByb3ZpZGVyIjoiZW1haWwiLCJuYW1lIjoidW5kZWZpbmVkIHVuZGVmaW5lZCIsInJlZnJlc2hLZXkiOiJMMkk2dmgzZGtkWXRSRllXMmZJMHZRPT0iLCJzZXNzaW9uSWQiOiI1ZmM3ZWU4MjEyN2ZiNGYzNmQwNjAxMGEiLCJpYXQiOjE2MDY5MzgyNDIsImV4cCI6MTYwNzExMTA0Mn0.CKnWEDpE59QBLEtJ404NiEax3sgqKM97-l0ojlCX1JE'
+        )
+        .then((res) => {
+          expect(res).to.have.status(403);
+          expect(res.body).to.be.empty;
+        })
+        .then(done)
+        .catch(done)
+    });
+    it('should succeed with valid auth', (done) => {
+      let accessToken;
+
+      agent
+        .post('/api/v1/users/create')
+        .send({"email": "valid@test.com", "password": "valid"})
+        .then((res) => {
+          expect(res).to.have.status(201);
+        })
+        .then(() => {
+          agent
+            .post('/api/v1/auth')
+            .send({"email": "valid@test.com", "password": "valid"})
+            .then((res) => {
+              expect(res).to.have.status(201);
+              expect(res.body.accessToken).to.exist;
+              accessToken = res.body.accessToken;
+              expect(res.body.refreshToken).to.exist;
+              expect(res.body.expiresIn).to.exist;
+            })
+            .then(() => {
+              agent
+                .get('/api/v1/auth/sessions/self')
+                .set('Authorization', 'Bearer ' + accessToken)
+                .then((res) => {
+                  expect(res).to.have.status(200);
+                  expect(res.body.length).to.equal(1);
+                  expect(res.body[0].lastUsedDate).to.exist;
+                  expect(res.body[0].lastUsedIP).to.exist;
+                  assert(res.body[0].current);
+                  expect(res.body[0].id).to.exist;
+                })
+                .then(done)
+                .catch(done)
+            })
+            .catch(err => done(err))
+        })
+        .catch(err => done(err))
+    });
+    it('should return multiple sessions with valid auth', (done) => {
+      let accessToken;
+
+      agent
+        .post('/api/v1/users/create')
+        .send({"email": "valid@test.com", "password": "valid"})
+        .then((res) => {
+          expect(res).to.have.status(201);
+        })
+        .then(() => {
+          agent
+            .post('/api/v1/auth')
+            .send({"email": "valid@test.com", "password": "valid"})
+            .then((res) => {
+              expect(res).to.have.status(201);
+              expect(res.body.accessToken).to.exist;
+              expect(res.body.refreshToken).to.exist;
+              expect(res.body.expiresIn).to.exist;
+            })
+            .then(() => {
+              agent
+                .post('/api/v1/auth')
+                .send({"email": "valid@test.com", "password": "valid"})
+                .then((res) => {
+                  expect(res).to.have.status(201);
+                  expect(res.body.accessToken).to.exist;
+                  accessToken = res.body.accessToken;
+                  expect(res.body.refreshToken).to.exist;
+                  expect(res.body.expiresIn).to.exist;
+                })
+                .then(() => {
+                  agent
+                    .get('/api/v1/auth/sessions/self')
+                    .set('Authorization', 'Bearer ' + accessToken)
+                    .then((res) => {
+                      expect(res).to.have.status(200);
+                      expect(res.body.length).to.equal(2);
+                      expect(res.body[0].lastUsedDate).to.exist;
+                      expect(res.body[0].lastUsedIP).to.exist;
+                      assert(!res.body[0].current);
+                      expect(res.body[0].id).to.exist;
+                      expect(res.body[1].lastUsedDate).to.exist;
+                      expect(res.body[1].lastUsedIP).to.exist;
+                      assert(res.body[1].current);
+                      expect(res.body[1].id).to.exist;
+                    })
+                    .then(done)
+                    .catch(done)
+                })
+                .catch(err => done(err))
+            })
+            .catch(err => done(err))
+        })
+        .catch(err => done(err))
+    });
+  });
+  describe('### GET /auth/sessions/self', () => {
   });
 });

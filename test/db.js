@@ -4,7 +4,7 @@ const mongoose = require('../src/modules/mongoose.js');
 const { operationMode } = require('../src/environment.js');
 
 
-module.exports.clearDatabase = (callback) => {
+module.exports.clearDB_old1 = (callback) => {
   if (operationMode !== 'unittest') {
     throw new Error('Attempt to clear non testing database!');
   }
@@ -12,8 +12,8 @@ module.exports.clearDatabase = (callback) => {
   const fns = [];
 
   function createAsyncFn(index) {
-    fns.push(async () => {
-      await mongoose.connection.collections[index].drop().catch(() => {})
+    fns.push(async (done) => {
+      mongoose.connection.collections[index].drop().catch(() => {})
     });
   }
 
@@ -26,4 +26,25 @@ module.exports.clearDatabase = (callback) => {
   }
 
   async.parallel(fns, callback);
+}
+
+module.exports.clearDB_old2 = async (callback) => {
+  const collections = await mongoose.connection.db.collections();
+
+  const fns = [];
+  for (let collection of collections) {
+    if (
+      Object.prototype.hasOwnProperty.call(mongoose.connection.collections, i)
+    ) {
+      fns.push((callback) => mongoose.connection.dropCollection(collection).then(callback));
+    }
+  }
+  async.parrallel(fns, callback);
+};
+
+module.exports.clearDB = (callback) => {
+  if (operationMode !== 'unittest') {
+    throw new Error('Attempt to clear non testing database!');
+  }
+  mongoose.connection.dropDatabase().then(() => callback()).catch(console.error);
 }

@@ -19,9 +19,9 @@ let server, sandbox, agent;
 
 describe('# Users Endpoint Tests', function () {
   before((done) => {
+    mongoose.connectWithRetry();
     done();
-  });
-
+  })
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
     server = require('../src/index.js')(false);
@@ -32,20 +32,25 @@ describe('# Users Endpoint Tests', function () {
   afterEach((done) => {
     agent.close();
     sandbox.restore();
-    test_db.clearDatabase(done);
+    test_db.clearDB(done);
   });
 
   after((done) => {
-    require('../src/modules/mongoose.js').connection.close(done);
+    require('../src/modules/mongoose.js').connection.close(() => {
+      console.log("[+] MongoDB connection successfully destroyed.")
+      done()
+    });
   });
 
-  it('server-status is OK', function testServerStatus(done) {
-    agent
-      .get('/server-status')
-      .end(function(err, res) {
-        expect(res).to.have.status(200);
-        done(err)
-      });
+  describe('### GET /server-status', () => {
+    it('server-status is OK', function (done) {
+      agent
+        .get('/server-status')
+        .end(function(err, res) {
+          expect(res).to.have.status(200);
+          done(err)
+        });
+    });
   });
   describe('### POST /users/create', () => {
     it('should not create without email', function (done) {

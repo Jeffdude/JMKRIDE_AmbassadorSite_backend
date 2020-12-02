@@ -10,7 +10,7 @@ const db_url = {
 
 let count = 0;
 
-const connectWithRetry = () => {
+mongoose.connectWithRetry = () => {
   console.log('MongoDB connection with retry')
   mongoose.connect(db_url, mongooseOptions).then(()=>{
     console.log('MongoDB is connected to:', db_url)
@@ -24,6 +24,6 @@ const connectWithRetry = () => {
   })
 };
 
-connectWithRetry();
+mongoose.connectWithRetry();
 
 module.exports = mongoose;

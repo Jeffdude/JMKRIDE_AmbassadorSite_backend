@@ -28,7 +28,7 @@ exports.login = async (req, res) => {
       req.body.sessionId = sessionModel.getId();
       
 
-      sessionModel.createSession({
+      await sessionModel.createSession({
         userId: req.body.userId,
         sessionId: req.body.sessionId,
         sourceIP: req.ip,
@@ -75,7 +75,7 @@ exports.get_user_sessions = (req, res) => {
           delete(session._id);
           return session;
         });
-        res.status(201).send(to_return)
+        res.status(200).send(to_return)
       }
     ).catch(sendAndPrintErrorFn(res));
   } catch (err) {
