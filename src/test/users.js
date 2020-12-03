@@ -6,14 +6,14 @@ chai.use(chaiHttp);
 
 const sinon = require('sinon');
 // https://github.com/underscopeio/sinon-mongoose/issues/58
-require('../src/external/sinon-mongoose');
+require('../external/sinon-mongoose');
 require('sinon-promise');
 const assert = require('@sinonjs/referee').assert
 
-const mongoose = require('../src/modules/mongoose.js');
+const mongoose = require('../modules/mongoose.js');
 
 const test_db = require('./db.js');
-const UserModel = require('../src/users/model.js');
+const UserModel = require('../users/model.js');
 
 const debug = false;
 
@@ -26,7 +26,7 @@ describe('# Users Endpoint Tests', function () {
   })
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    server = require('../src/index.js')(debug);
+    server = require('../index.js')(debug);
     agent = chai.request(server).keepOpen();
     done();
   });
@@ -38,7 +38,7 @@ describe('# Users Endpoint Tests', function () {
   });
 
   after((done) => {
-    require('../src/modules/mongoose.js').connection.close(() => {
+    require('../modules/mongoose.js').connection.close(() => {
       if(debug) {
         console.log("[+] MongoDB connection successfully destroyed.")
       }
