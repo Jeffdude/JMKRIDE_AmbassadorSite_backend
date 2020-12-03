@@ -16,13 +16,19 @@ const test_db = require('./db.js');
 const UserModel = require('../src/users/model.js');
 const sessionModel = require('../src/auth/model.js');
 
+const debug = false;
+
 let server, sandbox, agent;
 
 describe('# Auth Endpoint Tests', function () {
 
+  before((done) => {
+    mongoose.connectWithRetry(debug);
+    done();
+  });
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    server = require('../src/index.js')(false);
+    server = require('../src/index.js')(debug);
     agent = chai.request(server).keepOpen();
     done();
   });
@@ -34,7 +40,12 @@ describe('# Auth Endpoint Tests', function () {
   });
 
   after((done) => {
-    require('../src/modules/mongoose.js').connection.close(done);
+    require('../src/modules/mongoose.js').connection.close(() => {
+      if(debug) {
+        console.log("[+] MongoDB connection successfully destroyed.")
+      }
+      done()
+  });
   });
   describe('### POST /auth', () => {
     it('should not auth without creds', (done) => {

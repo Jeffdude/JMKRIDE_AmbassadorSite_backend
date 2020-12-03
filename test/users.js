@@ -15,16 +15,18 @@ const mongoose = require('../src/modules/mongoose.js');
 const test_db = require('./db.js');
 const UserModel = require('../src/users/model.js');
 
+const debug = false;
+
 let server, sandbox, agent;
 
 describe('# Users Endpoint Tests', function () {
   before((done) => {
-    mongoose.connectWithRetry();
+    mongoose.connectWithRetry(debug);
     done();
   })
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    server = require('../src/index.js')(false);
+    server = require('../src/index.js')(debug);
     agent = chai.request(server).keepOpen();
     done();
   });
@@ -37,7 +39,9 @@ describe('# Users Endpoint Tests', function () {
 
   after((done) => {
     require('../src/modules/mongoose.js').connection.close(() => {
-      console.log("[+] MongoDB connection successfully destroyed.")
+      if(debug) {
+        console.log("[+] MongoDB connection successfully destroyed.")
+      }
       done()
     });
   });

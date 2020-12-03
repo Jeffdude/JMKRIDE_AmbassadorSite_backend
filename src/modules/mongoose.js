@@ -10,17 +10,21 @@ const db_url = {
 
 let count = 0;
 
-mongoose.connectWithRetry = () => {
-  console.log('MongoDB connection with retry')
+mongoose.connectWithRetry = (debug = true) => {
+  if(debug){
+    console.log('MongoDB connection with retry')
+  }
   mongoose.connect(db_url, mongooseOptions).then(()=>{
-    console.log('MongoDB is connected to:', db_url)
+    if(debug){
+      console.log('MongoDB is connected to:', db_url)
+    }
     mongoose.connection.on('error', err => {
       console.log('[!] Mongoose Runtime Connection Error:', err);
     });
   }).catch((error) => {
     console.log('MongoDB connection unsuccessful, retry after 5 seconds. ', ++count);
     console.log('[!] MongoDB connection Error:', error);
-    setTimeout(connectWithRetry, 5000)
+    setTimeout(() => mongoose.connectWithRetry(debug), 5000)
   })
 };
 
