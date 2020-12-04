@@ -1,13 +1,18 @@
+const operationMode = require('../environment.js').operationMode;
 /*
  * Fn postfixed functions should be used in .catch() blocks
  */
 exports.sendAndPrintErrorFn = (res) => (error) => {
-  console.log("[!] Caught error:", error);
-  return res.status(500).send({errors: error});
+  if(operationMode !== "unittest"){
+    console.log("[!] Caught error:", error);
+  }
+  return res.status(500).send({error: error.message});
 }
 
 exports.printErrorFn = (res) => (error) => {
-  console.log("[!] Caught error:", error);
+  if(operationMode !== "unittest"){
+    console.log("[!] Caught error:", error);
+  }
   return res.status(500).send();
 }
 
@@ -15,11 +20,15 @@ exports.printErrorFn = (res) => (error) => {
  * Non-Fn postfixed should be used in } catch (err) { blocks
  */
 exports.sendAndPrintError = (res, error) => {
-  console.log("[!] Caught error:", error);
-  return res.status(500).send({errors: error});
+  if(operationMode !== "unittest"){
+    console.log("[!] Caught error:", error);
+  }
+  return res.status(500).send({error: error.message});
 }
 
 exports.sendError = (res, error) => {
-  console.log("[!] Caught error:", error);
+  if(operationMode !== "unittest"){
+    console.log("[!] Caught error:", error);
+  }
   return res.status(500).send();
 }

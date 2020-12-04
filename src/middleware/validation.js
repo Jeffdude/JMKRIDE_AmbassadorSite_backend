@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const jwt_secret = require('../config.js').jwt_secret;
+const jwt_secret = require('../environment.js').JWTSecret;
 const sessionModel = require('../auth/model.js');
 
 exports.verifyRefreshBodyField = (req, res, next) => {

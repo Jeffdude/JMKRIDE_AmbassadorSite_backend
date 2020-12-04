@@ -5,6 +5,9 @@ const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
 const ChallengesRouter = require('./challenges/routes.js');
+
+const constantsLib = require('./constants/lib.js');
+
 const { operationMode } = require('./environment.js');
 
 
@@ -36,6 +39,8 @@ function makeServer(log = true) {
   AuthRouter.configRoutes(app);
   UsersRouter.configRoutes(app);
   ChallengesRouter.configRoutes(app);
+
+  constantsLib.initAmbassadorSiteState(log);
 
   app.get('/server-status', [
     (req, res) => res.status(200).send()

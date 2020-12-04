@@ -1,29 +1,27 @@
-const UserModel = require('../users/model.js');
 const crypto = require('crypto');
+
+const userModel = require('./model.js');
+const userLib = require('./lib.js');
 
 const {
   sendAndPrintErrorFn,
   sendAndPrintError
 } = require('../modules/errors.js');
 
-const PERMISSION_LEVELS = require('../config.js').permissionLevels;
-
 exports.insert = (req, res) => {
-  if( !(req.body.email && req.body.password)) {
-    return res.status(400).send({error: "Missing email or password"});
-  }
-
-  let salt = crypto.randomBytes(16).toString('base64');
-  let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-  req.body.password = salt + "$" + hash;
-  req.body.permissionLevel = PERMISSION_LEVELS.USER;
-
   try {
-    return UserModel.createUser(req.body).then((result) => {
-      return res.status(201).send({id: result._id});
-    }).catch(sendAndPrintErrorFn(res))
-  } catch (err) {
-    return sendAndPrintError(res, err);
+    userLib.createUser({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      password: req.body.password,
+    })
+      .then(result => {
+        return res.status(201).send({id: result._id});
+      })
+      .catch(sendAndPrintErrorFn(res))
+  } catch(error) {
+    sendAndPrintError(res, error);
   }
 };
 
@@ -40,14 +38,14 @@ exports.list = (req, res) => {
       page = Number.isInteger(req.query.page) ? req.query.page : 0;
     }
   }
-  UserModel.list(limit, page)
+  userModel.list(limit, page)
     .then((result) => {
       res.status(200).send(result);
     })
 };
 
 exports.getSelf = (req, res) => {
-  UserModel.findById(req.jwt.userId)
+  userModel.findById(req.jwt.userId)
     .then((result) => {
       delete(result.password);
       res.status(200).send(result.toJSON());
@@ -55,7 +53,7 @@ exports.getSelf = (req, res) => {
 };
 
 exports.getById = (req, res) => {
-  UserModel.findById(req.params.userId)
+  userModel.findById(req.params.userId)
     .then((result) => {
       let jsonResult = result.toJSON();
       delete(jsonResult.password);
@@ -70,7 +68,7 @@ exports.patchById = (req, res) => {
     req.body.password = salt + "$" + hash;
   }
 
-  UserModel.patchUser(req.params.userId, req.body)
+  userModel.patchUser(req.params.userId, req.body)
     .then(() => {
       res.status(204).send({});
     });
@@ -78,7 +76,7 @@ exports.patchById = (req, res) => {
 };
 
 exports.removeById = (req, res) => {
-  UserModel.removeById(req.params.userId)
+  userModel.removeById(req.params.userId)
     .then(()=>{
       res.status(204).send({});
     });

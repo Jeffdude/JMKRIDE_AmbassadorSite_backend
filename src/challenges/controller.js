@@ -1,4 +1,5 @@
-const challengeModel = require('./model.js')
+const challengeModel = require('./model.js');
+const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
 
@@ -12,6 +13,13 @@ exports.create = (req, res) => {
     (result) => res.status(201).send({id: result._id}),
   );
 }
+
+//exports.getAmbassadorApplication = (req, res) => {
+//  controller_run(req, res)(
+//    () => challengeModel.getChallengeById(challengeConstants.getAmbassadorApplicationId()),
+//    (result) => res.status(200).send(result),
+//  );
+//}
 
 exports.getById = (req, res) => {
   controller_run(req, res)(

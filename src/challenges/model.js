@@ -10,6 +10,7 @@ const FIELD_TYPES = [
   "DATE",                                   // String - iso format
   "SWITCH",                                 // [String] - each selectable choice
   "LEGAL_CHECK",                            // Boolean - has been checked
+  "YES_NO",                                 // Boolean - but displayed differently than check
   "TEXT_SHORT", "TEXT_MEDIUM", "TEXT_LONG", // String
 ];
 const challengeFormFieldSchema = new Schema({

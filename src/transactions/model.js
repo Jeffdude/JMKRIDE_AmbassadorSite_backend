@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 /* ------------------- Model Definitions ------------------  */
 
 
-
 const bankInfoSchema = new Schema({
   owner: {type: Schema.Types.ObjectId, ref: 'user'},
 });

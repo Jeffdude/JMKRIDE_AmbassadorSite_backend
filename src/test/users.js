@@ -66,7 +66,7 @@ describe('# Users Endpoint Tests', function () {
           password: "pass",
         })
         .end(function(err, res) {
-          expect(res).to.have.status(400);
+          expect(res).to.have.status(500);
           expect(res.body.error).to.be.a('string');
           expect(res.error).to.exist;
           done(err);
@@ -81,7 +81,7 @@ describe('# Users Endpoint Tests', function () {
           email: "testemail@email.com",
         })
         .end(function(err, res) {
-          expect(res).to.have.status(400);
+          expect(res).to.have.status(500);
           expect(res.body.error).to.be.a('string');
           expect(res.error).to.exist;
           done(err);
@@ -90,7 +90,7 @@ describe('# Users Endpoint Tests', function () {
     it('should create user', function (done) {
       let mockid = 'mockid'
 
-      let UserModelSpy = sandbox.spy(UserModel)
+      let UserModelSpy = sandbox.spy(UserModel, 'createUser')
       let UserMongooseModelStub = sandbox.stub(
         mongoose.model('user').prototype, 'save'
       ).resolves({'_id': mockid})
@@ -101,13 +101,18 @@ describe('# Users Endpoint Tests', function () {
           email: "testemail@email.com",
           password: "pass",
         })
-        .end(function(err, res) {
+        .then(res => {
+          console.log(1);
           expect(res).to.have.status(201);
+          console.log(2);
           expect(res.body.id).to.equal(mockid);
-          assert(UserModelSpy.createUser.calledOnce)
+          console.log(3);
+          assert(UserModelSpy.calledOnce)
+          console.log(4);
           assert(UserMongooseModelStub.called)
-          done(err);
-        });
+        })
+        .then(() => done())
+        .catch(err => done(err))
     });
     it('should not find unauthenticated user', function (done) {
       let mockid = 'mockid';
