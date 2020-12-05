@@ -40,7 +40,7 @@ function makeServer(log = true) {
   UsersRouter.configRoutes(app);
   ChallengesRouter.configRoutes(app);
 
-  constantsLib.initAmbassadorSiteState(log);
+  constantsLib.initSiteState(log);
 
   app.get('/server-status', [
     (req, res) => res.status(200).send()

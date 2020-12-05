@@ -53,7 +53,6 @@ exports.validJWTNeeded = async (req, res, next) => {
         }
       }
     } catch (err) {
-      console.log("error:", err);
       return res.status(403).send();
     }
   } else {

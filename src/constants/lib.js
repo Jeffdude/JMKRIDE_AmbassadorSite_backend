@@ -1,13 +1,13 @@
 const async = require('async');
 
 const constantModel = require('./model.js');
-const userModel = require('../users/model.js');
-const adminSecret = require('../environment.js').adminSecret;
 const permissionLevels = require('../config.js').permissionLevels;
 
-exports.getAdminUserId = () => {
-  return constantModel.getByName('adminUser');
-};
+const userConstants = require('../users/constants.js');
+const userModel = require('../users/model.js');
+
+const challengeConstants = require('../challenges/constants.js');
+const challengeModel = require('../challenges/model.js');
 
 exports.getAmbassadorApplication = () => {
   return constantModel.getByName('ambassadorApplication');
@@ -49,25 +49,26 @@ const createConstantFn = (
 };
 
 
-const createAdminUser = (debug) => 
-  createConstantFn(
-    'adminUser',
-    userModel.createUser, 
-    {
-      firstName: 'Admin',
-      lastName: 'User',
-      email: 'admin@admin.com',
-      password: adminSecret,
-    },
-    (res) => userModel.patchUser(res._id, {permissionsLevel: permissionLevels.ADMIN}),
-    debug,
-  );
-
 const nameToFn = {
-  'adminUser': createAdminUser
+  'adminUser': (debug) => 
+    createConstantFn(
+      'adminUser',
+      userModel.createUser, 
+      userConstants.adminUserData,
+      (res) => userModel.patchUser(res._id, {permissionsLevel: permissionLevels.ADMIN}),
+      debug,
+    ),
+  'ambassadorApplication': (debug) => 
+    createConstantFn(
+      'ambassadorApplication',
+      challengeModel.createChallenge,
+      challengeConstants.ambassadorApplicationData,
+      (res) => {},
+      debug,
+    ),
 }
 
-exports.initAmbassadorSiteState = (debug = true) => {
+exports.initSiteState = (debug = true) => {
   let buildfns = []; // functions to check constants and compile create funcs if needed
   let fns = [];      // all create funcs
 
@@ -81,18 +82,56 @@ exports.initAmbassadorSiteState = (debug = true) => {
             }
             fns.push(nameToFn[key](debug));
           } else if(debug) {
-            console.log('[+] Admin User already exists.');
+            console.log('[+]', key, 'already exists.');
           }
         })
         .catch(console.error)
     )
   });
 
-  Promise.all(buildfns).then(() => {
-    async.parallel(fns, () => {
-      if(debug) {
-        console.log('[+] Server constants nominal.');
-      }
+  Promise.all(buildfns)
+    .then(() => {
+      async.parallel(fns, () => {
+        if(debug) {
+          console.log('[+] Server constants nominal.');
+        }
+      })
     })
-  }).catch(console.error);
+    .then(() => {
+      console.log("here");
+      challengeConstants.getAmbassadorApplication()
+        .then(res => {
+          console.log("1", res);
+          if(res && res.id){
+            userConstants.getAdminUser()
+              .then(adminUser => {
+                console.log("2", adminUser);
+                challengeModel.getChallengeById(res.id)
+                  .then(ambassadorApplication => {
+                    console.log("3", ambassadorApplication);
+                    if(ambassadorApplication && ambassadorApplication.creator === undefined){
+                      challengeModel.updateChallengeById(
+                        ambassadorApplication._id,
+                        {creator: adminUser.id},
+                        res => {
+                          console.log(res);
+                          if(res.creator !== undefined) {
+                            if(debug) {
+                              console.log('[+] Ambassador Application creator set.')
+                            }
+                          }
+                        },
+                      )
+                      .catch(console.error);
+                    }
+                  })
+                  .catch(console.error)
+              })
+              .catch(console.error)
+          }
+        })
+        .catch(console.error)
+    })
+    .catch(console.error);
+  
 };

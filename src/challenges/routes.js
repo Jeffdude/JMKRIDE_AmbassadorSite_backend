@@ -14,12 +14,12 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     ChallengeController.create
   ]);
-  // app.get('/api/v1/challenges/ambassador-application', [
-  //   DebugMiddleware.printRequest,
-  //   ValidationMiddleware.validJWTNeeded,
-  //   PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-  //   ChallengeController.getAmbassadorApplication
-  // ]);
+  app.get('/api/v1/challenges/ambassador-application', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    ChallengeController.getAmbassadorApplication
+  ]);
   app.get('/api/v1/challenges/all', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,

@@ -3,6 +3,8 @@ const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
 
+const { sendAndPrintErrorFn } = require('../modules/errors.js');
+
 
 exports.create = (req, res) => {
   controller_run(req, res)(
@@ -14,12 +16,17 @@ exports.create = (req, res) => {
   );
 }
 
-//exports.getAmbassadorApplication = (req, res) => {
-//  controller_run(req, res)(
-//    () => challengeModel.getChallengeById(challengeConstants.getAmbassadorApplicationId()),
-//    (result) => res.status(200).send(result),
-//  );
-//}
+exports.getAmbassadorApplication = (req, res) => {
+  controller_run(req, res)(
+    () => 
+      challengeConstants.getAmbassadorApplication()
+        .then((result) => 
+          challengeModel.getChallengeById(result.id)
+        )
+        .catch(sendAndPrintErrorFn(res)),
+    (result) => res.status(200).send(result),
+  );
+}
 
 exports.getById = (req, res) => {
   controller_run(req, res)(

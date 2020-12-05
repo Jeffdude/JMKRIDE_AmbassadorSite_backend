@@ -63,10 +63,15 @@ exports.createChallenge = (challengeData) => {
   return challenge.save();
 }
 
-exports.updateChallengeById = (id, challengeData) => {
-  return Challenge.findOneAndUpdate({
-    _id: id,
-  }, challengeData);
+exports.updateChallengeById = (id, challengeData, callback = () => {}) => {
+  return Challenge.findOneAndUpdate(
+    {
+      _id: id,
+    },
+    challengeData,
+    {new: true},
+    callback,
+  );
 }
 
 exports.deleteChallengeById = (id) => {

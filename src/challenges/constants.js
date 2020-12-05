@@ -1,12 +1,14 @@
-const challengeModel = require('./model.js');
+const constantModel = require('../constants/model.js');
 
-//const userConstants = require('../users/constants.js');
+exports.getAmbassadorApplication = () => {
+  return constantModel.getByName('ambassadorApplication');
+};
 
-const ambassadorApplicationData = {
+exports.ambassadorApplicationData = {
   title: "Ambassador Application",
   shortDescription: "Apply to become an Ambassador for JMKRIDE",
   longDescription: (
-    "Welcome! This is the application form to become a brand ambassador for JMKRIDE " +
+    "Welcome! This is the application form to become a brand ambassador for JMKRIDE. " +
     "Please fill out all the information below, then click submit. " +
     "Reach out to us at jmkride.com/contact-us or via our social media inbox if you " +
     "have any questions or concerns. Thank you for being an awesome member of our community!"
@@ -28,6 +30,3 @@ const ambassadorApplicationData = {
     }
   ],
 }
-
-exports.getAmbassadorApplicationId = () => {
-};

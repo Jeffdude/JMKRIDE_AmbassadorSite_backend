@@ -88,12 +88,7 @@ describe('# Users Endpoint Tests', function () {
         });
     });
     it('should create user', function (done) {
-      let mockid = 'mockid'
-
       let UserModelSpy = sandbox.spy(UserModel, 'createUser')
-      let UserMongooseModelStub = sandbox.stub(
-        mongoose.model('user').prototype, 'save'
-      ).resolves({'_id': mockid})
 
       agent
         .post('/api/v1/users/create')
@@ -102,14 +97,9 @@ describe('# Users Endpoint Tests', function () {
           password: "pass",
         })
         .then(res => {
-          console.log(1);
           expect(res).to.have.status(201);
-          console.log(2);
-          expect(res.body.id).to.equal(mockid);
-          console.log(3);
-          assert(UserModelSpy.calledOnce)
-          console.log(4);
-          assert(UserMongooseModelStub.called)
+          expect(res.body.id).to.exist;
+          assert(UserModelSpy.called)
         })
         .then(() => done())
         .catch(err => done(err))
