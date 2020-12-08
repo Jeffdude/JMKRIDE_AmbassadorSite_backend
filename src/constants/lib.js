@@ -1,5 +1,3 @@
-const async = require('async');
-
 const constantModel = require('./model.js');
 const permissionLevels = require('../config.js').permissionLevels;
 
@@ -13,61 +11,69 @@ exports.getAmbassadorApplication = () => {
   return constantModel.getByName('ambassadorApplication');
 };
 
-const createConstantFn = (
-  constantName, creationFn, data, thenFn = (res => res), debug = true,
-) => (done) => {
-  creationFn(data)
-    .then((res) => {
-      if(! res) {
-        throw new Error('Failed to create constant:', data, res);
-      }
-      
-      if(res._id) {
-        constantModel.createConstant({
-          name: constantName,
-          id: res._id,
-        })
-          .then((res) => {
-            thenFn(res)
-              .then(() => {
-                if(debug) {
-                  console.log('[+] Created constant:', constantName);
-                }
-                done();
-              })
-              .catch(err => done(err));
+const createConstantPromise = (
+  constantName, creationFn, data, debug = true,
+) => {
+  return new Promise((resolve, reject) => {
+    creationFn(data)
+      .then((res) => {
+        if(! res) {
+          reject(new Error('Failed to create constant:', data, res));
+        }
+        if(res._id) {
+          constantModel.createConstant({
+            name: constantName,
+            id: res._id,
+          }).then(() => {
+            if(debug) {
+              console.log('[+] Created constant:', constantName);
+            }
+            resolve([constantName, res]);
           })
-          .catch(err => done(err));
-      } else {
-        throw new Error('Failed to create constant:', data, res.error);
-      }
-  })
-  .catch(err => {
-    console.log('[!] Error creating', constantName, ':', err.message);
-    done(err);
+          .catch(err => {
+            console.error('[!] Error resolving createFn err');
+            reject(err);
+          });
+        } else {
+          reject(new Error('Failed to create constant:', data, res.error));
+        }
+      })
+      .catch(err => {
+        console.log('[!] Error creating', constantName, ':', err.message);
+        reject(err);
+      });
   });
 };
 
 
 const nameToFn = {
   'adminUser': (debug) => 
-    createConstantFn(
+    createConstantPromise(
       'adminUser',
-      userModel.createUser, 
+      (userData) => { 
+        return userModel.createUser(userData) 
+          .then(res => userModel.patchUser(
+            res._id,
+            {permissionsLevel: permissionLevels.ADMIN},
+          )) // catch handled in createConstantPromise
+      },
       userConstants.adminUserData,
-      (res) => userModel.patchUser(res._id, {permissionsLevel: permissionLevels.ADMIN}),
       debug,
     ),
   'ambassadorApplication': (debug) => 
-    createConstantFn(
+    createConstantPromise(
       'ambassadorApplication',
       challengeModel.createChallenge,
       challengeConstants.ambassadorApplicationData,
-      (res) => {},
       debug,
     ),
 }
 
+/*
+ * Setup all constants for Ambassador Server
+ *
+ * Returns: Thenable
+ */
 exports.initSiteState = (debug = true) => {
   let buildfns = []; // functions to check constants and compile create funcs if needed
   let fns = [];      // all create funcs
@@ -89,49 +95,39 @@ exports.initSiteState = (debug = true) => {
     )
   });
 
-  Promise.all(buildfns)
+  const flattenResults = (resultMap) => new Promise((resolve) => {
+    let flatResults = {};
+    resultMap.forEach(result => flatResults[result[0]] = result[1]);
+    resolve(flatResults);
+  })
+
+  const setAmbassadorApplicationOwner = (resultMap) => new Promise((resolve, reject) => {
+    if(
+      Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
+      && Object.hasOwnProperty.call(resultMap, 'adminUser')
+    ){
+      challengeModel.updateChallengeById(
+        resultMap['ambassadorApplication']._id, 
+        {creator: resultMap['adminUser']._id},
+      )
+        .then(resolve)
+        .catch(reject)
+    } else {
+      resolve()
+    }
+  })
+
+  return Promise.all(buildfns)
     .then(() => {
-      async.parallel(fns, () => {
-        if(debug) {
-          console.log('[+] Server constants nominal.');
-        }
-      })
-    })
-    .then(() => {
-      console.log("here");
-      challengeConstants.getAmbassadorApplication()
-        .then(res => {
-          console.log("1", res);
-          if(res && res.id){
-            userConstants.getAdminUser()
-              .then(adminUser => {
-                console.log("2", adminUser);
-                challengeModel.getChallengeById(res.id)
-                  .then(ambassadorApplication => {
-                    console.log("3", ambassadorApplication);
-                    if(ambassadorApplication && ambassadorApplication.creator === undefined){
-                      challengeModel.updateChallengeById(
-                        ambassadorApplication._id,
-                        {creator: adminUser.id},
-                        res => {
-                          console.log(res);
-                          if(res.creator !== undefined) {
-                            if(debug) {
-                              console.log('[+] Ambassador Application creator set.')
-                            }
-                          }
-                        },
-                      )
-                      .catch(console.error);
-                    }
-                  })
-                  .catch(console.error)
-              })
-              .catch(console.error)
+      Promise.all(fns)
+        .then(flattenResults)
+        .then(setAmbassadorApplicationOwner)
+        .then((res) => {
+          if(debug) {
+            console.log('[+] Server constants nominal:', res);
           }
         })
-        .catch(console.error)
+        .catch(console.error);
     })
     .catch(console.error);
-  
 };

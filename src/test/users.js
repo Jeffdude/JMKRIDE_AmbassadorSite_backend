@@ -15,6 +15,8 @@ const mongoose = require('../modules/mongoose.js');
 const test_db = require('./db.js');
 const UserModel = require('../users/model.js');
 
+const makeServer = require('../index.js');
+
 const debug = false;
 
 let server, sandbox, agent;
@@ -26,9 +28,10 @@ describe('# Users Endpoint Tests', function () {
   })
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    server = require('../index.js')(debug);
+    let setupPromise;
+    [server, setupPromise] = makeServer(debug);
     agent = chai.request(server).keepOpen();
-    done();
+    setupPromise.then(done);
   });
 
   afterEach((done) => {

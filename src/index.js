@@ -40,7 +40,7 @@ function makeServer(log = true) {
   UsersRouter.configRoutes(app);
   ChallengesRouter.configRoutes(app);
 
-  constantsLib.initSiteState(log);
+  let setupPromise = constantsLib.initSiteState(log);
 
   app.get('/server-status', [
     (req, res) => res.status(200).send()
@@ -51,7 +51,8 @@ function makeServer(log = true) {
       console.log('AmbassadorSite-backend listening at port:', config.port);
     }
   });
-  return server;
+
+  return [server, setupPromise]
 }
 
 module.exports = makeServer;
