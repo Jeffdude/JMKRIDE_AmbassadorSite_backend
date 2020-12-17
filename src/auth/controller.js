@@ -75,7 +75,7 @@ exports.get_user_sessions = (req, res) => {
           delete(session._id);
           return session;
         });
-        res.status(200).send(to_return)
+        res.status(200).send(JSON.stringify(to_return));
       }
     ).catch(sendAndPrintErrorFn(res));
   } catch (err) {

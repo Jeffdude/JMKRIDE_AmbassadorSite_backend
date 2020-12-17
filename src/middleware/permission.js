@@ -1,6 +1,8 @@
 const permissionHelpers = require('../modules/permissions.js');
 
 const { permissionLevels } = require('../config.js')
+const { sendAndPrintErrorFn, sendAndPrintError } = require('../modules/errors.js');
+const challengeConstants = require('../challenges/constants.js');
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
@@ -14,6 +16,30 @@ exports.minimumPermissionLevelRequired = (required_permission_level) => {
       return res.status(403).send();
     }
   };
+};
+
+exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => {
+  let user_permission_level = req.jwt.permissionLevel;
+  if(permissionHelpers.permissionLevelPasses(
+    permissionLevels.AMBASSADOR,
+    user_permission_level,
+  )) {
+    return next();
+  } else if (req.params.challengeId !== undefined) {
+    try {
+      challengeConstants.getAmbassadorApplication()
+        .then(result => {
+          if(req.params.challengeId == result.id) {
+            return next();
+          } else {
+            return res.status(403).send();
+          }
+        })
+        .catch(sendAndPrintErrorFn(res))
+    } catch(error) {
+      sendAndPrintError(res, error)
+    }
+  }
 };
 
 exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {

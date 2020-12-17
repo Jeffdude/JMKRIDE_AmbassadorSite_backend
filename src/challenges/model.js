@@ -82,9 +82,8 @@ exports.getChallengeById = (id) => {
   return Challenge.findById(id);
 };
 
-exports.submitChallenge = (challengeId, challengeSubmissionData) => {
+exports.submitChallenge = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
-  submission.challenge = challengeId;
   submission.status = "SUBMITTED";
   return submission.save();
 }

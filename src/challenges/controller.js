@@ -18,26 +18,38 @@ exports.create = (req, res) => {
 
 exports.getAmbassadorApplication = (req, res) => {
   controller_run(req, res)(
-    () => 
+    challengeConstants.getAmbassadorApplication,
+    (result) => res.status(200).send(JSON.stringify(result.id)),
+  );
+}
+
+exports.submitAmbassadorApplication = (req, res) => {
+  controller_run(req, res)(
+    () =>
       challengeConstants.getAmbassadorApplication()
-        .then((result) => 
-          challengeModel.getChallengeById(result.id)
-        )
-        .catch(sendAndPrintErrorFn(res)),
-    (result) => res.status(200).send(result),
+        .then((result) =>
+          challengeModel.submitChallenge(result.id, req.body)
+        ),
+    () => res.status(201).send(),
   );
 }
 
 exports.getById = (req, res) => {
   controller_run(req, res)(
     () => challengeModel.getChallengeById(req.params.challengeId),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send(JSON.stringify(result)),
   );
 }
 
 exports.submitChallenge = (req, res) => {
+  let to_submit = {
+    author: req.jwt.userId,
+    challenge: req.params.challengeId,
+    ...req.body,
+  }
+
   controller_run(req, res)(
-    () => challengeModel.submitChallenge(req.params.challengeId, req.body),
+    () => challengeModel.submitChallenge(to_submit),
     () => res.status(201).send(),
   );
 }
@@ -48,6 +60,6 @@ exports.list = (req, res) => {
 
   controller_run(req, res)(
     () => challengeModel.list(perPage, page),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send(JSON.stringify(result)),
   );
 }
