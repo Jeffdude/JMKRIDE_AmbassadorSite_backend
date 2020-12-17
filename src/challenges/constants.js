@@ -22,7 +22,7 @@ exports.ambassadorApplicationData = {
     },
     {
       title: "Email",
-      fieldType: "TEXT_SHORT",
+      fieldType: "EMAIL",
     },
     {
       title: "Do you own JMKRIDE skates?",

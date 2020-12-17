@@ -11,6 +11,7 @@ const FIELD_TYPES = [
   "SWITCH",                                 // [String] - each selectable choice
   "LEGAL_CHECK",                            // Boolean - has been checked
   "YES_NO",                                 // Boolean - but displayed differently than check
+  "EMAIL",                                  // String - with validation
   "TEXT_SHORT", "TEXT_MEDIUM", "TEXT_LONG", // String
 ];
 const challengeFormFieldSchema = new Schema({

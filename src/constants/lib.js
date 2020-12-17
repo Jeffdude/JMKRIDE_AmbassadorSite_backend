@@ -124,7 +124,7 @@ exports.initSiteState = (debug = true) => {
         .then(setAmbassadorApplicationOwner)
         .then((res) => {
           if(debug) {
-            console.log('[+] Server constants nominal:', res);
+            console.log('[+] Server constants nominal.');
           }
         })
         .catch(console.error);

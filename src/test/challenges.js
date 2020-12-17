@@ -27,9 +27,10 @@ describe('# Challenges Endpoint Tests', function () {
   })
   beforeEach((done) => {
     sandbox = sinon.createSandbox();
-    server = require('../index.js')(debug);
+    let setupPromise;
+    [server, setupPromise] = require('../index.js')(debug);
     agent = chai.request(server).keepOpen();
-    done();
+    setupPromise.then(done);
   });
 
   afterEach((done) => {
