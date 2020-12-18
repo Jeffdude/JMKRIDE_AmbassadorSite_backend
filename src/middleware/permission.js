@@ -18,6 +18,11 @@ exports.minimumPermissionLevelRequired = (required_permission_level) => {
   };
 };
 
+/*
+ * Will call next() if the user is an ambassador...
+ *  OR the user is a USER and the query is for the ambassador application
+ * Otherwise, 403
+ */
 exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => {
   let user_permission_level = req.jwt.permissionLevel;
   if(permissionHelpers.permissionLevelPasses(
@@ -25,21 +30,33 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
     user_permission_level,
   )) {
     return next();
-  } else if (req.params.challengeId !== undefined) {
-    try {
-      challengeConstants.getAmbassadorApplication()
-        .then(result => {
-          if(req.params.challengeId == result.id) {
-            return next();
-          } else {
-            return res.status(403).send();
-          }
-        })
-        .catch(sendAndPrintErrorFn(res))
-    } catch(error) {
-      sendAndPrintError(res, error)
-    }
+  } else if (
+    permissionHelpers.permissionLevelPasses(
+      permissionLevels.USER,
+      user_permission_level,
+    )
+  ) {
+      if (req.params.challengeId !== undefined) {
+        try {
+          challengeConstants.getAmbassadorApplication()
+            .then(result => {
+              if(req.params.challengeId === result.id.toString()) {
+                return next();
+              } else {
+                return res.status(403).send()
+              }
+            })
+            .catch(sendAndPrintErrorFn(res))
+        } catch(error) {
+          sendAndPrintError(res, error)
+        }
+      } else { 
+        return res.status(403).send();
+      }
+  } else { 
+    return res.status(403).send();
   }
+
 };
 
 exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {

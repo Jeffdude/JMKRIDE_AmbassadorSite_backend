@@ -84,7 +84,6 @@ exports.getChallengeById = (id) => {
 
 exports.submitChallenge = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
-  submission.status = "SUBMITTED";
   return submission.save();
 }
 

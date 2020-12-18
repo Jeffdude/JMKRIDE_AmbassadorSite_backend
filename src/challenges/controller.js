@@ -23,33 +23,24 @@ exports.getAmbassadorApplication = (req, res) => {
   );
 }
 
-exports.submitAmbassadorApplication = (req, res) => {
-  controller_run(req, res)(
-    () =>
-      challengeConstants.getAmbassadorApplication()
-        .then((result) =>
-          challengeModel.submitChallenge(result.id, req.body)
-        ),
-    () => res.status(201).send(),
-  );
-}
-
 exports.getById = (req, res) => {
   controller_run(req, res)(
     () => challengeModel.getChallengeById(req.params.challengeId),
-    (result) => res.status(200).send(JSON.stringify(result)),
+    (result) => res.status(200).send(result),
   );
 }
 
 exports.submitChallenge = (req, res) => {
-  let to_submit = {
-    author: req.jwt.userId,
-    challenge: req.params.challengeId,
-    ...req.body,
-  }
+  let content = []
+  Object.keys(req.body).forEach(key => content.push({field: key, content: req.body[key]}))
 
   controller_run(req, res)(
-    () => challengeModel.submitChallenge(to_submit),
+    () => challengeModel.submitChallenge({
+      author: req.jwt.userId,
+      challenge: req.params.challengeId,
+      content: content,
+      status: "SUBMITTED",
+    }),
     () => res.status(201).send(),
   );
 }
