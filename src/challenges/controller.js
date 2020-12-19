@@ -23,10 +23,23 @@ exports.getAmbassadorApplication = (req, res) => {
   );
 }
 
-exports.getById = (req, res) => {
+exports.getChallenge = (req, res) => {
   controller_run(req, res)(
-    () => challengeModel.getChallengeById(req.params.challengeId),
+    () => challengeModel.getChallenge({challengeId: req.params.challengeId}),
     (result) => res.status(200).send(result),
+  );
+}
+
+exports.listChallenges = (req, res) => {
+  let perPage = req.query.perpage ? req.query.perpage : 15;
+  let page = req.query.page ? req.query.page : 0;
+
+  controller_run(req, res)(
+    () => challengeConstants.getAmbassadorApplication()
+      .then(result =>
+        challengeModel.listChallenges(perPage, page, {excludeChallenges: [result.id]})
+      ),
+    (result) => res.status(200).send(JSON.stringify(result)),
   );
 }
 
@@ -35,7 +48,7 @@ exports.submitChallenge = (req, res) => {
   Object.keys(req.body).forEach(key => content.push({field: key, content: req.body[key]}))
 
   controller_run(req, res)(
-    () => challengeModel.submitChallenge({
+    () => challengeModel.createSubmission({
       author: req.jwt.userId,
       challenge: req.params.challengeId,
       content: content,
@@ -45,12 +58,24 @@ exports.submitChallenge = (req, res) => {
   );
 }
 
-exports.list = (req, res) => {
+exports.getSubmission = (req, res) => {
+  controller_run(req, res)(
+    () => challengeModel.getSubmission(
+      { 
+        challengeId: req.params.challengeId,
+        userId: req.jwt.userId,
+      }
+    ),
+    (result) => res.status(200).send(JSON.stringify(result)),
+  );
+}
+
+exports.listSubmissions = (req, res) => {
   let perPage = req.query.perpage ? req.query.perpage : 15;
   let page = req.query.page ? req.query.page : 0;
 
   controller_run(req, res)(
-    () => challengeModel.list(perPage, page),
+    () => challengeModel.listSubmissions(perPage, page),
     (result) => res.status(200).send(JSON.stringify(result)),
   );
 }

@@ -78,18 +78,25 @@ exports.deleteChallengeById = (id) => {
   return Challenge.deleteOne({_id: id});
 }
 
-exports.getChallengeById = (id) => {
-  return Challenge.findById(id);
+exports.getChallenge = ({ challengeId }) => {
+  return Challenge.findById(challengeId);
 };
 
-exports.submitChallenge = (challengeSubmissionData) => {
+exports.createSubmission = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
   return submission.save();
 }
 
-exports.list = (perPage, page) => {
+exports.getSubmission = ({ challengeId, userId }) => {
+  return ChallengeSubmission.find({
+    author: userId,
+    challenge: challengeId,
+  })
+}
+
+exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
   return new Promise((resolve, reject) => {
-    Challenge.find()
+    Challenge.find({_id: {$nin: excludeChallenges}})
       .limit(perPage)
       .skip(perPage * page)
       .exec(function (err, challenges) {
