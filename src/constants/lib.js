@@ -130,16 +130,17 @@ exports.initSiteState = (debug = true) => {
 
   return Promise.all(buildfns)
     .then(() => {
-      Promise.all(fns)
+      let resultMap = Promise.all(fns)
         .then(flattenResults)
-        .then(setAmbassadorApplicationOwner)
-        .then(setAdminPermissions)
-        .then((res) => {
-          if(debug) {
-            console.log('[+] Server constants nominal.');
-          }
-        })
-        .catch(console.error);
+      Promise.all([
+        resultMap.then(setAmbassadorApplicationOwner),
+        resultMap.then(setAdminPermissions),
+      ]).then((res) => {
+        if(debug) {
+          console.log('[+] Server constants nominal.');
+        }
+      })
+      .catch(console.error);
     })
     .catch(console.error);
 };
