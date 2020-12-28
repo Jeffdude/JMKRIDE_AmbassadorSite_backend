@@ -17,9 +17,9 @@ if (! JWTSecret) {
 }
 module.exports.JWTSecret = JWTSecret;
 
-let AdminSecret = process.env.ADMIN_SECRET;
-if(! AdminSecret) {
+let adminSecret = process.env.ADMIN_SECRET;
+if(! adminSecret) {
   console.log("[!] No Admin secret specified. Defaulting to DEVEL only value")
-  AdminSecret = "pass"
+  adminSecret = "pass"
 }
-module.exports.AdminSecret = AdminSecret;
+module.exports.adminSecret = adminSecret;

@@ -3,6 +3,7 @@ const permissionLevels = require('../config.js').permissionLevels;
 
 const userConstants = require('../users/constants.js');
 const userModel = require('../users/model.js');
+const userLib = require('../users/lib.js');
 
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
@@ -50,13 +51,7 @@ const nameToFn = {
   'adminUser': (debug) => 
     createConstantPromise(
       'adminUser',
-      (userData) => { 
-        return userModel.createUser(userData) 
-          .then(res => userModel.patchUser(
-            res._id,
-            {permissionsLevel: permissionLevels.ADMIN},
-          )) // catch handled in createConstantPromise
-      },
+      (userData) => userLib.createUser(userData),
       userConstants.adminUserData,
       debug,
     ),
@@ -101,6 +96,22 @@ exports.initSiteState = (debug = true) => {
     resolve(flatResults);
   })
 
+  const setAdminPermissions = (resultMap) => new Promise((resolve, reject) => {
+    if(
+      Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
+      && Object.hasOwnProperty.call(resultMap, 'adminUser')
+    ){
+      userModel.patchUser(
+        resultMap['adminUser']._id, 
+        {permissionLevel: permissionLevels.ADMIN},
+      )
+        .then(resolve)
+        .catch(reject)
+    } else {
+      resolve()
+    }
+  })
+
   const setAmbassadorApplicationOwner = (resultMap) => new Promise((resolve, reject) => {
     if(
       Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
@@ -122,6 +133,7 @@ exports.initSiteState = (debug = true) => {
       Promise.all(fns)
         .then(flattenResults)
         .then(setAmbassadorApplicationOwner)
+        .then(setAdminPermissions)
         .then((res) => {
           if(debug) {
             console.log('[+] Server constants nominal.');
