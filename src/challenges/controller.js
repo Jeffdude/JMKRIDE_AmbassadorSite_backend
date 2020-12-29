@@ -1,4 +1,5 @@
 const challengeModel = require('./model.js');
+const challengeLib = require('./lib.js');
 const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
@@ -44,23 +45,19 @@ exports.listChallenges = (req, res) => {
 }
 
 exports.submitChallenge = (req, res) => {
-  let content = []
-  Object.keys(req.body).forEach(key => content.push({field: key, content: req.body[key]}))
-
   controller_run(req, res)(
-    () => challengeModel.createSubmission({
-      author: req.jwt.userId,
-      challenge: req.params.challengeId,
-      content: content,
-      status: "SUBMITTED",
+    () => challengeLib.createSubmission({
+      userId: req.jwt.userId,
+      challengeId: req.params.challengeId,
+      content: challengeLib.formatRequestContent(req.body),
     }),
     () => res.status(201).send(),
   );
 }
 
-exports.getSubmission = (req, res) => {
+exports.getSubmissions = (req, res) => {
   controller_run(req, res)(
-    () => challengeModel.getSubmission(
+    () => challengeModel.getSubmissions(
       { 
         challengeId: req.params.challengeId,
         userId: req.jwt.userId,

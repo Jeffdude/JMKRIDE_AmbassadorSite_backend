@@ -28,6 +28,7 @@ const challengeSchema = new Schema({
   shortDescription: String,
   longDescription: String,
   award: Number,
+  allowMultipleSubmissions: {type: Boolean, default: false},
   creator: {type: Schema.Types.ObjectId, ref: 'user'},
   structure: [challengeFormFieldSchema],
 });
@@ -87,7 +88,7 @@ exports.createSubmission = (challengeSubmissionData) => {
   return submission.save();
 }
 
-exports.getSubmission = ({ challengeId, userId }) => {
+exports.getSubmissions = ({ challengeId, userId }) => {
   return ChallengeSubmission.find({
     author: userId,
     challenge: challengeId,
@@ -106,5 +107,5 @@ exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
           resolve(challenges);
         }
       })
-  });
+  })
 }

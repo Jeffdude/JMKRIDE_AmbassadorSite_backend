@@ -41,7 +41,7 @@ exports.configRoutes = (app) => {
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
-    ChallengeController.getSubmission
+    ChallengeController.getSubmissions
   ]);
   app.get('/api/v1/challenges/submissions/all', [
     DebugMiddleware.printRequest,
