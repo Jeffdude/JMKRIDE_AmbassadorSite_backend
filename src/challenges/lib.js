@@ -1,5 +1,11 @@
 const challengeModel = require('./model.js');
 
+/* 
+ * Format ChallengeSubmissionContent from...
+ *  {<fieldId>: <fieldContent>, ...}
+ * to...
+ *  [{field: <fieldId>, content: <fieldContent>},...]
+ */
 exports.formatRequestContent = (content) => {
   let formatted_content = [];
   Object.keys(content).forEach(
@@ -8,28 +14,32 @@ exports.formatRequestContent = (content) => {
   return formatted_content;
 }
 
-const hasSubmission = (challengeId, userId) => 
-  challengeModel.getSubmissions({challengeId: challengeId, userId: userId})
-    .then(res => {debugger; return res.length >= 1})
 
-const canCreateSubmission = (challengeId, userId) => 
-  challengeModel.getChallenge({challengeId: challengeId})
-    .then(challenge => {
-      if(!challenge.allowMultipleSubmissions){
-        return hasSubmission(challengeId, userId)
-          .then(res => !res)
-      } else {
-        return new Promise((resolve, reject) => resolve(true));
-      }
-    })
-
+/*
+ * Create a new Submission
+ *  if allowMultipleSubmissions is false for the challenge, throws and error
+ */
 exports.createSubmission = ({userId, challengeId, content}) => {
+
+  const hasSubmission = (challengeId, userId) => 
+    challengeModel.getSubmissions({challengeId: challengeId, userId: userId})
+      .then(res => res.length >= 1)
+
+  const canCreateSubmission = async (challengeId, userId) => {
+    const challenge = await challengeModel.getChallenge({challengeId: challengeId})
+    if(!challenge.allowMultipleSubmissions){
+      return !(await hasSubmission(challengeId, userId));
+    } else {
+      return true
+    }
+  }
+
   return new Promise((resolve, reject) => {
     canCreateSubmission(challengeId, userId)
       .then(allowed => {
         if(allowed) {
           resolve(challengeModel.createSubmission({
-            userId: userId,
+            author: userId,
             challenge: challengeId,
             status: "SUBMITTED",
             content: content,
