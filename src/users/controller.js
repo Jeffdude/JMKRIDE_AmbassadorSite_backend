@@ -44,21 +44,13 @@ exports.list = (req, res) => {
     })
 };
 
-exports.getSelf = (req, res) => {
-  userModel.findById(req.jwt.userId)
-    .then((result) => {
-      delete(result.password);
-      res.status(200).send(result.toJSON());
-    });
-};
-
 exports.getById = (req, res) => {
   userModel.findById(req.params.userId)
     .then((result) => {
-      let jsonResult = result.toJSON();
-      delete(jsonResult.password);
-      delete(jsonResult.__v);
-      res.status(200).send(jsonResult);
+      let resultObject = result.toObject();
+      delete(resultObject.password);
+      delete(resultObject.__v);
+      res.status(200).send(resultObject);
     });
 };
 exports.patchById = (req, res) => {

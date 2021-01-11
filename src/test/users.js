@@ -168,6 +168,44 @@ describe('# Users Endpoint Tests', function () {
                   expect(res.body._id).to.exist;
                   expect(res.body.email).to.equal('testemail@email.com');
                   expect(res.body.permissionLevel).to.equal('user');
+                  expect(res.body.password).to.not.exist;
+                  done(err)
+                })
+            })
+        })
+    });
+    it('should create, authenticate then lookup self', function(done) {
+      agent
+        .post('/api/v1/users/create')
+        .send({
+          email: "testemail@email.com",
+          password: "pass",
+        })
+        .end(function(err, res) {
+          expect(res).to.have.status(201);
+          expect(res.body.id).to.exist;
+          let userid = res.body.id;
+          agent
+            .post('/api/v1/auth')
+            .send({
+              email: "testemail@email.com",
+              password: "pass",
+            })
+            .end(function(err, res) {
+              expect(res).to.have.status(201);
+              expect(res.body.accessToken).to.exist;
+              let accessToken = res.body.accessToken;
+              expect(res.body.refreshToken).to.exist;
+              expect(res.body.expiresIn).to.exist;
+              agent
+                .get('/api/v1/users/self')
+                .set(
+                  'Authorization',
+                  'Bearer ' + accessToken,
+                )
+                .end(function(err, res) {
+                  expect(res).to.have.status(200);
+                  expect(res.body.id).to.exist;
                   done(err)
                 })
             })
