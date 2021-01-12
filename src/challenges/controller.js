@@ -4,8 +4,6 @@ const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
 
-const { sendAndPrintErrorFn } = require('../modules/errors.js');
-
 
 exports.create = (req, res) => {
   controller_run(req, res)(
