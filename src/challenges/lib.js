@@ -14,28 +14,27 @@ exports.formatRequestContent = (content) => {
   return formatted_content;
 }
 
-
-/*
- * Create a new Submission
- *  if allowMultipleSubmissions is false for the challenge, throws and error
- */
-exports.createSubmission = ({userId, challengeId, content}) => {
-
+exports.submissionsAllowed = async ({ challengeId, userId }) => {
   const hasSubmission = (challengeId, userId) => 
     challengeModel.getSubmissions({challengeId: challengeId, userId: userId})
       .then(res => res.length >= 1)
 
-  const canCreateSubmission = async (challengeId, userId) => {
-    const challenge = await challengeModel.getChallenge({challengeId: challengeId})
-    if(!challenge.allowMultipleSubmissions){
-      return !(await hasSubmission(challengeId, userId));
-    } else {
-      return true
-    }
+  const challenge = await challengeModel.getChallenge({challengeId: challengeId})
+  if(!challenge.allowMultipleSubmissions){
+    return !(await hasSubmission(challengeId, userId));
+  } else {
+    return true
   }
+}
 
+
+/*
+ * Create a new Submission
+ *  if submissions not allowed for the challenge, throws an error
+ */
+exports.createSubmission = ({userId, challengeId, content}) => {
   return new Promise((resolve, reject) => {
-    canCreateSubmission(challengeId, userId)
+    exports.submissionsAllowed(challengeId, userId)
       .then(allowed => {
         if(allowed) {
           resolve(challengeModel.createSubmission({

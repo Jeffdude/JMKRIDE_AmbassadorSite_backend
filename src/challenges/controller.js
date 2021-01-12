@@ -55,6 +55,16 @@ exports.submitChallenge = (req, res) => {
   );
 }
 
+exports.submissionAllowed = (req, res) => {
+  controller_run(req, res)(
+    () => challengeLib.submissionsAllowed({
+      userId: req.jwt.userId,
+      challengeId: req.params.challengeId,
+    }),
+    (result) => res.status(200).send(result),
+  );
+}
+
 exports.getSubmissions = (req, res) => {
   controller_run(req, res)(
     () => challengeModel.getSubmissions(
