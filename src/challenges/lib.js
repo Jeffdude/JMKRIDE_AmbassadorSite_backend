@@ -34,7 +34,7 @@ exports.submissionsAllowed = async ({ challengeId, userId }) => {
  */
 exports.createSubmission = ({userId, challengeId, content}) => {
   return new Promise((resolve, reject) => {
-    exports.submissionsAllowed(challengeId, userId)
+    exports.submissionsAllowed({challengeId: challengeId, userId: userId})
       .then(allowed => {
         if(allowed) {
           resolve(challengeModel.createSubmission({
@@ -48,7 +48,7 @@ exports.createSubmission = ({userId, challengeId, content}) => {
         }
       })
       .catch(error => reject(
-        new Error("Error in canCreateSubmission:" + error.toString()))
+        new Error("Error in submissionsAllowed:" + error.toString()))
       );
   });
 }
