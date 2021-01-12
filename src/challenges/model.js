@@ -31,7 +31,7 @@ const challengeSchema = new Schema({
   allowMultipleSubmissions: {type: Boolean, default: false},
   creator: {type: Schema.Types.ObjectId, ref: 'user'},
   structure: [challengeFormFieldSchema],
-});
+}, { timestamps: true });
 const Challenge = mongoose.model('challenge', challengeSchema);
 
 
@@ -51,7 +51,7 @@ const challengeSubmissionSchema = new Schema({
   content: [challengeSubmissionFormFieldSchema],
   status: {type: String, enum: SUBMISSION_STATUS},
   note: String, // If rejected, why? If accepted, a "good job" or something
-})
+}, { timestamps: true });
 const ChallengeSubmission = mongoose.model(
   'challengeSubmission',
   challengeSubmissionSchema,
