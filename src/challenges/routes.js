@@ -8,12 +8,21 @@ const ChallengeController = require('./controller.js');
 
 
 exports.configRoutes = (app) => {
+  /* Challenge creation endpoints - ADMIN only */
+  app.get('/api/v1/challenges/fields', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getChallengeFields
+  ]);
   app.post('/api/v1/challenges/create', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
-    ChallengeController.create
+    ChallengeController.createChallenge
   ]);
+
+  /* Challenge Interface - USER & AMBASSADOR */
   app.get('/api/v1/challenges/ambassador-application', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
@@ -37,6 +46,8 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
     ChallengeController.submitChallenge
   ]);
+
+  /* Submissions Interface - USER & AMBASSADOR */
   app.get('/api/v1/challenges/submissions_allowed/id/:challengeId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,

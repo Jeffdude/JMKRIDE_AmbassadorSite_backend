@@ -40,7 +40,7 @@ exports.createSubmission = ({userId, challengeId, content}) => {
           resolve(challengeModel.createSubmission({
             author: userId,
             challenge: challengeId,
-            status: "SUBMITTED",
+            status: "PENDING",
             content: content,
           }));
         } else {

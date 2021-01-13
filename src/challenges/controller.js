@@ -5,7 +5,14 @@ const challengeConstants = require('./constants.js');
 const { controller_run } = require('../modules/templates.js');
 
 
-exports.create = (req, res) => {
+exports.getChallengeFields = (req, res) => {
+  controller_run(req, res)(
+    challengeModel.getChallengeFields,
+    (result) => res.status(200).send(result)
+  );
+}
+
+exports.createChallenge = (req, res) => {
   controller_run(req, res)(
     () => challengeModel.createChallenge({
       ...req.body,

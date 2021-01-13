@@ -44,7 +44,7 @@ const ChallengeSubmissionFormField = mongoose.model(
   challengeSubmissionFormFieldSchema,
 );
 
-const SUBMISSION_STATUS = ["SUBMITTED", "APPROVED", "DENIED"];
+const SUBMISSION_STATUS = ["PENDING", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'user'},
   challenge: {type: Schema.Types.ObjectId, ref: 'challenge'},
@@ -67,13 +67,17 @@ exports.createChallenge = (challengeData) => {
 
 exports.updateChallengeById = (id, challengeData) => {
   return Challenge.findOneAndUpdate(
-    {
-      _id: id,
-    },
+    {_id: id},
     challengeData,
     {new: true},
   );
 }
+
+/*
+ * getChallengeFields - returns valid challenge field types
+ * - for use by the admin-only challenge creation tool
+ */
+exports.getChallengeFields = () => FIELD_TYPES;
 
 exports.deleteChallengeById = (id) => {
   return Challenge.deleteOne({_id: id});
