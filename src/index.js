@@ -8,15 +8,23 @@ const ChallengesRouter = require('./challenges/routes.js');
 
 const constantsLib = require('./constants/lib.js');
 
-const { operationMode } = require('./environment.js');
+const { processMode } = require('./environment.js');
+
+const processModeInitializers = {
+ "stocktracker": (app) => {
+   AuthRouter.configRoutes(app);
+   UsersRouter.configRoutes(app);
+ },
+ "ambassadorsite": (app) => {
+   AuthRouter.configRoutes(app);
+   UsersRouter.configRoutes(app);
+   ChallengesRouter.configRoutes(app);
+  },
+}
 
 
 function makeServer(log = true) {
   const app = express();
-
-  if (log) {
-    console.log("[+] Server running in", operationMode, "mode.")
-  }
 
   app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -36,9 +44,7 @@ function makeServer(log = true) {
 
   app.use(bodyParser.json());
 
-  AuthRouter.configRoutes(app);
-  UsersRouter.configRoutes(app);
-  ChallengesRouter.configRoutes(app);
+  processModeInitializers[processMode](app);
 
   let setupPromise = constantsLib.initSiteState(log);
 
@@ -48,7 +54,7 @@ function makeServer(log = true) {
 
   let server = app.listen(config.port, function () {
     if(log) {
-      console.log('AmbassadorSite-backend listening at port:', config.port);
+      console.log('[+] Server running [', processMode, '] listening at port:', config.port);
     }
   });
 

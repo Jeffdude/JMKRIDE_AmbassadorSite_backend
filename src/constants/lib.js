@@ -1,5 +1,6 @@
 const constantModel = require('./model.js');
 const permissionLevels = require('../config.js').permissionLevels;
+const processMode = require('../environment.js').processMode;
 
 const userConstants = require('../users/constants.js');
 const userModel = require('../users/model.js');
@@ -47,21 +48,24 @@ const createConstantPromise = (
 };
 
 
-const nameToFn = {
-  'adminUser': (debug) => 
-    createConstantPromise(
-      'adminUser',
-      (userData) => userLib.createUser(userData),
-      userConstants.adminUserData,
-      debug,
-    ),
-  'ambassadorApplication': (debug) => 
-    createConstantPromise(
-      'ambassadorApplication',
-      challengeModel.createChallenge,
-      challengeConstants.ambassadorApplicationData,
-      debug,
-    ),
+const processModeInitializers = {
+  "stocktracker": {},
+  "ambassadorsite": {
+    'adminUser': (debug) => 
+      createConstantPromise(
+        'adminUser',
+        (userData) => userLib.createUser(userData),
+        userConstants.adminUserData,
+        debug,
+      ),
+    'ambassadorApplication': (debug) => 
+      createConstantPromise(
+        'ambassadorApplication',
+        challengeModel.createChallenge,
+        challengeConstants.ambassadorApplicationData,
+        debug,
+      ),
+  },
 }
 
 /*
@@ -72,8 +76,9 @@ const nameToFn = {
 exports.initSiteState = (debug = true) => {
   let buildfns = []; // functions to check constants and compile create funcs if needed
   let fns = [];      // all create funcs
+  let initializers = processModeInitializers[processMode];
 
-  Object.keys(nameToFn).map(key => {
+  Object.keys(initializers).map(key => {
     buildfns.push(
       constantModel.getByName(key)
         .then(res => {
@@ -81,7 +86,7 @@ exports.initSiteState = (debug = true) => {
             if(debug) {
               console.log('[+]', key, 'not found. Creating...');
             }
-            fns.push(nameToFn[key](debug));
+            fns.push(initializers[key](debug));
           } else if(debug) {
             console.log('[+]', key, 'already exists.');
           }
@@ -135,7 +140,7 @@ exports.initSiteState = (debug = true) => {
       Promise.all([
         resultMap.then(setAmbassadorApplicationOwner),
         resultMap.then(setAdminPermissions),
-      ]).then((res) => {
+      ]).then(() => {
         if(debug) {
           console.log('[+] Server constants nominal.');
         }

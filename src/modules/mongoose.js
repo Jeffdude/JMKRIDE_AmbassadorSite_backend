@@ -1,12 +1,8 @@
 const mongoose = require('mongoose');
-const { mongooseOptions, prod_db_url, test_db_url } = require('../config.js');
-const { operationMode } = require('../environment.js');
+const { mongooseOptions, db_url } = require('../config.js');
+const { processMode, operationMode } = require('../environment.js');
 
-const db_url = {
-  production: prod_db_url,
-  development: prod_db_url, //FIXME
-  unittest: test_db_url,
-}[operationMode]
+const selected_db_url = db_url[processMode][operationMode]
 
 let count = 0;
 
@@ -14,9 +10,9 @@ mongoose.connectWithRetry = (debug = true) => {
   if(debug){
     console.log('MongoDB connection with retry')
   }
-  mongoose.connect(db_url, mongooseOptions).then(()=>{
+  mongoose.connect(selected_db_url, mongooseOptions).then(()=>{
     if(debug){
-      console.log('MongoDB is connected to:', db_url)
+      console.log('MongoDB is connected to:', selected_db_url)
     }
     mongoose.connection.on('error', err => {
       console.log('[!] Mongoose Runtime Connection Error:', err);

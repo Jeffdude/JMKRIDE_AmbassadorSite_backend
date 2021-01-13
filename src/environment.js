@@ -1,3 +1,16 @@
+let processMode = process.env.FUNCTION;
+if(![
+    "ambassadorsite",
+    "stocktracker",
+  ].includes(processMode)){
+  console.log(
+    "[!] Invalid FUNCTION Environment Variable. Defaulting to \"ambassadorsite\"."
+  );
+  processMode = "ambassadorsite";
+}
+module.exports.processMode = processMode;
+
+
 let operationMode = process.env.NODE_ENV;
 if (!([
     "production",

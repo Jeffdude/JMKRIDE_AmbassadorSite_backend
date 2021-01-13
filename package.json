@@ -1,22 +1,24 @@
 {
-  "name": "ambassadorsite-backend",
+  "name": "Backend",
   "version": "1.0.0",
-  "description": "The backend service for our ambassador site.",
+  "description": "The JMKRIDE backend monorepo.",
   "main": "index.js",
   "scripts": {
-    "start": "export NODE_ENV=development; node --inspect src/index.js",
-    "test": "export NODE_ENV=unittest; mocha --recursive -c src/test"
+    "ambassadorsite": "export NODE_ENV=development; export FUNCTION=ambassadorsite; node --inspect src/index.js",
+    "stocktracker": "export NODE_ENV=development; export FUNCTION=stocktracker; node --inspect src/index.js",
+    "ambassadorsite-test": "export NODE_ENV=unittest; export FUNCTION=ambassadorsite; mocha --recursive -c src/test",
+    "stocktracker-test": "export NODE_ENV=unittest; export FUNCTION=stocktracker; mocha --recursive -c src/test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JMKRIDE-USA/AmbassadorSite-backend.git"
+    "url": "git+https://github.com/JMKRIDE-USA/Backend.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/JMKRIDE-USA/AmbassadorSite-backend/issues"
+    "url": "https://github.com/JMKRIDE-USA/Backend/issues"
   },
-  "homepage": "https://github.com/JMKRIDE-USA/AmbassadorSite-backend#readme",
+  "homepage": "https://github.com/JMKRIDE-USA/Backend#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
     "crypto": "^1.0.1",

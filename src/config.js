@@ -16,8 +16,18 @@ module.exports = {
     "ambassador": 5,
     "admin": 100,
   },
-  prod_db_url: "mongodb://localhost:27017/ambassadorsite-backend",
-  test_db_url: "mongodb://localhost:27017/ambassadorsite-backend-test",
+  db_url: {
+    ambassadorsite: {
+      production: "mongodb://localhost:27017/ambassadorsite-backend",
+      development: "mongodb://localhost:27017/ambassadorsite-backend",
+      unittest: "mongodb://localhost:27017/ambassadorsite-backend-test",
+    },
+    stocktracker: {
+      production: "mongodb://localhost:27017/stocktracker-backend",
+      development: "mongodb://localhost:27017/stocktracker-backend",
+      unittest: "mongodb://localhost:27017/stocktracker-backend-test",
+    },
+  },
   mongooseOptions: {
     autoIndex: false, // Don't build indexes
     poolSize: 10, // Maintain up to 10 socket connections
