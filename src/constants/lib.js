@@ -6,6 +6,9 @@ const userConstants = require('../users/constants.js');
 const userModel = require('../users/model.js');
 const userLib = require('../users/lib.js');
 
+const partModel = require('../inventory/model.js');
+const partConstants = require('../inventory/constants.js');
+
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
 
@@ -47,9 +50,19 @@ const createConstantPromise = (
   });
 };
 
+let allPartConstants = {}
+partConstants.allParts.forEach(part => allPartConstants[part.name] = (debug) => 
+  createConstantPromise(
+    part.name,
+    (partData) => partModel.createPart(partData),
+    part,
+    debug,
+  )
+);
+
 
 const processModeInitializers = {
-  "stocktracker": {},
+  "stocktracker": allPartConstants,
   "ambassadorsite": {
     'adminUser': (debug) => 
       createConstantPromise(
@@ -138,9 +151,10 @@ exports.initSiteState = (debug = true) => {
       let resultMap = Promise.all(fns)
         .then(flattenResults)
       Promise.all([
-        resultMap.then(setAmbassadorApplicationOwner),
-        resultMap.then(setAdminPermissions),
-      ]).then(() => {
+        setAmbassadorApplicationOwner,
+        setAdminPermissions,
+      ].map(fn => resultMap.then(fn))
+      ).then(() => {
         if(debug) {
           console.log('[+] Server constants nominal.');
         }
