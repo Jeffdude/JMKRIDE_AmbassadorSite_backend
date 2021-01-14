@@ -32,7 +32,16 @@ const completeSetSchema = new Schema({
   rdeck: {type: Schema.Types.ObjectId, ref: 'part'},
   rgrip: {type: Schema.Types.ObjectId, ref: 'part'},
 });
-const completeSet = mongoose.model('completeSet', completeSetSchema);
+const CompleteSet = mongoose.model('completeSet', completeSetSchema);
+
+const logSchema = new Schema({
+  actor: {type: Schema.Types.ObjectId, ref: 'user'},
+  action: {type: String, enum: partConstants.inventoryActions},
+  partId: {type: Schema.Types.ObjectId, ref: 'part'},
+  amount: Number,
+  reversed: {type: Boolean, default: false},
+}, {timestamps: true});
+const Log = mongoose.model('log', logSchema);
 
 
 /* ------------------  Inventory Model Definitions ------------------  */
@@ -41,3 +50,20 @@ exports.createPart = (partData) => {
   const part = new Part(partData);
   return part.save();
 };
+
+exports.updatePartQuantity = ({ partId, quantity }) => {
+  return Part.findOneAndUpdate({
+    _id: partId,
+  }, {$inc: {'quantity': quantity}});
+};
+
+exports.createLog = ({ actor, action, partId, amount }) => {
+  const log = new Log({
+    actor: actor,
+    action: action,
+    partId: partId,
+    amount: amount,
+    reversed: false,
+  });
+  return log.save();
+}

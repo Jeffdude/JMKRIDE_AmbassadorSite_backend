@@ -1,6 +1,3 @@
-const constantModel = require('../constants/model.js');
-const inventoryModel = require('./model.js');
-
 module.exports.PART_TYPES = [
   "Wheel",
   "Truck",
@@ -34,68 +31,79 @@ module.exports.PART_COLORS = [ // Order from custom tool
   "Brown",
 ];
 
-const partTypeToPartColors = {
-  "Wheel": module.exports.PART_COLORS.filter(
-    color => !(["Brown", "Chrome", "Silver", "Sakura"].includes(color))
-  ),
-  "Truck": module.exports.PART_COLORS.filter(
-    color => !(["Brown"].includes(color))
-  ),
-  "Deck": module.exports.PART_COLORS.filter(
-    color => !(["Brown"].includes(color))
-  ),
-}
+const genAllParts = () => {
+  const partTypeToPartColors = {
+    "Wheel": module.exports.PART_COLORS.filter(
+      color => !(["Brown", "Chrome", "Silver", "Sakura"].includes(color))
+    ),
+    "Truck": module.exports.PART_COLORS.filter(
+      color => !(["Brown"].includes(color))
+    ),
+    "Deck": module.exports.PART_COLORS.filter(
+      color => !(["Brown"].includes(color))
+    ),
+  }
 
 
-// Standard Color Parts for complete sets
-let standardParts = []
-Object.keys(partTypeToPartColors).map(partType => 
-  standardParts = standardParts.concat(
-    partTypeToPartColors[partType].map(partColor => ({
-      name: partColor + " " + partType,
-      color: partColor,
-      type: partType,
+  // Standard Color Parts for complete sets
+  let standardParts = []
+  Object.keys(partTypeToPartColors).map(partType => 
+    standardParts = standardParts.concat(
+      partTypeToPartColors[partType].map(partColor => ({
+        name: partColor + " " + partType,
+        color: partColor,
+        type: partType,
+        quantity: 0,
+      }))
+    )
+  );
+
+  const createPartsWithType = (type, parts) =>
+    parts.map(part => ({
+      name: part[0],
+      color: part[1],
+      type: type,
       quantity: 0,
-    }))
-  )
-);
+    }));
 
-const createPartsWithType = (type, parts) =>
-  parts.map(part => ({
-    name: part[0],
-    color: part[1],
-    type: type,
-    quantity: 0,
-  }));
+  let gripParts = createPartsWithType("Grip", [
+    ["Black&White Logo", "Black"],
+    // TODO
+  ]);
 
-let gripParts = createPartsWithType("Grip", [
-  ["Black&White Logo", "Black"],
-  // TODO
-]);
+  let auxiliaryParts = createPartsWithType("Auxiliary", [
+    ["Screw Kit", "Silver"],
+    ["Shock Pad", "White"],
+    ["Bearing", "Black"],
+  ]);
 
-let auxiliaryParts = createPartsWithType("Auxiliary", [
-  ["Screw Kit", "Silver"],
-  ["Shock Pad", "White"],
-  ["Bearing", "Black"],
-]);
+  let shippingParts = createPartsWithType("Shipping", [
+    ["CS Box", "Cyan"],
+    ["8x8x4 Standard Box", "Brown"],
+    ["Truck Insert", "Cyan"],
+  ]);
 
-let shippingParts = createPartsWithType("Shipping", [
-  ["CS Box", "Cyan"],
-  ["8x8x4 Standard Box", "Brown"],
-  ["Truck Insert", "Cyan"],
-]);
+  let accessoryParts = createPartsWithType("Accessory", []);
+  let apparelParts = createPartsWithType("Apparrel", []);
 
-let accessoryParts = createPartsWithType("Accessory", []);
-let apparelParts = createPartsWithType("Apparrel", []);
+  let otherParts = createPartsWithType("Other", [
+    ["Sticker Sheet", "White"],
+  ]);
 
-let otherParts = createPartsWithType("Other", [
-  ["Sticker Sheet", "White"],
-]);
+  return standardParts
+    .concat(gripParts)
+    .concat(auxiliaryParts)
+    .concat(shippingParts)
+    .concat(accessoryParts)
+    .concat(apparelParts)
+    .concat(otherParts);
+};
 
-module.exports.allParts = standardParts
-  .concat(gripParts)
-  .concat(auxiliaryParts)
-  .concat(shippingParts)
-  .concat(accessoryParts)
-  .concat(apparelParts)
-  .concat(otherParts);
+module.exports.allParts = genAllParts();
+
+module.exports.inventoryActions = {
+  CREATE: "CREATE", 
+  UPDATE: "UPDATE", 
+  DELETE: "DELETE",
+  TOGGLE: "TOGGLE", // enabling/disabling complete sets
+};
