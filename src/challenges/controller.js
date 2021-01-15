@@ -29,12 +29,16 @@ exports.getAmbassadorApplication = (req, res) => {
   );
 }
 
-exports.getChallenge = (req, res) => {
+exports.getChallenge = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.getChallenge({challengeId: req.params.challengeId}),
+    () => challengeModel.getChallenge(
+      {
+        submissionId: req.query.submissionId,
+        challengeId: req.query.challengeId,
+      },
+    ),
     (result) => res.status(200).send(result),
   );
-}
 
 exports.listChallenges = (req, res) => {
   let perPage = req.query.perpage ? req.query.perpage : 15;
@@ -45,7 +49,7 @@ exports.listChallenges = (req, res) => {
       .then(result =>
         challengeModel.listChallenges(perPage, page, {excludeChallenges: [result.id]})
       ),
-    (result) => res.status(200).send(JSON.stringify(result)),
+    (result) => res.status(200).send(result),
   );
 }
 
@@ -70,17 +74,17 @@ exports.submissionAllowed = (req, res) => {
   );
 }
 
-exports.getSubmissions = (req, res) => {
+exports.getSubmissions = (req, res) => 
   controller_run(req, res)(
     () => challengeModel.getSubmissions(
-      { 
-        challengeId: req.params.challengeId,
-        userId: req.jwt.userId,
-      }
+       {
+         submissionId: req.query.submissionId,
+         challengeId: req.query.challengeId,
+         userId: req.jwt.userId,
+       }
     ),
-    (result) => res.status(200).send(JSON.stringify(result)),
+    (result) => res.status(200).send(result),
   );
-}
 
 exports.listSubmissions = (req, res) => {
   let perPage = req.query.perpage ? req.query.perpage : 15;

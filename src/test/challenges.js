@@ -214,7 +214,7 @@ describe('# Challenges Endpoint Tests', function () {
                                 })
                                 .then(() => {
                                   agent
-                                    .get('/api/v1/challenges/id/' + challengeId)
+                                    .get('/api/v1/challenges?challengeId=' + challengeId)
                                     .set('Authorization', 'Bearer ' + ambassadorAccessToken)
                                     .then(res => {
                                       expect(res).to.have.status(200);

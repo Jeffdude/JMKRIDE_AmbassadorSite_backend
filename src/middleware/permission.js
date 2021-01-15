@@ -2,7 +2,10 @@ const permissionHelpers = require('../modules/permissions.js');
 
 const { permissionLevels } = require('../config.js')
 const { sendAndPrintErrorFn, sendAndPrintError } = require('../modules/errors.js');
+
 const challengeConstants = require('../challenges/constants.js');
+const challengeModel = require('../challenges/model.js');
+
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
@@ -24,6 +27,42 @@ exports.minimumPermissionLevelRequired = (required_permission_level) => {
  * Otherwise, 403
  */
 exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => {
+  const isAmbassadorApplication = async (req, res) => {
+
+    let challengeId = req.params.challengeId 
+      ? req.params.challengeId 
+      : req.query.challengeId;
+
+    let submissionId = req.params.submissionId 
+      ? req.params.submissionId 
+      : req.query.submissionId;
+
+    let submission, ambassadorApplication;
+
+    if (submissionId) {
+      try {
+        submission = await challengeModel.getSubmissions({submissionId: submissionId});
+      } catch(error) {
+        sendAndPrintError(res, error);
+      }
+      if(submission) {
+        challengeId = submission.challenge._id.toString();
+      } else {
+        return false
+      }
+    }
+
+    if (challengeId) {
+      try {
+        ambassadorApplication = await challengeConstants.getAmbassadorApplication()
+      } catch (error) {
+        sendAndPrintError(res, error);
+      }
+      return challengeId === ambassadorApplication.id.toString();
+    }
+    return false
+  };
+
   let user_permission_level = req.jwt.permissionLevel;
   if(permissionHelpers.permissionLevelPasses(
     permissionLevels.AMBASSADOR,
@@ -36,27 +75,17 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
       user_permission_level,
     )
   ) {
-      if (req.params.challengeId !== undefined) {
-        try {
-          challengeConstants.getAmbassadorApplication()
-            .then(result => {
-              if(req.params.challengeId === result.id.toString()) {
-                return next();
-              } else {
-                return res.status(403).send()
-              }
-            })
-            .catch(sendAndPrintErrorFn(res))
-        } catch(error) {
-          sendAndPrintError(res, error)
+    isAmbassadorApplication(req, res)
+      .then(result => {
+        if(result){
+          return next()
         }
-      } else { 
         return res.status(403).send();
-      }
+      })
+      .catch(sendAndPrintErrorFn(res))
   } else { 
     return res.status(403).send();
   }
-
 };
 
 exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {

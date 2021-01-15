@@ -79,29 +79,54 @@ exports.updateChallengeById = (id, challengeData) => {
  */
 exports.getChallengeFields = () => FIELD_TYPES;
 
-exports.deleteChallengeById = (id) => {
-  return Challenge.deleteOne({_id: id});
-}
+exports.deleteChallengeById = (id) => Challenge.deleteOne({_id: id});
 
-exports.getChallenge = ({ challengeId }) => {
-  return Challenge.findById(challengeId);
-};
+exports.getChallenge = ({ challengeId, submissionId }) => {
+  if (challengeId) {
+    return Challenge.findById(challengeId);
+  } else if (submissionId) {
+    return ChallengeSubmission.findById(submissionId)
+      .then(submission => Challenge.findById(submission.challenge))
+  }
+  throw new Error("[getChallenge] Invalid Arguments:", challengeId, submissionId);
+}
 
 exports.createSubmission = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
   return submission.save();
 }
 
-exports.getSubmissions = ({ challengeId, userId }) => {
-  return ChallengeSubmission.find({
-    author: userId,
-    challenge: challengeId,
-  })
+exports.getSubmissions = ({ submissionId, challengeId, userId }) => {
+  if (submissionId) {
+    return ChallengeSubmission.findById(submissionId)
+  } else if (challengeId && userId) {
+    return ChallengeSubmission.find({
+      author: userId,
+      challenge: challengeId,
+    })
+  }
+  throw new Error("[getSubmissions] Invalid Arguments:", challengeId, submissionId);
 }
+
 
 exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
   return new Promise((resolve, reject) => {
     Challenge.find({_id: {$nin: excludeChallenges}})
+      .limit(perPage)
+      .skip(perPage * page)
+      .exec(function (err, challenges) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(challenges);
+        }
+      })
+  })
+}
+
+exports.listSubmissions = (perPage, page, { excludeSubmissions = [] }) => {
+  return new Promise((resolve, reject) => {
+    ChallengeSubmission.find({_id: {$nin: excludeSubmissions}})
       .limit(perPage)
       .skip(perPage * page)
       .exec(function (err, challenges) {
