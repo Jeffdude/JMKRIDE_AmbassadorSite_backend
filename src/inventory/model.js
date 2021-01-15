@@ -36,7 +36,7 @@ const CompleteSet = mongoose.model('completeSet', completeSetSchema);
 
 const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
-  action: {type: String, enum: partConstants.inventoryActions},
+  action: {type: String, enum: Object.values(partConstants.inventoryActions)},
   partId: {type: Schema.Types.ObjectId, ref: 'part'},
   amount: Number,
   reversed: {type: Boolean, default: false},
