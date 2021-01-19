@@ -29,6 +29,16 @@ exports.getAmbassadorApplication = (req, res) => {
   );
 }
 
+exports.getAmbassadorApplicationSubmission = (req, res) => {
+  controller_run(req, res)(
+    () => challengeConstants.getAmbassadorApplication()
+      .then(result => challengeModel.getSubmissions(
+        {challengeId: result.id, userId: req.jwt.userId}
+      )),
+    (result) => res.status(200).send(result),
+  );
+}
+
 exports.getChallenge = (req, res) =>
   controller_run(req, res)(
     () => challengeModel.getChallenge(

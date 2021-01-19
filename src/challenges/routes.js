@@ -23,11 +23,6 @@ exports.configRoutes = (app) => {
   ]);
 
   /* Challenge Interface - USER & AMBASSADOR */
-  app.get('/api/v1/challenges/ambassador-application', [
-    DebugMiddleware.printRequest,
-    ValidationMiddleware.validJWTNeeded,
-    ChallengeController.getAmbassadorApplication
-  ]);
   app.get('/api/v1/challenges/all', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
@@ -65,5 +60,17 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     ChallengeController.listSubmissions
+  ]);
+
+  /* Ambassador Application */
+  app.get('/api/v1/challenges/ambassador-application', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    ChallengeController.getAmbassadorApplication
+  ]);
+  app.get('/api/v1/challenges/submissions/ambassador-application', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    ChallengeController.getAmbassadorApplicationSubmission
   ]);
 }
