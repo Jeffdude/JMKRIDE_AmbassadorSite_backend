@@ -13,7 +13,7 @@ exports.createChallengeAwardTransaction = async ({to, challenge}) => {
     destination: to,
     amount: challenge.award,
     challenge: challenge._id,
-    reason: "[CC] Challenge Completion: " + challenge._id.toString(),
+    reason: "[$][CC] Challenge Completion: " + challenge._id.toString(),
   });
 }
 
@@ -47,7 +47,7 @@ exports.createReferralCodeUseTransaction = async ({to, codeUsage}) => {
     destination: to,
     amount: 0,
     code: codeUsage.code,
-    reason: "[CU] Code Usage: " + codeUsage._id.toString(),
+    reason: "[$][CU]Code Usage: " + codeUsage._id.toString(),
   });
 }
 
@@ -55,14 +55,14 @@ exports.calculateUserBalance = async (userId, debug = true) => {
   if(debug) {
     console.log("[$] Calculating user balance for user " + userId.toString());
   }
-  let in_transactions = await transactionModel.getTransactions({to: userId})
+  let in_transactions = await transactionModel.getTransactions({to: userId}).exec();
   let in_total = 0;
   in_transactions.forEach(transaction => in_total += transaction.amount)
   if(debug) {
     console.log("[$] UserId (" + userId.toString() + ") input total: " + in_total);
   }
 
-  let out_transactions = await transactionModel.getTransactions({from: userId})
+  let out_transactions = await transactionModel.getTransactions({from: userId}).exec();
   let out_total;
   out_transactions.forEach(transaction => out_total += transaction.amount)
   if(debug) {

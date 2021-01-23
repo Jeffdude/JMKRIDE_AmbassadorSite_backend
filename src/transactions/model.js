@@ -85,5 +85,14 @@ exports.createReferralCodeUsage = (referralCodeUsageData) => {
   return referralCodeUsage.save();
 }
 
-exports.setUserBalance = (userId, newBalance) => {
-  UserBalance.findOneAndUpdate({user: userId}, {balance: newBalance}, {upsert: true})
+exports.setUserBalance = (userId, newBalance) => 
+  UserBalance.find({user: userId}).then(result => {
+    if(result) {
+      return UserBalance.findOneAndUpdate(
+        {user: userId}, {balance: newBalance}, {upsert: true}
+      )
+    } else {
+      let created = UserBalance({user: userId, balance: newBalance});
+      return created.save();
+    }
+  })
