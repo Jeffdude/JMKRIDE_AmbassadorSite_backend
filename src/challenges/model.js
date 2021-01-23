@@ -18,11 +18,6 @@ const challengeFormFieldSchema = new Schema({
   title: String,
   fieldType: {type: String, enum: FIELD_TYPES},
 });
-const ChallengeFormField = mongoose.model(
-  'challengeFormField',
-  challengeFormFieldSchema,
-);
-
 const challengeSchema = new Schema({
   title: String,
   shortDescription: String,
@@ -39,11 +34,6 @@ const challengeSubmissionFormFieldSchema = new Schema({
   field: {type: Schema.Types.ObjectId, ref: 'challengeFormField'},
   content: {type: Schema.Types.Mixed}
 });
-const ChallengeSubmissionFormField = mongoose.model(
-  'challengeSubmissionFormField',
-  challengeSubmissionFormFieldSchema,
-);
-
 const SUBMISSION_STATUS = ["PENDING", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'user'},
@@ -138,3 +128,14 @@ exports.listSubmissions = (perPage, page, { excludeSubmissions = [] }) => {
       })
   })
 }
+
+/*
+ * updateSubmission
+ *  - Admin only for changing the status and note of submissions
+ */
+exports.updateSubmission = ({submissionId, status, note }) => 
+  ChallengeSubmission.findOneAndUpdate(
+    {_id: submissionId}, 
+    {status: status, note: note},
+    {returnOriginal: false},
+  );

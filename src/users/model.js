@@ -1,6 +1,8 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
+const permissionLevels = require('../config.js').permissionLevels;
+
 
 /* ------------------  User Model Definition ------------------  */
 
@@ -9,12 +11,8 @@ const userSchema = new Schema({
   lastName: String,
   email: {type: String, unique: true},
   password: String,  // Salted + SHA512 hashed
-  permissionLevel: String,
-  ambassadorApplication: { type: Schema.Types.ObjectId, ref: 'challengeSubmission' },
-  referralCode: { type: Schema.Types.ObjectId, ref: 'referralCode' },
-  challengeCompletions: [ { type: Schema.Types.ObjectId, ref: 'challengeSubmission' } ],
+  permissionLevel: { type: String, enum: Object.values(permissionLevels) },
   ambassadorBalance: Number,
-  transactions: [ { type: Schema.Types.ObjectId, ref: 'transaction' } ],
 });
 const User = mongoose.model('user', userSchema);
 

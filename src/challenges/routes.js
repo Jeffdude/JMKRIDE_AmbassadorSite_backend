@@ -61,6 +61,12 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     ChallengeController.listSubmissions
   ]);
+  app.post('/api/v1/challenges/submissions/update', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.updateSubmission
+  ]);
 
   /* Ambassador Application */
   app.get('/api/v1/challenges/ambassador-application', [

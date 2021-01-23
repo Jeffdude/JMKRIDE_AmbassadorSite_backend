@@ -1,4 +1,9 @@
 const challengeModel = require('./model.js');
+const challengeConstants = require('./constants.js');
+
+const userLib = require('../users/lib.js');
+
+const transactionLib = require('../transactions/lib.js');
 
 /* 
  * Format ChallengeSubmissionContent from...
@@ -51,4 +56,36 @@ exports.createSubmission = ({userId, challengeId, content}) => {
         new Error("Error in submissionsAllowed:" + error.toString()))
       );
   });
+}
+
+/*
+ * Update a submission
+ *   - sets the submission's status
+ *   - if status is approved:
+   *   - if ambassador application
+   *    -> updates the user's permissions + deletes all sessions
+   *   - creates transaction for challenge's award
+   * - if status is denied:
+   *   - 
+ */
+exports.updateSubmission = ({submissionId, status, note, userId}) => {
+  const approveSubmission = async (userId, submissionId) => {
+    let challenge = await challengeModel.getChallenge({submissionId: submissionId});
+    let ambassadorApplication = await challengeConstants.getAmbassadorApplication();
+    if (challenge._id.toString() === ambassadorApplication.id) {
+      await userLib.approveAmbassador(userId);
+    }
+    return transactionLib.createChallengeAwardTransaction(
+      {to: userId, challenge: challenge}
+    );
+  }
+  if(status === 'APPROVED') {
+    return challengeModel.updateSubmission(
+      {submissionId: submissionId, status: status, note: note}
+    ).then(() => approveSubmission(userId, submissionId))
+
+  }
+  return challengeModel.updateSubmission(
+    {submissionId: submissionId, status: status, note: note}
+  );
 }

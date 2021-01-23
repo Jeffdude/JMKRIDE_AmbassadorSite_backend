@@ -38,15 +38,52 @@ const transactionSchema = new Schema({
     refPath: 'sourceType',
   },
   destinationType: { type: String, enum: transactionSubjects },
-  destinationId: Schema.Types.ObjectId,
+  destination: Schema.Types.ObjectId,
   amount: Number,
-});
-const transaction = mongoose.model('transaction', transactionSchema);
+  challenge: {type: Schema.Types.ObjectId, ref: 'challenge'},
+  referralCode: {type: Schema.Types.ObjectId, ref: 'referralCode'},
+  reason: String, // short explanation description
+}, {timestamps: true});
+const Transaction = mongoose.model('transaction', transactionSchema);
 
 const referralCodeSchema = new Schema({
-  name: String,
+  code: String, // code as it is seen in Shopify
+  percentage: Number, // 0 - 100 value of percentage of sale
   owner: { type: Schema.Types.ObjectId, ref: 'user' },
-  transcations: [ { type: Schema.Types.ObjectId, ref: 'transaction' } ],
-});
-const referralCode = mongoose.model('referralCode', referralCodeSchema);
+}, {timestamps: true});
+const ReferralCode = mongoose.model('referralCode', referralCodeSchema);
 
+const referralCodeUsageSchema = new Schema({
+  code: {type: Schema.Types.ObjectId, ref: 'referralCode'},
+  total: Number,
+  userName: String,
+}, {timestamps: true});
+const ReferralCodeUsage = mongoose.model('codeUsage', referralCodeUsageSchema);
+
+const userBalanceSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: 'user' },
+  balance: Number
+}, {timestamps: true},
+)
+const UserBalance = mongoose.model('userBalance', userBalanceSchema);
+
+
+/* ------------------- Model Functions ------------------  */
+
+exports.createTransaction = (transactionData) => {
+  const transaction = new Transaction(transactionData);
+  return transaction.save();
+}
+
+exports.createReferralCode = (referralCodeData) => {
+  const referralCode = new referralCode(referralCodeData);
+  return referralCode.save();
+}
+
+exports.createReferralCodeUsage = (referralCodeUsageData) => {
+  const referralCodeUsage = new ReferralCodeUsage(referralCodeUsageData);
+  return referralCodeUsage.save();
+}
+
+exports.setUserBalance = (userId, newBalance) => {
+  UserBalance.findOneAndUpdate({user: userId}, {balance: newBalance}, {upsert: true})

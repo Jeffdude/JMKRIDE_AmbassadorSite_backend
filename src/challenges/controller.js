@@ -105,3 +105,16 @@ exports.listSubmissions = (req, res) => {
     (result) => res.status(200).send(JSON.stringify(result)),
   );
 }
+
+exports.updateSubmission = (req, res) =>
+  controller_run(req, res)(
+    () => challengeLib.updateSubmission(
+      {
+        submissionId: req.params.submissionId,
+        status: req.query.status,
+        note: req.query.note,
+        userId: req.jwt.userId
+      }
+    ),
+    () => res.status(200).send()
+  );
