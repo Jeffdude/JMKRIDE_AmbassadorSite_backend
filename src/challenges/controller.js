@@ -118,3 +118,9 @@ exports.updateSubmission = (req, res) =>
     ),
     () => res.status(200).send()
   );
+
+exports.getPendingSubmissions = (req, res) => 
+  controller_run(req, res)(
+    () => challengeModel.getPendingSubmissions(),
+    (result) => res.status(200).send(result),
+  );

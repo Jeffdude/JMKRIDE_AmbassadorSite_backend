@@ -139,3 +139,7 @@ exports.updateSubmission = ({submissionId, status, note }) =>
     {status: status, note: note},
     {returnOriginal: false},
   );
+
+exports.getPendingSubmissions = () => 
+  ChallengeSubmission.find({status: "PENDING"})
+
