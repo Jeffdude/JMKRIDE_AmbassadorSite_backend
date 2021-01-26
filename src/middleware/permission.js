@@ -89,18 +89,27 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
 };
 
 exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
-  let user_permission_level = req.jwt.permissionLevel;
-  let userId = req.jwt.userId;
-  if (req.params && req.params.userId && userId === req.params.userId) {
-    return next();
-  } else {
-    if (user_permission_level === permissionLevels.ADMIN) {
-      return next();
-    } else {
-      return res.status(403).send();
+  const getTarget = async (req) => {
+    if ( req.params && req.params.userId) {
+      return req.params.userId;
+    } else if (req.params.submissionId) {
+      let submission = await challengeModel.getSubmissions(
+        {submissionId: req.params.submissionId, populateAuthor: false}
+      )
+      return submission.author.toString();
     }
   }
-
+  getTarget(req).then(
+    (target) => {
+      if (target === req.jwt.userId) {
+        return next();
+      } else if (req.jwt.permissionLevel === permissionLevels.ADMIN) {
+        return next();
+      } else {
+        return res.status(403).send();
+      }
+    }
+  )
 };
 
 exports.sameUserCantDoThisAction = (req, res, next) => {

@@ -68,21 +68,24 @@ exports.createSubmission = ({userId, challengeId, content}) => {
    * - if status is denied:
    *   - 
  */
-exports.updateSubmission = ({submissionId, status, note, userId}) => {
-  const approveSubmission = async (userId, submissionId) => {
+exports.updateSubmission = ({submissionId, status, note}) => {
+
+  const approveSubmission = async (submissionId) => {
+    let submission = await challengeModel.getSubmissions({submissionId: submissionId, populateAuthor: false});
     let challenge = await challengeModel.getChallenge({submissionId: submissionId});
     let ambassadorApplication = await challengeConstants.getAmbassadorApplication();
-    if (challenge._id.toString() === ambassadorApplication.id) {
-      await userLib.approveAmbassador(userId);
+    debugger;
+    if (challenge._id.toString() === ambassadorApplication.id.toString()) {
+      await userLib.approveAmbassador(submission.author);
     }
     return transactionLib.createChallengeAwardTransaction(
-      {to: userId, challenge: challenge}
+      {to: submission.author, challenge: challenge}
     );
   }
   if(status === 'APPROVED') {
     return challengeModel.updateSubmission(
       {submissionId: submissionId, status: status, note: note}
-    ).then(() => approveSubmission(userId, submissionId))
+    ).then(() => approveSubmission(submissionId))
 
   }
   return challengeModel.updateSubmission(

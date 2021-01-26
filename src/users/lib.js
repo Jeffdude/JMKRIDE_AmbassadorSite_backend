@@ -1,7 +1,7 @@
 const userModel = require('../users/model.js');
+const authModel = require('../auth/model.js');
 
 const permissionLevels = require('../config.js').permissionLevels;
-const authModel = require('../auth/model.js');
 
 const crypto = require('crypto');
 
@@ -20,9 +20,11 @@ exports.createUser = (userData) => {
   return userModel.createUser(userData);
 };
 
-exports.approveAmbassador = (userId) =>
-  userModel.patchUser(userId, {
+exports.approveAmbassador = (userId) => {
+  debugger;
+  return userModel.patchUser(userId, {
     permissionLevel: permissionLevels.AMBASSADOR
   }).then(() =>
     authModel.disableUserSessions(userId)
   );
+}

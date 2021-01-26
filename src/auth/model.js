@@ -82,10 +82,8 @@ exports.disableUserSessions = (userId) => {
     session.enabled = false;
     session.save();
   }
-  UserModel.findByID(userId).then(userResult => {
-    sessionModel.find({owner: userResult}).then(allSessions => {
-      allSessions.map(disable_session);
-    });
+  sessionModel.find({owner: userId}).then(allSessions => {
+    allSessions.map(disable_session);
   });
 }
 
