@@ -90,7 +90,9 @@ exports.getSubmissions = (req, res) =>
        {
          submissionId: req.query.submissionId,
          challengeId: req.query.challengeId,
-         userId: req.jwt.userId,
+         userId: req.query.userId,
+         populateAuthor: req.query.populateAuthor,
+         populateChallenge: req.query.populateChallenge,
        }
     ),
     (result) => res.status(200).send(result),
@@ -106,14 +108,19 @@ exports.listSubmissions = (req, res) => {
   );
 }
 
+exports.deleteSubmission = (req, res) =>
+  controller_run(req, res)(
+    () => challengeModel.deleteChallengeSubmissionById(req.params.submissionId),
+    () => res.status(200).send(),
+  );
+
 exports.updateSubmission = (req, res) =>
   controller_run(req, res)(
     () => challengeLib.updateSubmission(
       {
         submissionId: req.params.submissionId,
-        status: req.query.status,
-        note: req.query.note,
-        userId: req.jwt.userId
+        status: req.body.status,
+        note: req.body.note,
       }
     ),
     () => res.status(200).send()

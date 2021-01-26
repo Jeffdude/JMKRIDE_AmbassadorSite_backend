@@ -70,6 +70,7 @@ exports.updateChallengeById = (id, challengeData) => {
 exports.getChallengeFields = () => FIELD_TYPES;
 
 exports.deleteChallengeById = (id) => Challenge.deleteOne({_id: id});
+exports.deleteChallengeSubmissionById = (id) => ChallengeSubmission.deleteOne({_id: id});
 
 exports.getChallenge = ({ challengeId, submissionId }) => {
   if (challengeId) {
@@ -86,14 +87,36 @@ exports.createSubmission = (challengeSubmissionData) => {
   return submission.save();
 }
 
-exports.getSubmissions = ({ submissionId, challengeId, userId }) => {
+exports.getSubmissions = (
+  {
+    submissionId,
+    challengeId,
+    userId,
+    populateAuthor = true,
+    populateChallenge = false,
+  }
+) => {
+  let query;
   if (submissionId) {
-    return ChallengeSubmission.findById(submissionId)
+    query = ChallengeSubmission.findById(submissionId);
   } else if (challengeId && userId) {
-    return ChallengeSubmission.find({
+    query = ChallengeSubmission.find({
       author: userId,
       challenge: challengeId,
+    });
+  } else if (userId) {
+    query = ChallengeSubmission.find({
+      author: userId,
     })
+  }
+  if(query !== undefined){
+    if(populateAuthor) {
+      query.populate('author');
+    }
+    if(populateChallenge) {
+      query.populate('challenge');
+    }
+    return query;
   }
   throw new Error("[getSubmissions] Invalid Arguments:", challengeId, submissionId);
 }
@@ -141,5 +164,5 @@ exports.updateSubmission = ({submissionId, status, note }) =>
   );
 
 exports.getPendingSubmissions = () => 
-  ChallengeSubmission.find({status: "PENDING"})
+  ChallengeSubmission.find({status: "PENDING"}).populate('author').populate('challenge');
 

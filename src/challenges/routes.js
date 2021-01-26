@@ -55,13 +55,19 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
     ChallengeController.getSubmissions
   ]);
+  app.delete('/api/v1/challenges/submissions/id/:submissionId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    ChallengeController.deleteSubmission
+  ]);
   app.get('/api/v1/challenges/submissions/all', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     ChallengeController.listSubmissions
   ]);
-  app.post('/api/v1/challenges/submissions/update', [
+  app.post('/api/v1/challenges/submissions/update/id/:submissionId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
