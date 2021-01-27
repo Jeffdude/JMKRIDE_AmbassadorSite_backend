@@ -21,7 +21,6 @@ exports.createUser = (userData) => {
 };
 
 exports.approveAmbassador = (userId) => {
-  debugger;
   return userModel.patchUser(userId, {
     permissionLevel: permissionLevels.AMBASSADOR
   }).then(() =>

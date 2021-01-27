@@ -13,7 +13,7 @@ exports.createChallengeAwardTransaction = async ({to, challenge}) => {
     destination: to,
     amount: challenge.award,
     challenge: challenge._id,
-    reason: "[$][CC] Challenge Completion: " + challenge._id.toString(),
+    reason: "[CC] Challenge Completion: " + challenge._id.toString(),
   });
 }
 
@@ -47,7 +47,7 @@ exports.createReferralCodeUseTransaction = async ({to, codeUsage}) => {
     destination: to,
     amount: 0,
     code: codeUsage.code,
-    reason: "[$][CU]Code Usage: " + codeUsage._id.toString(),
+    reason: "[CU]Code Usage: " + codeUsage._id.toString(),
   });
 }
 

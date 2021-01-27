@@ -74,7 +74,6 @@ exports.updateSubmission = ({submissionId, status, note}) => {
     let submission = await challengeModel.getSubmissions({submissionId: submissionId, populateAuthor: false});
     let challenge = await challengeModel.getChallenge({submissionId: submissionId});
     let ambassadorApplication = await challengeConstants.getAmbassadorApplication();
-    debugger;
     if (challenge._id.toString() === ambassadorApplication.id.toString()) {
       await userLib.approveAmbassador(submission.author);
     }
