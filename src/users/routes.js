@@ -30,6 +30,12 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById
   ]);
+  app.get('/api/v1/users/submission_count/id/:userId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    UsersController.getSubmissionCountById
+  ]);
   app.patch('/api/v1/users/id/:userId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,

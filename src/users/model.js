@@ -13,7 +13,16 @@ const userSchema = new Schema({
   password: String,  // Salted + SHA512 hashed
   permissionLevel: { type: String, enum: Object.values(permissionLevels) },
   ambassadorBalance: Number,
+}, {timestamps: true});
+
+userSchema.virtual('submissionCount', {
+  ref: 'challengeSubmission',
+  localField: '_id',
+  foreignField: 'author',
+  count: true,
 });
+userSchema.set('toJSON', {virtuals: true});
+
 const User = mongoose.model('user', userSchema);
 
 
@@ -38,6 +47,7 @@ exports.createUser = (userData) => {
 exports.list = (perPage, page) => {
   return new Promise((resolve, reject) => {
     User.find()
+      .populate('submissionCount')
       .limit(perPage)
       .skip(perPage * page)
       .exec(function (err, users) {

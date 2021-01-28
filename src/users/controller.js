@@ -2,7 +2,9 @@ const crypto = require('crypto');
 
 const userModel = require('./model.js');
 const userLib = require('./lib.js');
+const challengeModel = require('../challenges/model.js');
 
+const { controller_run } = require('../modules/templates.js');
 const {
   sendAndPrintErrorFn,
   sendAndPrintError
@@ -28,6 +30,12 @@ exports.insert = (req, res) => {
 exports.lookup = (req, res) => {
   res.status(200).send({id: req.jwt.userId});
 };
+
+exports.getSubmissionCountById = (req, res) =>
+  controller_run(req, res)(
+    () => challengeModel.getSubmissionCount(req.params.userId),
+    (result) => res.status(200).send({count: result}),
+  );
 
 exports.list = (req, res) => {
   let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 10;

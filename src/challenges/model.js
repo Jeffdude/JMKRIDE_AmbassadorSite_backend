@@ -121,6 +121,8 @@ exports.getSubmissions = (
   throw new Error("[getSubmissions] Invalid Arguments:", challengeId, submissionId);
 }
 
+exports.getSubmissionCount = (userId) => 
+  ChallengeSubmission.find({author: userId}).then((result) => result.length);
 
 exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
   return new Promise((resolve, reject) => {
