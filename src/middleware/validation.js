@@ -71,3 +71,13 @@ exports.validateCleanBodyFields = (allowedFields) => (req, res, next) => {
   }
   return next();
 };
+
+exports.validateMandatoryBodyFields = (requiredFields) => (req, res, next) => {
+  requiredFields.forEach(key => {
+    if (!Object.prototype.hasOwnProperty.call(req.body, key)){
+      debugger;
+      return res.status(400).send({error: 'Missing body parameter: ' + key});
+    }
+  });
+  return next();
+};

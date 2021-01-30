@@ -53,7 +53,13 @@ exports.list = (req, res) => {
 };
 
 exports.getById = (req, res) => {
-  userModel.findById(req.params.userId)
+  userModel.findById(
+    req.params.userId,
+    {
+      populateSubmissionCount: false,
+      populateReferralCode: true,
+    }
+  )
     .then((result) => {
       let resultObject = result.toObject();
       delete(resultObject.password);

@@ -13,6 +13,7 @@ const userSchema = new Schema({
   password: String,  // Salted + SHA512 hashed
   permissionLevel: { type: String, enum: Object.values(permissionLevels) },
   ambassadorBalance: Number,
+  balance: Number
 }, {timestamps: true});
 
 userSchema.virtual('submissionCount', {
@@ -21,7 +22,16 @@ userSchema.virtual('submissionCount', {
   foreignField: 'author',
   count: true,
 });
+
+userSchema.virtual('referralCode', {
+  ref: 'referralCode',
+  localField: '_id',
+  foreignField: 'owner',
+  justOne: 'true',
+});
+
 userSchema.set('toJSON', {virtuals: true});
+userSchema.set('toObject', {virtuals: true});
 
 const User = mongoose.model('user', userSchema);
 
@@ -32,11 +42,20 @@ exports.findByEmail = (email) => {
   return User.find({email: email});
 };
 
-exports.findById = (id) => {
-  return User.findById(id)
-    .then((result) => {
-      return result;
-    });
+exports.findById = (
+  id, 
+  {
+    populateSubmissionCount = false,
+    populateReferralCode = false
+  }) => {
+    let user = User.findById(id);
+    if(populateSubmissionCount) {
+      user.populate('submissionCount');
+    }
+    if(populateReferralCode) {
+      user.populate('referralCode');
+    }
+    return user;
 };
 
 exports.createUser = (userData) => {

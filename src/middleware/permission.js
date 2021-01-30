@@ -92,9 +92,14 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
   const getTarget = async (req) => {
     if ( req.params && req.params.userId) {
       return req.params.userId;
-    } else if (req.params.submissionId) {
+    } else if (req.query.userId) {
+      return req.query.userId;
+    } else if (req.params.submissionId || req.query.submissionId) {
+      let submissionId = req.params.submissionId 
+        ? req.params.submissionId 
+        : req.query.submissionId;
       let submission = await challengeModel.getSubmissions(
-        {submissionId: req.params.submissionId, populateAuthor: false}
+        {submissionId: submissionId, populateAuthor: false}
       )
       return submission.author.toString();
     }

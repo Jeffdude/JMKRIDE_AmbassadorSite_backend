@@ -93,6 +93,7 @@ exports.getSubmissions = (req, res) =>
          userId: req.query.userId,
          populateAuthor: req.query.populateAuthor,
          populateChallenge: req.query.populateChallenge,
+         admin: req.query.admin,
        }
     ),
     (result) => res.status(200).send(result),

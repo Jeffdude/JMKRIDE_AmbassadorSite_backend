@@ -1,19 +1,32 @@
+const userModel = require('../users/model.js');
 const transactionModel = require('./model.js');
 
 const userConstants = require('../users/constants.js');
 
-exports.createChallengeAwardTransaction = async ({to, challenge}) => {
+const createTransactionAndRecalculateBalance = (transactionData) => {
+  const transactionPromise = transactionModel.createTransaction(transactionData)
+  // TODO this will break 
+  // if any other source/destination type is used other than 'user'
+  transactionPromise.then(() => {
+    exports.calculateUserBalance(transactionData.source);
+    exports.calculateUserBalance(transactionData.destination);
+  });
+  return transactionPromise;
+}
+
+
+exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) => {
 
   const adminUser = await userConstants.getAdminUser();
 
-  return transactionModel.createTransaction({
+  return createTransactionAndRecalculateBalance({
     sourceType: 'user',
     source: adminUser.id,
     destinationType: 'user',
     destination: to,
     amount: challenge.award,
-    challenge: challenge._id,
-    reason: "[CC] Challenge Completion: " + challenge._id.toString(),
+    submission: submissionId,
+    reason: "Submission Approval: " + submissionId.toString(),
   });
 }
 
@@ -40,14 +53,14 @@ exports.createReferralCodeUsage = (
 exports.createReferralCodeUseTransaction = async ({to, codeUsage}) => {
   const adminUser = await userConstants.getAdminUser();
 
-  return transactionModel.createTransaction({
+  return createTransactionAndRecalculateBalance({
     sourceType: 'user',
     source: adminUser.id,
     destinationType: 'user',
     destination: to,
     amount: 0,
     code: codeUsage.code,
-    reason: "[CU]Code Usage: " + codeUsage._id.toString(),
+    reason: "Code Usage: " + codeUsage._id.toString(),
   });
 }
 
@@ -63,7 +76,7 @@ exports.calculateUserBalance = async (userId, debug = true) => {
   }
 
   let out_transactions = await transactionModel.getTransactions({from: userId}).exec();
-  let out_total;
+  let out_total = 0;
   out_transactions.forEach(transaction => out_total += transaction.amount)
   if(debug) {
     console.log("[$] UserId (" + userId.toString() + ") output total: " + out_total);
@@ -73,6 +86,14 @@ exports.calculateUserBalance = async (userId, debug = true) => {
   if(debug) {
     console.log("[$] UserId (" + userId.toString() + ") balance: " + total);
   }
+  return userModel.patchUser(userId, {balance: total});
+}
 
-  return transactionModel.setUserBalance(userId, total);
+exports.getTransactions = ({userId, submissionId}) => {
+  if(userId) {
+    return transactionModel.getTransactions({any: userId});
+  } else if(submissionId) {
+    return transactionModel.getTransactionBySubmissionId(submissionId)
+  }
+  throw new Error("[getTransactions(lib) One of userId, submissionId required");
 }

@@ -40,7 +40,7 @@ const transactionSchema = new Schema({
   destinationType: { type: String, enum: transactionSubjects },
   destination: Schema.Types.ObjectId,
   amount: Number,
-  challenge: {type: Schema.Types.ObjectId, ref: 'challenge'},
+  submission: {type: Schema.Types.ObjectId, ref: 'challengeSubmission'},
   referralCode: {type: Schema.Types.ObjectId, ref: 'referralCode'},
   reason: String, // short explanation description
 }, {timestamps: true});
@@ -48,9 +48,16 @@ const Transaction = mongoose.model('transaction', transactionSchema);
 
 const referralCodeSchema = new Schema({
   code: String, // code as it is seen in Shopify
-  percentage: Number, // 0 - 100 value of percentage of sale
+  percent: Number, // 0 - 100 value of percentage of sale
   owner: { type: Schema.Types.ObjectId, ref: 'user' },
 }, {timestamps: true});
+referralCodeSchema.virtual('usageCount', {
+  ref: 'referralCodeUsage',
+  localField: '_id',
+  foreignField: 'code',
+  count: true,
+}, {timestamps: true});
+referralCodeSchema.set('toJSON', {virtuals: true})
 const ReferralCode = mongoose.model('referralCode', referralCodeSchema);
 
 const referralCodeUsageSchema = new Schema({
@@ -58,14 +65,7 @@ const referralCodeUsageSchema = new Schema({
   total: Number,
   userName: String,
 }, {timestamps: true});
-const ReferralCodeUsage = mongoose.model('codeUsage', referralCodeUsageSchema);
-
-const userBalanceSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'user' },
-  balance: Number
-}, {timestamps: true},
-)
-const UserBalance = mongoose.model('userBalance', userBalanceSchema);
+const ReferralCodeUsage = mongoose.model('referralCodeUsage', referralCodeUsageSchema);
 
 
 /* ------------------- Model Functions ------------------  */
@@ -76,23 +76,28 @@ exports.createTransaction = (transactionData) => {
 }
 
 exports.createReferralCode = (referralCodeData) => {
-  const referralCode = new referralCode(referralCodeData);
+  const referralCode = new ReferralCode(referralCodeData);
   return referralCode.save();
 }
+
+exports.getReferralCode = ({userId}) =>
+  ReferralCode.find(userId ? {owner: userId} : {}).populate("owner").populate("usageCount");
 
 exports.createReferralCodeUsage = (referralCodeUsageData) => {
   const referralCodeUsage = new ReferralCodeUsage(referralCodeUsageData);
   return referralCodeUsage.save();
 }
 
-exports.setUserBalance = (userId, newBalance) => 
-  UserBalance.find({user: userId}).then(result => {
-    if(result) {
-      return UserBalance.findOneAndUpdate(
-        {user: userId}, {balance: newBalance}, {upsert: true}
-      )
-    } else {
-      let created = UserBalance({user: userId, balance: newBalance});
-      return created.save();
-    }
-  })
+exports.getTransactions = ({any, to, from}) => {
+  if(any){
+    return Transaction.find().or([{destination: any}, {source: any}])
+  } else if(to){
+    return Transaction.find({destination: to});
+  } else if (from){
+    return Transaction.find({source: from})
+  } 
+  throw new Error("[getTransactions] One of 'any', 'to', or 'from' required.");
+}
+
+exports.getTransactionBySubmissionId = (submissionId) =>
+  Transaction.find({submission: submissionId});

@@ -78,7 +78,7 @@ exports.updateSubmission = ({submissionId, status, note}) => {
       await userLib.approveAmbassador(submission.author);
     }
     return transactionLib.createChallengeAwardTransaction(
-      {to: submission.author, challenge: challenge}
+      {to: submission.author, submissionId: submissionId, challenge: challenge}
     );
   }
   if(status === 'APPROVED') {

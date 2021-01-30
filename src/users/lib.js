@@ -16,6 +16,7 @@ exports.createUser = (userData) => {
 
   userData.password = salt + "$" + hash;
   userData.permissionLevel = permissionLevels.USER;
+  userData.balance = 0;
 
   return userModel.createUser(userData);
 };

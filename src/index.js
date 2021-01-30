@@ -5,6 +5,7 @@ const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
 const ChallengesRouter = require('./challenges/routes.js');
+const TransactionsRouter = require('./transactions/routes.js');
 const InventoryRouter = require('./inventory/routes.js');
 
 const constantsLib = require('./constants/lib.js');
@@ -21,6 +22,7 @@ const processModeInitializers = {
    AuthRouter.configRoutes(app);
    UsersRouter.configRoutes(app);
    ChallengesRouter.configRoutes(app);
+   TransactionsRouter.configRoutes(app);
   },
 }
 

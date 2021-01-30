@@ -92,6 +92,7 @@ exports.getSubmissions = (
     submissionId,
     challengeId,
     userId,
+    admin = false,
     populateAuthor = true,
     populateChallenge = false,
   }
@@ -108,7 +109,10 @@ exports.getSubmissions = (
     query = ChallengeSubmission.find({
       author: userId,
     })
+  } else if (admin) {
+    query = ChallengeSubmission.find()
   }
+
   if(query !== undefined){
     if(populateAuthor) {
       query.populate('author');
