@@ -14,19 +14,21 @@ exports.ambassadorApplicationData = {
     "have any questions or concerns. Thank you for being an awesome member of our community!"
   ),
   award: 1,
-  //creator: userConstants.getAdminId(),
   structure: [
     {
       title: "Full Name",
       fieldType: "TEXT_SHORT",
+      required: true,
     },
     {
       title: "Email",
       fieldType: "EMAIL",
+      required: true,
     },
     {
       title: "Do you own JMKRIDE skates?",
       fieldType: "YES_NO",
+      required: true,
     }
   ],
 }

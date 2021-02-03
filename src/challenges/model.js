@@ -16,6 +16,8 @@ const FIELD_TYPES = [
 ];
 const challengeFormFieldSchema = new Schema({
   title: String,
+  required: Boolean,
+  placeholder: String,
   fieldType: {type: String, enum: FIELD_TYPES},
 });
 const challengeSchema = new Schema({
