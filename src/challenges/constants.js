@@ -29,6 +29,17 @@ exports.ambassadorApplicationData = {
       title: "Do you own JMKRIDE skates?",
       fieldType: "YES_NO",
       required: true,
+    },
+    {
+      title: "When did you start freeskating?",
+      fieldType: "YEAR",
+      required: true,
+    },
+    {
+      title: "What is your favorite color?",
+      fieldType: "SWITCH",
+      options: ["Red", "Blue", "Yellow", "Poop Brown"],
+      required: true,
     }
   ],
 }

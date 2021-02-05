@@ -7,10 +7,12 @@ const Schema = mongoose.Schema;
 
 const FIELD_TYPES = [
   "NUMBER",                                 // Number
+  "YEAR",                                   // String
   "DATE",                                   // String - iso format
-  "SWITCH",                                 // [String] - each selectable choice
+  "DATETIME",                               // String - iso format
+  "SWITCH",                                 // String, Options: each selectable choice
   "LEGAL_CHECK",                            // Boolean - has been checked
-  "YES_NO",                                 // Boolean - but displayed differently than check
+  "YES_NO",                                 // Boolean
   "EMAIL",                                  // String - with validation
   "TEXT_SHORT", "TEXT_MEDIUM", "TEXT_LONG", // String
 ];
@@ -19,6 +21,7 @@ const challengeFormFieldSchema = new Schema({
   required: Boolean,
   placeholder: String,
   fieldType: {type: String, enum: FIELD_TYPES},
+  options: [String],
 });
 const challengeSchema = new Schema({
   title: String,
