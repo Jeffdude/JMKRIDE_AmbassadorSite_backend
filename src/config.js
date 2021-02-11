@@ -28,6 +28,7 @@ module.exports = {
       unittest: "mongodb://localhost:27017/stocktracker-backend-test",
     },
   },
+  usdPerAmbassadorPoint: 0.25,
   mongooseOptions: {
     autoIndex: false, // Don't build indexes
     poolSize: 10, // Maintain up to 10 socket connections

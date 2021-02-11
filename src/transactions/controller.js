@@ -6,10 +6,11 @@ const { controller_run } = require('../modules/templates.js');
 
 exports.getTransactions = (req, res) => 
   controller_run(req,res)(
-    () => transactionLib.getTransactions(
+    () => transactionModel.getTransactions(
       {
-        userId: req.query.userId,
+        any: req.query.userId,
         submissionId: req.query.submissionId,
+        referralCodeId: req.query.referralCodeId,
       }
     ),
     (result) => res.status(200).send(result),
@@ -23,7 +24,12 @@ exports.recalculateBalance = (req, res) =>
 
 exports.getReferralCodes = (req, res) =>
   controller_run(req, res)(
-    () => transactionModel.getReferralCode({userId: req.query.userId}),
+    () => transactionModel.getReferralCode(
+      {
+        userId: req.query.userId,
+        id: req.query.id,
+      }
+    ),
     (result) => res.status(200).send(result),
   )
 
@@ -36,5 +42,21 @@ exports.createReferralCode = (req, res) =>
         owner: req.body.owner,
       }
     ),
+    () => res.status(201).send(),
+  );
+
+exports.getAllReferralCodes = (req, res) =>
+  controller_run(req, res)(
+    transactionModel.getAllReferralCodes,
+    (result) => res.status(200).send(result),
+  )
+
+exports.createReferralCodeUsage = (req, res) => 
+  controller_run(req, res)(
+    () => transactionLib.createReferralCodeUsage({
+      code: req.body.code,
+      total: Number(req.body.total),
+      orderNumber: Number(req.body.orderNumber),
+    }),
     () => res.status(201).send(),
   );

@@ -51,8 +51,8 @@ exports.getChallenge = (req, res) =>
   );
 
 exports.listChallenges = (req, res) => {
-  let perPage = req.query.perpage ? req.query.perpage : 15;
-  let page = req.query.page ? req.query.page : 0;
+  let perPage = req.query.perpage ? Number(req.query.perpage) : 15;
+  let page = req.query.page ? Number(req.query.page) : 0;
 
   controller_run(req, res)(
     () => challengeConstants.getAmbassadorApplication()

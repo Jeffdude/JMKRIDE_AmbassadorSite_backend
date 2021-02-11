@@ -42,6 +42,8 @@ const transactionSchema = new Schema({
   amount: Number,
   submission: {type: Schema.Types.ObjectId, ref: 'challengeSubmission'},
   referralCode: {type: Schema.Types.ObjectId, ref: 'referralCode'},
+  referralCodeOrderNumber: Number,
+  referralCodeUsage: {type: Schema.Types.ObjectId, ref: 'referralCodeUsage'},
   reason: String, // short explanation description
 }, {timestamps: true});
 const Transaction = mongoose.model('transaction', transactionSchema);
@@ -52,20 +54,13 @@ const referralCodeSchema = new Schema({
   owner: { type: Schema.Types.ObjectId, ref: 'user' },
 }, {timestamps: true});
 referralCodeSchema.virtual('usageCount', {
-  ref: 'referralCodeUsage',
+  ref: 'transaction',
   localField: '_id',
-  foreignField: 'code',
+  foreignField: 'referralCode',
   count: true,
 }, {timestamps: true});
 referralCodeSchema.set('toJSON', {virtuals: true})
 const ReferralCode = mongoose.model('referralCode', referralCodeSchema);
-
-const referralCodeUsageSchema = new Schema({
-  code: {type: Schema.Types.ObjectId, ref: 'referralCode'},
-  total: Number,
-  userName: String,
-}, {timestamps: true});
-const ReferralCodeUsage = mongoose.model('referralCodeUsage', referralCodeUsageSchema);
 
 
 /* ------------------- Model Functions ------------------  */
@@ -80,24 +75,32 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({userId}) =>
-  ReferralCode.find(userId ? {owner: userId} : {}).populate("owner").populate("usageCount");
-
-exports.createReferralCodeUsage = (referralCodeUsageData) => {
-  const referralCodeUsage = new ReferralCodeUsage(referralCodeUsageData);
-  return referralCodeUsage.save();
+exports.getReferralCode = ({id, userId}) => {
+  let query;
+  if(id) {
+    query = ReferralCode.find({_id: id});
+  } else if (userId) {
+    query = ReferralCode.find({owner: userId});
+  } else {
+    query = ReferralCode.find();
+  }
+  return query.populate("owner").populate("usageCount");
 }
 
-exports.getTransactions = ({any, to, from}) => {
+exports.getTransactions = ({any, to, from, submissionId, referralCodeId}) => {
   if(any){
     return Transaction.find().or([{destination: any}, {source: any}])
   } else if(to){
     return Transaction.find({destination: to});
   } else if (from){
     return Transaction.find({source: from})
-  } 
+  } else if (submissionId) {
+    return Transaction.find({submission: submissionId})
+  } else if (referralCodeId) {
+    return Transaction.find({referralCode: referralCodeId})
+  }
   throw new Error("[getTransactions] One of 'any', 'to', or 'from' required.");
 }
 
-exports.getTransactionBySubmissionId = (submissionId) =>
-  Transaction.find({submission: submissionId});
+exports.getAllReferralCodes = () => 
+  ReferralCode.find().select('code')

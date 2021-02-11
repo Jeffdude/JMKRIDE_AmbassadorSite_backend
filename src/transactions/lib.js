@@ -2,6 +2,7 @@ const userModel = require('../users/model.js');
 const transactionModel = require('./model.js');
 
 const userConstants = require('../users/constants.js');
+const config = require('../config.js');
 
 const createTransactionAndRecalculateBalance = (transactionData) => {
   const transactionPromise = transactionModel.createTransaction(transactionData)
@@ -30,37 +31,27 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
   });
 }
 
-exports.createReferralCodeUsage = (
-  {code, total, userName, note = "", createTransaction = true}
-) => {
-  let rc_promise = transactionModel.createReferralCodeUsage({
-    code: code,
-    total: total,
-    userName: userName,
-    note: note,
-  });
-  if (createTransaction) {
-    return rc_promise.then(
-      (codeUsage) => exports.createReferralCodeUseTransaction({
-        to: code.owner,
-        codeUsage: codeUsage._id,
-      })
-    );
-  }
-  return rc_promise;
-}
-
-exports.createReferralCodeUseTransaction = async ({to, codeUsage}) => {
+exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
   const adminUser = await userConstants.getAdminUser();
+  const referralCode = (await transactionModel.getReferralCode({id: code}).exec())[0];
 
+  const adjusted_usd = total * (referralCode.percent / 100);
+  const points = adjusted_usd / config.usdPerAmbassadorPoint;
+
+  console.log(
+    "[$] Referral Code (" + referralCode._id + ") Usage: $" + total 
+    + " at " + referralCode.percent + "% / "  + config.usdPerAmbassadorPoint 
+    + " = " + points + " points."
+  );
   return createTransactionAndRecalculateBalance({
     sourceType: 'user',
     source: adminUser.id,
     destinationType: 'user',
-    destination: to,
-    amount: 0,
-    code: codeUsage.code,
-    reason: "Code Usage: " + codeUsage._id.toString(),
+    destination: referralCode.owner._id,
+    amount: points,
+    referralCode: referralCode,
+    referralCodeOrderNumber: orderNumber,
+    reason: "Referral Code Usage: '" + referralCode.code + "' on order #" + orderNumber,
   });
 }
 
@@ -87,13 +78,4 @@ exports.calculateUserBalance = async (userId, debug = true) => {
     console.log("[$] UserId (" + userId.toString() + ") balance: " + total);
   }
   return userModel.patchUser(userId, {balance: total});
-}
-
-exports.getTransactions = ({userId, submissionId}) => {
-  if(userId) {
-    return transactionModel.getTransactions({any: userId});
-  } else if(submissionId) {
-    return transactionModel.getTransactionBySubmissionId(submissionId)
-  }
-  throw new Error("[getTransactions(lib) One of userId, submissionId required");
 }
