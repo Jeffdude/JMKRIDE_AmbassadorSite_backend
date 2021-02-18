@@ -4,6 +4,7 @@
   "description": "The JMKRIDE backend monorepo.",
   "main": "index.js",
   "scripts": {
+    "start": "export NODE_ENV=development; export FUNCTION=ambassadorsite; node --inspect src/index.js",
     "ambassadorsite": "export NODE_ENV=development; export FUNCTION=ambassadorsite; node --inspect src/index.js",
     "stocktracker": "export NODE_ENV=development; export FUNCTION=stocktracker; node --inspect src/index.js",
     "ambassadorsite-test": "export NODE_ENV=unittest; export FUNCTION=ambassadorsite; mocha --recursive -c src/test",
