@@ -5,6 +5,7 @@ const { sendAndPrintErrorFn, sendAndPrintError } = require('../modules/errors.js
 
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
+const transactionModel = require('../transactions/model.js');
 
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
@@ -102,6 +103,14 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
         {submissionId: submissionId, populateAuthor: false}
       )
       return submission.author.toString();
+    } else if (req.query.id || req.query.referralCodeId) {
+      let referralCodeId = req.query.referralCodeId 
+        ? req.query.referralCodeId 
+        : req.query.id;
+      let referralCode = await transactionModel.getReferralCode(
+        {id: referralCodeId, populate: false}
+      )
+      return referralCode[0].owner.toString();
     }
   }
   getTarget(req).then(
@@ -115,6 +124,7 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
       }
     }
   )
+  .catch(sendAndPrintErrorFn(res))
 };
 
 exports.sameUserCantDoThisAction = (req, res, next) => {

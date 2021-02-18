@@ -14,6 +14,7 @@ const FIELD_TYPES = [
   "LEGAL_CHECK",                            // Boolean - has been checked
   "YES_NO",                                 // Boolean
   "EMAIL",                                  // String - with validation
+  "URL",                                    // String - with validation
   "TEXT_SHORT", "TEXT_MEDIUM", "TEXT_LONG", // String
 ];
 const challengeFormFieldSchema = new Schema({

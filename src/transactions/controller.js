@@ -11,6 +11,7 @@ exports.getTransactions = (req, res) =>
         any: req.query.userId,
         submissionId: req.query.submissionId,
         referralCodeId: req.query.referralCodeId,
+        populate: req.query.populate,
       }
     ),
     (result) => res.status(200).send(result),

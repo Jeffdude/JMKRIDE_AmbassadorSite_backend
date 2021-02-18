@@ -38,7 +38,11 @@ const transactionSchema = new Schema({
     refPath: 'sourceType',
   },
   destinationType: { type: String, enum: transactionSubjects },
-  destination: Schema.Types.ObjectId,
+  destination: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    refPath: 'sourceType',
+  },
   amount: Number,
   submission: {type: Schema.Types.ObjectId, ref: 'challengeSubmission'},
   referralCode: {type: Schema.Types.ObjectId, ref: 'referralCode'},
@@ -75,7 +79,7 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({id, userId}) => {
+exports.getReferralCode = ({id, userId, populate = true}) => {
   let query;
   if(id) {
     query = ReferralCode.find({_id: id});
@@ -84,22 +88,33 @@ exports.getReferralCode = ({id, userId}) => {
   } else {
     query = ReferralCode.find();
   }
+  if(!populate) {
+    return query
+  }
   return query.populate("owner").populate("usageCount");
 }
 
-exports.getTransactions = ({any, to, from, submissionId, referralCodeId}) => {
+exports.getTransactions = (
+  {any, to, from, submissionId, referralCodeId, populate = false}
+) => {
+  let query;
   if(any){
-    return Transaction.find().or([{destination: any}, {source: any}])
+    query = Transaction.find().or([{destination: any}, {source: any}])
   } else if(to){
-    return Transaction.find({destination: to});
+    query = Transaction.find({destination: to});
   } else if (from){
-    return Transaction.find({source: from})
+    query = Transaction.find({source: from})
   } else if (submissionId) {
-    return Transaction.find({submission: submissionId})
+    query = Transaction.find({submission: submissionId})
   } else if (referralCodeId) {
-    return Transaction.find({referralCode: referralCodeId})
+    query = Transaction.find({referralCode: referralCodeId})
+  } else {
+    query = Transaction.find()
   }
-  throw new Error("[getTransactions] One of 'any', 'to', or 'from' required.");
+  if(populate){
+    return query.populate("source").populate("destination");
+  }
+  return query;
 }
 
 exports.getAllReferralCodes = () => 
