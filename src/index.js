@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const config = require('./config.js');
 const AuthRouter = require('./auth/routes.js');
 const UsersRouter = require('./users/routes.js');
 const ChallengesRouter = require('./challenges/routes.js');
@@ -10,7 +9,7 @@ const InventoryRouter = require('./inventory/routes.js');
 
 const constantsLib = require('./constants/lib.js');
 
-const { processMode } = require('./environment.js');
+const { port, processMode } = require('./environment.js');
 
 const processModeInitializers = {
  "stocktracker": (app) => {
@@ -56,9 +55,9 @@ function makeServer(log = true) {
     (req, res) => res.status(200).send()
   ]);
 
-  let server = app.listen(config.port, function () {
+  let server = app.listen(port, function () {
     if(log) {
-      console.log('[+] Server running [', processMode, '] listening at port:', config.port);
+      console.log('[+] Server running [', processMode, '] listening at port:', port);
     }
   });
 

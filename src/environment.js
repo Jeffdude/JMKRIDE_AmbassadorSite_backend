@@ -1,3 +1,10 @@
+let port = process.env.PORT;
+if (! port) {
+  console.log("[!] No port specified. Defaulting to DEVEL only value")
+  port = 3600
+}
+module.exports.port = port;
+
 let processMode = process.env.FUNCTION;
 if(![
     "ambassadorsite",
