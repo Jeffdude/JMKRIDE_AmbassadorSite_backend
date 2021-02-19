@@ -36,3 +36,17 @@ if(! adminSecret) {
   adminSecret = "pass"
 }
 module.exports.adminSecret = adminSecret;
+
+let mongoDBUser = process.env.MONGO_USER;
+if (! mongoDBUser) {
+  console.log("[!] No mongoDBUser specified. Defaulting to DEVEL only value")
+  mongoDBUser = "mongoUser"
+}
+module.exports.mongoDBUser = mongoDBUser;
+
+let mongoDBPassword = process.env.MONGO_PASS;
+if (! mongoDBPassword) {
+  console.log("[!] No mongoDBPassword specified. Defaulting to DEVEL only value")
+  mongoDBPassword = "pass"
+}
+module.exports.mongoDBPassword = mongoDBPassword;

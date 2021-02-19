@@ -18,9 +18,9 @@ module.exports = {
   },
   db_url: {
     ambassadorsite: {
-      production: "mongodb://localhost:27017/ambassadorsite-backend",
+      production: "ambassadorsitecluster0.uzrpe.mongodb.net/ambassadorsite-backend?retryWrites=true&w=majority",
       development: "mongodb://localhost:27017/ambassadorsite-backend",
-      unittest: "mongodb://localhost:27017/ambassadorsite-backend-test",
+      unittest: "ambassadorsitecluster0.uzrpe.mongodb.net/ambassadorsite-backend-unittest?retryWrites=true&w=majority",
     },
     stocktracker: {
       production: "mongodb://localhost:27017/stocktracker-backend",

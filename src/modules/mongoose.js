@@ -1,18 +1,35 @@
 const mongoose = require('mongoose');
 const { mongooseOptions, db_url } = require('../config.js');
-const { processMode, operationMode } = require('../environment.js');
+const {
+  mongoDBUser,
+  mongoDBPassword,
+  processMode,
+  operationMode
+} = require('../environment.js');
 
-const selected_db_url = db_url[processMode][operationMode]
 
 let count = 0;
+
+const getMongoDBUrl = () => {
+  if (processMode === "stocktracker" || operationMode === "development") {
+    return db_url[processMode][operationMode]
+  }
+  return ( 
+    "mongodb+srv://" + mongoDBUser + ":" + mongoDBPassword + "@" + 
+    db_url[processMode][operationMode]
+  )
+}
+
+let full_db_url = getMongoDBUrl()
+console.log(full_db_url);
 
 mongoose.connectWithRetry = (debug = true) => {
   if(debug){
     console.log('MongoDB connection with retry')
   }
-  mongoose.connect(selected_db_url, mongooseOptions).then(()=>{
+  mongoose.connect(full_db_url, mongooseOptions).then(()=>{
     if(debug){
-      console.log('MongoDB is connected to:', selected_db_url)
+      console.log('MongoDB is connected to:', full_db_url)
     }
     mongoose.connection.on('error', err => {
       console.log('[!] Mongoose Runtime Connection Error:', err);
