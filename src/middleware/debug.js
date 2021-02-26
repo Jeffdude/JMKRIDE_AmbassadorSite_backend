@@ -1,7 +1,17 @@
 const { logVerboseDebug, logDebug } = require('../modules/errors.js');
 
+const { loggingLevels } = require('../constants.js');
+const { processMode, operationMode } = require('../environment.js');
+const { loggingLevel } = require('../config.js');
+
+const loggingMode = loggingLevel[processMode][operationMode];
+
 exports.printRequest = (req, res, next) => {
-  logVerboseDebug("[DEBUG] Received request:", req);
+  if(loggingMode >= loggingLevels.VERBOSE_DEBUG) {
+    logVerboseDebug("[VERBOSE_DEBUG] Received request:", req);
+  } else if (loggingMode >= loggingLevels.DEBUG) {
+    logDebug("[DEBUG] Received request:", req.path);
+  }
   return next();
 }
 
