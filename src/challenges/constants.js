@@ -14,7 +14,7 @@ exports.ambassadorApplicationData = {
     "Reach out to us at jmkride.com/contact-us or via our social media inbox if you " +
     "have any questions or concerns. Thank you for being an awesome member of our community!"
   ),
-  award: 50,
+  award: 20,
   structure: [
     {
       title: "Where do you live? (Just your city, state, and country)",

@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const userModel = require('./model.js');
 const userLib = require('./lib.js');
 const challengeModel = require('../challenges/model.js');
+const { permissionValues } = require('../constants.js');
 
 const { controller_run } = require('../modules/templates.js');
 const {
@@ -62,6 +63,7 @@ exports.getById = (req, res) => {
   )
     .then((result) => {
       let resultObject = result.toObject();
+      resultObject.permissionLevel = permissionValues[result.permissionLevel];
       delete(resultObject.password);
       delete(resultObject.__v);
       res.status(200).send(resultObject);

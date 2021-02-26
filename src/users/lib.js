@@ -1,7 +1,7 @@
 const userModel = require('../users/model.js');
 const authModel = require('../auth/model.js');
 
-const permissionLevels = require('../config.js').permissionLevels;
+const { permissionLevels } = require('../constants.js');
 
 const crypto = require('crypto');
 

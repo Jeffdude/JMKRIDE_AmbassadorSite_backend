@@ -1,7 +1,9 @@
-const permissionHelpers = require('../modules/permissions.js');
-
-const { permissionLevels } = require('../config.js')
-const { sendAndPrintErrorFn, sendAndPrintError } = require('../modules/errors.js');
+const { permissionLevels } = require('../constants.js')
+const {
+  sendAndPrintErrorFn,
+  sendAndPrintError,
+  logError,
+} = require('../modules/errors.js');
 
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
@@ -11,12 +13,13 @@ const transactionModel = require('../transactions/model.js');
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
   return (req, res, next) => {
     let user_permission_level = req.jwt.permissionLevel;
-    if(permissionHelpers.permissionLevelPasses(
-      required_permission_level,
-      user_permission_level,
-    )) {
+    if(required_permission_level <= user_permission_level) {
       return next();
     } else {
+      logError(
+        "[!][403][minimumPermissionLevelRequired] Permission Level Failed: " +
+        user_permission_level + " < " + required_permission_level + "."
+      );
       return res.status(403).send();
     }
   };
@@ -65,26 +68,32 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
   };
 
   let user_permission_level = req.jwt.permissionLevel;
-  if(permissionHelpers.permissionLevelPasses(
-    permissionLevels.AMBASSADOR,
-    user_permission_level,
-  )) {
+  if(permissionLevels.AMBASSADOR <= user_permission_level) {
     return next();
-  } else if (
-    permissionHelpers.permissionLevelPasses(
-      permissionLevels.USER,
-      user_permission_level,
-    )
-  ) {
+  } else if (permissionLevels.USER <= user_permission_level) {
     isAmbassadorApplication(req, res)
       .then(result => {
         if(result){
           return next()
         }
+        logError(
+          "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication] " +
+          "Failed auth of user:",
+          user_permission_level, 
+          req.params,
+          req.query,
+        );
         return res.status(403).send();
       })
       .catch(sendAndPrintErrorFn(res))
   } else { 
+    logError(
+      "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication] " +
+      "Failed auth of none:",
+      user_permission_level, 
+      req.params,
+      req.query,
+    );
     return res.status(403).send();
   }
 };
@@ -120,6 +129,12 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
       } else if (req.jwt.permissionLevel === permissionLevels.ADMIN) {
         return next();
       } else {
+        logError(
+          "[!][403][onlySameUserOrAdminCanDoThisAction] Failed: " +
+          target,
+          req.params,
+          req.query,
+        );
         return res.status(403).send();
       }
     }
@@ -133,6 +148,11 @@ exports.sameUserCantDoThisAction = (req, res, next) => {
   if (req.params.userId !== userId) {
     return next();
   } else {
+    logError(
+      "[!][403][sameUserCantDoThisAction] Failed: " +
+      req.params,
+      userId,
+    );
     return res.status(400).send();
   }
 

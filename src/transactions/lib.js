@@ -3,6 +3,7 @@ const transactionModel = require('./model.js');
 
 const userConstants = require('../users/constants.js');
 const config = require('../config.js');
+const { logInfo } = require('../modules/errors.js');
 
 const createTransactionAndRecalculateBalance = (transactionData) => {
   const transactionPromise = transactionModel.createTransaction(transactionData)
@@ -38,7 +39,7 @@ exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
   const adjusted_usd = total * (referralCode.percent / 100);
   const points = adjusted_usd / config.usdPerAmbassadorPoint;
 
-  console.log(
+  logInfo(
     "[$] Referral Code (" + referralCode._id + ") Usage: $" + total 
     + " at " + referralCode.percent + "% / "  + config.usdPerAmbassadorPoint 
     + " = " + points + " points."
@@ -57,25 +58,25 @@ exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
 
 exports.calculateUserBalance = async (userId, debug = true) => {
   if(debug) {
-    console.log("[$] Calculating user balance for user " + userId.toString());
+    logInfo("[$] Calculating user balance for user " + userId.toString());
   }
   let in_transactions = await transactionModel.getTransactions({to: userId}).exec();
   let in_total = 0;
   in_transactions.forEach(transaction => in_total += transaction.amount)
   if(debug) {
-    console.log("[$] UserId (" + userId.toString() + ") input total: " + in_total);
+    logInfo("[$] UserId (" + userId.toString() + ") input total: " + in_total);
   }
 
   let out_transactions = await transactionModel.getTransactions({from: userId}).exec();
   let out_total = 0;
   out_transactions.forEach(transaction => out_total += transaction.amount)
   if(debug) {
-    console.log("[$] UserId (" + userId.toString() + ") output total: " + out_total);
+    logInfo("[$] UserId (" + userId.toString() + ") output total: " + out_total);
   }
 
   let total = in_total - out_total;
   if(debug) {
-    console.log("[$] UserId (" + userId.toString() + ") balance: " + total);
+    logInfo("[$] UserId (" + userId.toString() + ") balance: " + total);
   }
   return userModel.patchUser(userId, {balance: total});
 }

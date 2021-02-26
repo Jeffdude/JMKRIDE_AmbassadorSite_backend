@@ -6,12 +6,13 @@ const {
   processMode,
   operationMode
 } = require('../environment.js');
+const { logInfo, logError } = require('../modules/errors.js');
 
 
 let count = 0;
 
 const getMongoDBUrl = () => {
-  if (processMode === "stocktracker" || operationMode === "development") {
+  if (processMode === "stocktracker" || ["development", "unittest"].includes(operationMode)) {
     return db_url[processMode][operationMode]
   }
   return ( 
@@ -21,23 +22,18 @@ const getMongoDBUrl = () => {
 }
 
 let full_db_url = getMongoDBUrl()
-console.log(full_db_url);
 
-mongoose.connectWithRetry = (debug = true) => {
-  if(debug){
-    console.log('MongoDB connection with retry:', full_db_url)
-  }
+mongoose.connectWithRetry = () => {
+  logInfo('MongoDB connection with retry:', full_db_url)
   mongoose.connect(full_db_url, mongooseOptions).then(()=>{
-    if(debug){
-      console.log('MongoDB is connected.')
-    }
+    logInfo('MongoDB is connected.')
     mongoose.connection.on('error', err => {
-      console.log('[!] Mongoose Runtime Connection Error:', err);
+      logError('[!] Mongoose Runtime Connection Error:', err);
     });
   }).catch((error) => {
-    console.log('MongoDB connection unsuccessful, retry after 5 seconds. ', ++count);
-    console.log('[!] MongoDB connection Error:', error);
-    setTimeout(() => mongoose.connectWithRetry(debug), 5000)
+    logError('MongoDB connection unsuccessful, retry after 5 seconds. ', ++count);
+    logError('[!] MongoDB connection Error:', error);
+    setTimeout(() => mongoose.connectWithRetry(), 5000)
   })
 };
 

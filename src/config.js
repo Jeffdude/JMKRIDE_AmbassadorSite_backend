@@ -1,26 +1,27 @@
+const { loggingLevels } = require('./constants.js');
+
 module.exports = {
   port: 3600,
   jwt_options: {
     expiresIn: "2d",
   },
-  debug: true,
-  permissionLevels: {
-    NONE: "none",
-    USER: "user",
-    AMBASSADOR: "ambassador",
-    ADMIN: "admin",
-  },
-  permissionValues: {
-    "none": 0,
-    "user": 1,
-    "ambassador": 5,
-    "admin": 100,
+  loggingLevel: {
+    ambassadorsite: {
+      production: loggingLevels.ERRORS,
+      development: loggingLevels.VERBOSE_DEBUG,
+      unittest: loggingLevels.NONE,
+    },
+    stocktracker: {
+      production: loggingLevels.ERRORS,
+      development: loggingLevels.VERBOSE_DEBUG,
+      unittest: loggingLevels.NONE,
+    },
   },
   db_url: {
     ambassadorsite: {
       production: "ambassadorsitecluster0.uzrpe.mongodb.net/ambassadorsite-backend?retryWrites=true&w=majority",
       development: "mongodb://localhost:27017/ambassadorsite-backend",
-      unittest: "ambassadorsitecluster0.uzrpe.mongodb.net/ambassadorsite-backend-unittest?retryWrites=true&w=majority",
+      unittest: "mongodb://localhost:27017/ambassadorsite-backend",
     },
     stocktracker: {
       production: "mongodb://localhost:27017/stocktracker-backend",

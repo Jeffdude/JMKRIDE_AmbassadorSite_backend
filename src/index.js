@@ -10,6 +10,7 @@ const InventoryRouter = require('./inventory/routes.js');
 const constantsLib = require('./constants/lib.js');
 
 const { port, processMode } = require('./environment.js');
+const { logInfo } = require('./modules/errors.js');
 
 const processModeInitializers = {
  "stocktracker": (app) => {
@@ -26,7 +27,7 @@ const processModeInitializers = {
 }
 
 
-function makeServer(log = true) {
+function makeServer() {
   const app = express();
 
   app.use(function (req, res, next) {
@@ -49,16 +50,14 @@ function makeServer(log = true) {
 
   processModeInitializers[processMode](app);
 
-  let setupPromise = constantsLib.initSiteState(log);
+  let setupPromise = constantsLib.initSiteState();
 
   app.get('/server-status', [
     (req, res) => res.status(200).send()
   ]);
 
   let server = app.listen(port, function () {
-    if(log) {
-      console.log('[+] Server running [', processMode, '] listening at port:', port);
-    }
+    logInfo('[+] Server running [', processMode, '] listening at port:', port);
   });
 
   return [server, setupPromise]
@@ -67,6 +66,6 @@ function makeServer(log = true) {
 module.exports = makeServer;
 
 if (require.main === module) {
-  console.log('[+] Server is in standalone mode.');
+  logInfo('[+] Server is in standalone mode.');
   makeServer();
 }

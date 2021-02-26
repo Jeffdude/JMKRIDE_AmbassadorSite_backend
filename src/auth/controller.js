@@ -104,7 +104,7 @@ const disable_session_id = (req, res, sessionId) => {
       if(session){
         return res.status(200).send()
       }
-      return res.status(500).send()
+      throw new Error("[disable_session_id] failed to disable:", sessionId);
     },
   );
 }

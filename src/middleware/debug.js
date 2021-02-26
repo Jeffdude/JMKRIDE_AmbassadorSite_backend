@@ -1,25 +1,16 @@
-const debug_enabled = require('../config.js').debug;
-
-const operationMode = require('../environment.js').operationMode;
+const { logVerboseDebug, logDebug } = require('../modules/errors.js');
 
 exports.printRequest = (req, res, next) => {
-  if (debug_enabled && operationMode !== 'unittest') {
-    console.log("[DEBUG] Received request:", req);
-  }
-
+  logVerboseDebug("[DEBUG] Received request:", req);
   return next();
 }
 
 exports.printJWT = (req, res, next) => {
-  if (debug_enabled && operationMode !== 'unittest') {
-    console.log("[DEBUG] JWT:", req.jwt);
-  }
+  logDebug("[DEBUG] JWT:", req.jwt);
   return next();
 }
 
 exports.printBody = (req, res, next) => {
-  if (debug_enabled && operationMode !== 'unittest') {
-    console.log("[DEBUG] req.body:", req.body);
-  }
+  logDebug("[DEBUG] req.body:", req.body);
   return next();
 }

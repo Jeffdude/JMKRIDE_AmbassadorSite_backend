@@ -1,7 +1,7 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
-const permissionLevels = require('../config.js').permissionLevels;
+const { permissionLevels } = require('../constants.js');
 
 
 /* ------------------  User Model Definition ------------------  */

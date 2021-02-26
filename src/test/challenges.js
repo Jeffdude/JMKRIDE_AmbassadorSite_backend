@@ -14,7 +14,7 @@ const mongoose = require('../modules/mongoose.js');
 
 const test_db = require('./db.js');
 const UserModel = require('../users/model.js');
-const permissionLevels = require('../config.js').permissionLevels;
+const { permissionLevels } = require('../constants.js');
 
 const debug = false;
 

@@ -1,5 +1,5 @@
 const constantModel = require('./model.js');
-const permissionLevels = require('../config.js').permissionLevels;
+const permissionLevels = require('../constants.js').permissionLevels;
 const processMode = require('../environment.js').processMode;
 
 const userConstants = require('../users/constants.js');
@@ -12,12 +12,14 @@ const partConstants = require('../inventory/constants.js');
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
 
+const { logInfo, logError } = require('../modules/errors.js');
+
 exports.getAmbassadorApplication = () => {
   return constantModel.getByName('ambassadorApplication');
 };
 
 const createConstantPromise = (
-  constantName, creationFn, data, debug = true,
+  constantName, creationFn, data,
 ) => {
   return new Promise((resolve, reject) => {
     creationFn(data)
@@ -30,13 +32,11 @@ const createConstantPromise = (
             name: constantName,
             id: res._id,
           }).then(() => {
-            if(debug) {
-              console.log('[+] Created constant:', constantName);
-            }
+            logInfo('[+] Created constant:', constantName);
             resolve([constantName, res]);
           })
           .catch(err => {
-            console.error('[!] Error resolving createFn err');
+            logError('[!] Error resolving createFn err');
             reject(err);
           });
         } else {
@@ -44,19 +44,18 @@ const createConstantPromise = (
         }
       })
       .catch(err => {
-        console.log('[!] Error creating', constantName, ':', err.message);
+        logError('[!] Error creating', constantName, ':', err.message);
         reject(err);
       });
   });
 };
 
 let allPartConstants = {}
-partConstants.allParts.forEach(part => allPartConstants[part.name] = (debug) => 
+partConstants.allParts.forEach(part => allPartConstants[part.name] = () => 
   createConstantPromise(
     part.name,
     (partData) => partModel.createPart(partData),
     part,
-    debug,
   )
 );
 
@@ -64,20 +63,16 @@ partConstants.allParts.forEach(part => allPartConstants[part.name] = (debug) =>
 const processModeInitializers = {
   "stocktracker": allPartConstants,
   "ambassadorsite": {
-    'adminUser': (debug) => 
-      createConstantPromise(
-        'adminUser',
-        (userData) => userLib.createUser(userData),
-        userConstants.adminUserData,
-        debug,
-      ),
-    'ambassadorApplication': (debug) => 
-      createConstantPromise(
-        'ambassadorApplication',
-        challengeModel.createChallenge,
-        challengeConstants.ambassadorApplicationData,
-        debug,
-      ),
+    'adminUser': createConstantPromise(
+      'adminUser',
+      (userData) => userLib.createUser(userData),
+      userConstants.adminUserData,
+    ),
+    'ambassadorApplication': createConstantPromise(
+      'ambassadorApplication',
+      challengeModel.createChallenge,
+      challengeConstants.ambassadorApplicationData,
+    ),
   },
 }
 
@@ -86,7 +81,7 @@ const processModeInitializers = {
  *
  * Returns: Thenable
  */
-exports.initSiteState = (debug = true) => {
+exports.initSiteState = () => {
   let buildfns = []; // functions to check constants and compile create funcs if needed
   let fns = [];      // all create funcs
   let initializers = processModeInitializers[processMode];
@@ -96,15 +91,15 @@ exports.initSiteState = (debug = true) => {
       constantModel.getByName(key)
         .then(res => {
           if(! res) {
-            if(debug) {
-              console.log('[+]', key, 'not found. Creating...');
-            }
-            fns.push(initializers[key](debug));
-          } else if(debug) {
-            console.log('[+]', key, 'already exists.');
+            logInfo(
+              '[+]', key, 'not found. Creating...'
+            )
+            fns.push(initializers[key]);
+          } else {
+            logInfo('[+]', key, 'already exists.');
           }
         })
-        .catch(console.error)
+        .catch(logError)
     )
   });
 
@@ -155,11 +150,9 @@ exports.initSiteState = (debug = true) => {
         setAdminPermissions,
       ].map(fn => resultMap.then(fn))
       ).then(() => {
-        if(debug) {
-          console.log('[+] Server constants nominal.');
-        }
+        logInfo('[+] Server constants nominal.')
       })
-      .catch(console.error);
+      .catch(logError);
     })
-    .catch(console.error);
+    .catch(logError);
 };
