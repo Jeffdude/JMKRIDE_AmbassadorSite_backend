@@ -7,7 +7,7 @@ module.exports = {
   },
   loggingLevel: {
     ambassadorsite: {
-      production: loggingLevels.INFO,
+      production: loggingLevels.DEBUG,
       development: loggingLevels.VERBOSE_DEBUG,
       unittest: loggingLevels.NONE,
     },

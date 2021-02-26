@@ -45,7 +45,7 @@ exports.logVerboseDebug = (...args) => {
 }
 
 exports.logInfo = (...args) => {
-  if(loggingMode >= loggingLevels.DEBUG) {
+  if(loggingMode >= loggingLevels.INFO) {
     console.log(...args);
   }
 }
