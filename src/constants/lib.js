@@ -63,12 +63,12 @@ partConstants.allParts.forEach(part => allPartConstants[part.name] = () =>
 const processModeInitializers = {
   "stocktracker": allPartConstants,
   "ambassadorsite": {
-    'adminUser': createConstantPromise(
+    'adminUser': () => createConstantPromise(
       'adminUser',
       (userData) => userLib.createUser(userData),
       userConstants.adminUserData,
     ),
-    'ambassadorApplication': createConstantPromise(
+    'ambassadorApplication': () => createConstantPromise(
       'ambassadorApplication',
       challengeModel.createChallenge,
       challengeConstants.ambassadorApplicationData,
@@ -94,7 +94,7 @@ exports.initSiteState = () => {
             logInfo(
               '[+]', key, 'not found. Creating...'
             )
-            fns.push(initializers[key]);
+            fns.push(initializers[key]());
           } else {
             logInfo('[+]', key, 'already exists.');
           }
