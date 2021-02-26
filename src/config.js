@@ -7,12 +7,12 @@ module.exports = {
   },
   loggingLevel: {
     ambassadorsite: {
-      production: loggingLevels.ERRORS,
+      production: loggingLevels.INFO,
       development: loggingLevels.VERBOSE_DEBUG,
       unittest: loggingLevels.NONE,
     },
     stocktracker: {
-      production: loggingLevels.ERRORS,
+      production: loggingLevels.INFO,
       development: loggingLevels.VERBOSE_DEBUG,
       unittest: loggingLevels.NONE,
     },
