@@ -126,7 +126,7 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
     (target) => {
       if (target === req.jwt.userId) {
         return next();
-      } else if (req.jwt.permissionLevel === permissionLevels.ADMIN) {
+      } else if (req.jwt.permissionLevel == permissionLevels.ADMIN) {
         return next();
       } else {
         logError(
