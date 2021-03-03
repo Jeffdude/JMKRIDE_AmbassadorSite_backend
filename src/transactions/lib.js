@@ -17,6 +17,19 @@ const createTransactionAndRecalculateBalance = (transactionData) => {
 }
 
 
+exports.createAdminTransaction = async ({amount, user, reason}) => {
+  const adminUser = await userConstants.getAdminUser();
+
+  return createTransactionAndRecalculateBalance({
+    sourceType: 'user',
+    source: adminUser.id,
+    destinationType: 'user',
+    destination: user,
+    amount: amount,
+    reason: "Admin Transaction: " + reason,
+  });
+}
+
 exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) => {
 
   const adminUser = await userConstants.getAdminUser();

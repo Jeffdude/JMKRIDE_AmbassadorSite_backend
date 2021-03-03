@@ -61,3 +61,13 @@ exports.createReferralCodeUsage = (req, res) =>
     }),
     () => res.status(201).send(),
   );
+
+exports.createAdminTransaction = (req, res) =>
+  controller_run(req, res)(
+    () => transactionLib.createAdminTransaction({
+      amount: req.body.amount,
+      user: req.body.user,
+      reason: req.body.reason,
+    }),
+    () => res.status(201).send(),
+  );

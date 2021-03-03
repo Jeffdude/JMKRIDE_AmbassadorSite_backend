@@ -16,7 +16,15 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     TransactionController.getTransactions
   ]);
-
+  app.post('/api/v1/transactions/admin/create', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    ValidationMiddleware.validateMandatoryBodyFields([
+      'amount', 'user', 'reason'
+    ]),
+    TransactionController.createAdminTransaction
+  ]);
   app.post('/api/v1/transactions/referralCodes/create', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,

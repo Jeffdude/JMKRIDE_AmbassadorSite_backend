@@ -30,6 +30,10 @@ userSchema.virtual('referralCode', {
   justOne: 'true',
 });
 
+userSchema.virtual('fullName').get(function () {
+  return this.firstName + " " + this.lastName;
+});
+
 userSchema.set('toJSON', {virtuals: true});
 userSchema.set('toObject', {virtuals: true});
 
