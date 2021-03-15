@@ -57,3 +57,10 @@ if (! mongoDBPassword) {
   mongoDBPassword = "pass"
 }
 module.exports.mongoDBPassword = mongoDBPassword;
+
+let emailAPIKey = process.env.EMAIL_PASS;
+if (! emailAPIKey) {
+  console.log("[!] No emailAPIKey specified. Defaulting to DEVEL only value")
+  emailAPIKey = "pass"
+}
+module.exports.emailAPIKey = emailAPIKey;

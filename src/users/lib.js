@@ -5,16 +5,22 @@ const { permissionLevels } = require('../constants.js');
 
 const crypto = require('crypto');
 
+const hashPassword = (password) => {
+  let salt = crypto.randomBytes(16).toString('base64');
+  let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
+  return salt + "$" + hash;
+}
+
+exports.updatePassword = (userId, password) => 
+  userModel.patchUser(userId, {password: hashPassword(password)})
+  .then(authModel.disableUserSessions(userId));
 
 exports.createUser = (userData) => {
   if( !(userData.email && userData.password)) {
     throw new Error("Missing email or password");
   }
 
-  let salt = crypto.randomBytes(16).toString('base64');
-  let hash = crypto.createHmac('sha512', salt).update(userData.password).digest("base64");
-
-  userData.password = salt + "$" + hash;
+  userData.password = hashPassword(userData.password);
   userData.permissionLevel = permissionLevels.USER;
   userData.balance = 0;
 

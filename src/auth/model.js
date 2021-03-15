@@ -19,6 +19,14 @@ const sessionSchema = new Schema({
 });
 const sessionModel = mongoose.model('session', sessionSchema);
 
+const tokenSchema = new Schema({
+  owner: { type: Schema.Types.ObjectId, ref: 'user' },
+  expiration: Date,
+  key: String,
+  type: {type: String, enum: ["EMAIL_VERIFICATION", "PASSWORD_RESET"]},
+})
+const tokenModel = mongoose.model('token', tokenSchema);
+
 
 /* ------------------  Model Functions ------------------  */
 
@@ -87,3 +95,13 @@ exports.disableUserSessions = (userId) => {
   });
 }
 
+exports.createToken = (tokenData) => {
+  const newToken = new tokenModel(tokenData);
+  return newToken.save();
+}
+
+exports.deleteToken = ({id, userId, type}) => 
+  tokenModel.findOneAndDelete({_id: id, owner: userId, type: type})
+
+exports.findTokenByKey = (tokenKey) => 
+  tokenModel.findOne({key: tokenKey})

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
+const authLib = require('./lib.js');
 const sessionModel = require('./model.js');
 const config = require('../config.js');
 const jwt_options = config.jwt_options;
@@ -116,3 +117,17 @@ exports.disable_session = (req, res) => {
 exports.disable_current_session = (req, res) => {
   disable_session_id(req, res, req.jwt.sessionId);
 }
+
+exports.createAndSendEmailVerificationToken = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.createAndSendEmailVerificationToken({
+      userId: req.jwt.userId,
+    }),
+    () => res.status(201).send(),
+  )
+
+exports.verifyEmailVerificationToken = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.verifyEmailToken(req.body.key, req.jwt.userId),
+    () => res.status(200).send({result: "success"}),
+  );

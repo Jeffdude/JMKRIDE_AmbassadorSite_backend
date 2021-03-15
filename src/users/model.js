@@ -13,7 +13,8 @@ const userSchema = new Schema({
   password: String,  // Salted + SHA512 hashed
   permissionLevel: { type: String, enum: Object.values(permissionLevels) },
   ambassadorBalance: Number,
-  balance: Number
+  balance: Number,
+  emailVerified: {type: Boolean, default: false},
 }, {timestamps: true});
 
 userSchema.virtual('submissionCount', {

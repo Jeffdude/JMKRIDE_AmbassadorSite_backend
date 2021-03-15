@@ -70,7 +70,7 @@ exports.submitChallenge = (req, res) => {
       challengeId: req.params.challengeId,
       content: challengeLib.formatRequestContent(req.body),
     }),
-    () => res.status(201).send(),
+    (submission) => res.status(201).send({"id": submission._id}),
   );
 }
 

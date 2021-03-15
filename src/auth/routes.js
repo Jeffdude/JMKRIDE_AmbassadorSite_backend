@@ -1,6 +1,10 @@
 const DebugMiddleware = require('../middleware/debug.js');
 const UsersMiddleware = require('../middleware/users.js');
+
+const PERMISSION_LEVELS = require('../constants.js').permissionLevels;
+
 const ValidationMiddleware = require('../middleware/validation.js');
+const PermissionMiddleware = require('../middleware/permission.js');
 
 const AuthController = require('./controller.js');
 
@@ -40,6 +44,11 @@ exports.configRoutes = (app) => {
     AuthController.disable_all_sessions
   ]);
 
+  app.post('/api/v1/auth/email_verification', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.createAndSendEmailVerificationToken
+  ]);
   app.delete('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
@@ -57,6 +66,20 @@ exports.configRoutes = (app) => {
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.disable_session
+  ]);
+
+  app.post('/api/v1/auth/email-verification/create', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    AuthController.createAndSendEmailVerificationToken
+  ]);
+
+  app.post('/api/v1/auth/email-verification/verify', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    AuthController.verifyEmailVerificationToken
   ]);
 
 };
