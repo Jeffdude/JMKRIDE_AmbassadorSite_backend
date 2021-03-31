@@ -71,3 +71,9 @@ exports.createAdminTransaction = (req, res) =>
     }),
     () => res.status(201).send(),
   );
+
+exports.recalculateUserBalance = (req, res) =>
+  controller_run(req, res)(
+    () => transactionLib.calculateUserBalance(req.body.userId),
+    () => res.status(200).send(),
+  );

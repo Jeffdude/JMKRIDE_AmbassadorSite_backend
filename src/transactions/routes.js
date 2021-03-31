@@ -25,6 +25,13 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createAdminTransaction
   ]);
+  app.post('/api/v1/transactions/admin/recalculateBalance', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    ValidationMiddleware.validateMandatoryBodyFields(['userId']),
+    TransactionController.recalculateUserBalance
+  ]);
   app.post('/api/v1/transactions/referralCodes/create', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
