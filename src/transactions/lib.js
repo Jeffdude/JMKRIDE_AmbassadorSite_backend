@@ -5,6 +5,8 @@ const userConstants = require('../users/constants.js');
 const config = require('../config.js');
 const { logInfo } = require('../modules/errors.js');
 
+const fixAmount = (amount) => parseFloat(parseFloat(amount).toFixed(2));
+
 const createTransactionAndRecalculateBalance = (transactionData) => {
   const transactionPromise = transactionModel.createTransaction(transactionData)
   // TODO this will break 
@@ -25,7 +27,7 @@ exports.createAdminTransaction = async ({amount, user, reason}) => {
     source: adminUser.id,
     destinationType: 'user',
     destination: user,
-    amount: amount,
+    amount: fixAmount(amount),
     reason: "Admin Transaction: " + reason,
   });
 }
@@ -39,7 +41,7 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
     source: adminUser.id,
     destinationType: 'user',
     destination: to,
-    amount: challenge.award,
+    amount: fixAmount(challenge.award),
     submission: submissionId,
     reason: "Submission Approval: " + submissionId.toString(),
   });
@@ -62,7 +64,7 @@ exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
     source: adminUser.id,
     destinationType: 'user',
     destination: referralCode.owner._id,
-    amount: points,
+    amount: fixAmount(points),
     referralCode: referralCode,
     referralCodeOrderNumber: orderNumber,
     reason: "Referral Code Usage: '" + referralCode.code + "' on order #" + orderNumber,
