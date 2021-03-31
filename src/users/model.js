@@ -12,7 +12,6 @@ const userSchema = new Schema({
   email: {type: String, unique: true},
   password: String,  // Salted + SHA512 hashed
   permissionLevel: { type: String, enum: Object.values(permissionLevels) },
-  ambassadorBalance: Number,
   balance: Number,
   emailVerified: {type: Boolean, default: false},
 }, {timestamps: true});
