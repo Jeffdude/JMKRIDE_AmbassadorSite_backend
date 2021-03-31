@@ -21,7 +21,7 @@ module.exports = {
     ambassadorsite: {
       production: "ambassadorsitecluster0.uzrpe.mongodb.net/ambassadorsite-backend?retryWrites=true&w=majority",
       development: "mongodb://localhost:27017/ambassadorsite-backend",
-      unittest: "mongodb://localhost:27017/ambassadorsite-backend",
+      unittest: "mongodb://localhost:27017/ambassadorsite-backend-unittest",
     },
     stocktracker: {
       production: "mongodb://localhost:27017/stocktracker-backend",
