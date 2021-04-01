@@ -78,6 +78,7 @@ exports.calculateUserBalance = async (userId, debug = true) => {
   let in_transactions = await transactionModel.getTransactions({to: userId}).exec();
   let in_total = 0;
   in_transactions.forEach(transaction => in_total += transaction.amount)
+  in_total = fixAmount(in_total);
   if(debug) {
     logInfo("[$] UserId (" + userId.toString() + ") input total: " + in_total);
   }
@@ -85,6 +86,7 @@ exports.calculateUserBalance = async (userId, debug = true) => {
   let out_transactions = await transactionModel.getTransactions({from: userId}).exec();
   let out_total = 0;
   out_transactions.forEach(transaction => out_total += transaction.amount)
+  out_total = fixAmount(out_total);
   if(debug) {
     logInfo("[$] UserId (" + userId.toString() + ") output total: " + out_total);
   }
