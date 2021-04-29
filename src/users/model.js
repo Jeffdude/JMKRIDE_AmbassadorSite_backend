@@ -51,7 +51,7 @@ exports.findById = (
   {
     populateSubmissionCount = false,
     populateReferralCode = false
-  }) => {
+  } = {}) => {
     let user = User.findById(id);
     if(populateSubmissionCount) {
       user.populate('submissionCount');

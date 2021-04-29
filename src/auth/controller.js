@@ -131,3 +131,13 @@ exports.verifyEmailVerificationToken = (req, res) =>
     () => authLib.verifyEmailToken(req.body.key, req.jwt.userId),
     () => res.status(200).send({result: "success"}),
   );
+
+exports.resetPasswordWithPassword = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.resetPasswordWithPassword({
+      userId: req.body.userId,
+      oldPassword: req.body.oldPassword,
+      newPassword: req.body.newPassword,
+    }),
+    () => res.status(202).send({result: "success"}),
+  );

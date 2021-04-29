@@ -22,6 +22,47 @@ const tokenIsValid = (token, tokenType) => {
   return true;
 }
 
+const validatePassword = (userId, password) =>
+  userModel.findById(userId).then(user => {
+    if(!user){
+      logError("[!][validatePassword] Failed to find user.");
+      return false
+    } 
+    let passwordFields = user.password.split('$');
+    let salt = passwordFields[0];
+    let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
+    if (hash === passwordFields[1]) {
+      return true;
+    } else {
+      logError(
+        "[!][validatePassword] Hash and PW didn't match:",
+        password,
+        hash,
+        "[redacted]",
+      );
+      return false;
+    }
+  })
+     
+
+/*
+ * resetPasswordWithPassword - self-explanatory
+ */
+exports.resetPasswordWithPassword = ({userId, oldPassword, newPassword}) => 
+  validatePassword(userId, oldPassword).then(
+    valid => {
+      if(valid && newPassword) {
+        console.log("Success. Updating!");
+        return userLib.updatePassword(
+          userId,
+          newPassword,
+        ).then(authModel.deleteToken({userId: userId, type: "PASSWORD_RESET"}))
+      } else {
+        throw new Error("[!][resetPasswordWithPasswrd] Incorrect Password");
+      }
+    }
+  );
+
 const validatePasswordResetToken = (tokenKey, userId) => 
   userModel.findById(userId, {populatePasswordResetToken: true})
   .then(user => (
@@ -32,9 +73,9 @@ const validatePasswordResetToken = (tokenKey, userId) =>
   );
 
 /*
- * resetPassword - requires valid passwordResetToken
+ * resetPasswordWithToken - requires valid passwordResetToken
  */
-exports.resetPassword = (tokenKey, userId, newPassword) => 
+exports.resetPasswordWithToken = (tokenKey, userId, newPassword) => 
   validatePasswordResetToken(tokenKey, userId).then(
     valid => {
       if(valid && newPassword) {
@@ -46,6 +87,7 @@ exports.resetPassword = (tokenKey, userId, newPassword) =>
         throw new Error("[!][resetPassword] Invalid Token");
       }
     })
+
 
 /*
  * verifyEmail - requires valid emailVerificationToken

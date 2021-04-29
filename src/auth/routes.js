@@ -49,6 +49,12 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     AuthController.createAndSendEmailVerificationToken
   ]);
+  app.post('/api/v1/auth/reset_password/password', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    AuthController.resetPasswordWithPassword
+  ]);
   app.delete('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
