@@ -135,8 +135,17 @@ exports.verifyEmailVerificationToken = (req, res) =>
 exports.resetPasswordWithPassword = (req, res) =>
   controller_run(req, res)(
     () => authLib.resetPasswordWithPassword({
-      userId: req.body.userId,
+      userId: req.jwt.userId,
       oldPassword: req.body.oldPassword,
+      newPassword: req.body.newPassword,
+    }),
+    () => res.status(202).send({result: "success"}),
+  );
+
+exports.resetUserPassword = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.resetPasswordAdmin({
+      userId: req.body.userId,
       newPassword: req.body.newPassword,
     }),
     () => res.status(202).send({result: "success"}),

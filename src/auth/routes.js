@@ -52,8 +52,13 @@ exports.configRoutes = (app) => {
   app.post('/api/v1/auth/reset_password/password', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     AuthController.resetPasswordWithPassword
+  ]);
+  app.post('/api/v1/auth/reset_password/admin', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    AuthController.resetUserPassword
   ]);
   app.delete('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,

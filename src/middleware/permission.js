@@ -104,8 +104,6 @@ exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
       return req.params.userId;
     } else if (req.query.userId) {
       return req.query.userId;
-    } else if (req.body.userId) {
-      return req.body.userId;
     } else if (req.params.submissionId || req.query.submissionId) {
       let submissionId = req.params.submissionId 
         ? req.params.submissionId 

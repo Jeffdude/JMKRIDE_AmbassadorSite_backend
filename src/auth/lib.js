@@ -45,6 +45,9 @@ const validatePassword = (userId, password) =>
   })
      
 
+exports.resetPasswordAdmin = ({userId, newPassword}) =>
+  userLib.updatePassword(userId, newPassword);
+
 /*
  * resetPasswordWithPassword - self-explanatory
  */
@@ -56,7 +59,7 @@ exports.resetPasswordWithPassword = ({userId, oldPassword, newPassword}) =>
         return userLib.updatePassword(
           userId,
           newPassword,
-        ).then(authModel.deleteToken({userId: userId, type: "PASSWORD_RESET"}))
+        )
       } else {
         throw new Error("[!][resetPasswordWithPasswrd] Incorrect Password");
       }
