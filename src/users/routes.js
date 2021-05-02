@@ -5,9 +5,9 @@ const PermissionMiddleware = require('../middleware/permission.js');
 const ValidationMiddleware = require('../middleware/validation.js');
 
 const UsersController = require('./controller.js');
+const { processMode } = require('../environment.js');
 
-
-exports.configRoutes = (app) => {
+const baseUserRoutes = (app) => {
   app.post('/api/v1/users/create', [
     DebugMiddleware.printRequest,
     UsersController.insert
@@ -30,12 +30,6 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById
   ]);
-  app.get('/api/v1/users/submission_count/id/:userId', [
-    DebugMiddleware.printRequest,
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-    UsersController.getSubmissionCountById
-  ]);
   app.patch('/api/v1/users/id/:userId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
@@ -50,4 +44,24 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.sameUserCantDoThisAction,
     UsersController.removeById
   ]);
-};
+}
+
+const ambassadorsiteRoutes = (app) => {
+  app.get('/api/v1/users/submission_count/id/:userId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    UsersController.getSubmissionCountById
+  ]);
+}
+
+const processModeRoutes = {
+  "stocktracker": baseUserRoutes,
+  "ambassadorsite": (app) => {
+    baseUserRoutes(app);
+    ambassadorsiteRoutes(app)
+  }
+}
+
+exports.configRoutes = (app) => 
+  processModeRoutes[processMode](app)
