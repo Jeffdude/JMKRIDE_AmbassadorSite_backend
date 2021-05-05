@@ -7,12 +7,26 @@ const partConstants = require('./constants.js')
 /* ------------------  Inventory Model Definitions ------------------  */
 
   
+const categorySchema = new Schema({
+  name: String,
+})
+const Category = mongoose.model('category', categorySchema)
+
+const inventorySchema = new Schema({
+  name: String,
+})
+const Inventory = mongoose.model('inventory', inventorySchema);
+
+/* 
+ * partSchema
+ *  - quantityMap: {Inventory.name [String]: Quantity [Number]}
+ */
 const partSchema = new Schema({
   name: String,
   color: {type: String, enum: partConstants.PART_COLORS},
-  type: {type: String, enum: partConstants.PART_TYPES},
+  type: {type: Schema.Types.ObjectId, ref: 'category'},
   creator: {type: Schema.Types.ObjectId, ref: 'user'},
-  quantity: Number,
+  quantityMap: {type: Map, of: Number},
 });
 const Part = mongoose.model('part', partSchema);
 
@@ -38,6 +52,7 @@ const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
   action: {type: String, enum: Object.values(partConstants.inventoryActions)},
   partId: {type: Schema.Types.ObjectId, ref: 'part'},
+  inventoryId: {type: Schema.Types.ObjectId, ref: 'inventory'},
   amount: Number,
   reversed: {type: Boolean, default: false},
 }, {timestamps: true});
@@ -51,10 +66,31 @@ exports.createPart = (partData) => {
   return part.save();
 };
 
-exports.updatePartQuantity = ({ partId, quantity }) => {
-  return Part.findOneAndUpdate({
-    _id: partId,
-  }, {$inc: {'quantity': quantity}});
+exports.createCategory = (categoryData) => {
+  const category = new Category(categoryData);
+  return category.save();
+};
+
+exports.createInventory = (inventoryData) => {
+  const inventory = new Inventory(inventoryData);
+  return inventory.save();
+};
+
+exports.updatePartQuantity = async ({ inventoryId, partId, quantity }) => {
+  const session = mongoose.startSession();
+  await session.withTransaction(async () => {
+    const part = Part.findById(partId).session(session);
+    const inventory = Inventory.findById(inventoryId).session(session);
+    part.quantityMap[inventory.name] = part.quantityMap[inventory.name] + quantity;
+    await part.save();
+  });
+  session.endSession();
+};
+
+exports.createCompleteSet = (completeSetData) => {
+  const completeset = new CompleteSet(completeSetData);
+  completeset.enabled = true;
+  return completeset.save();
 };
 
 exports.createLog = ({ actor, action, partId, amount }) => {
