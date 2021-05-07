@@ -1,12 +1,7 @@
-const { permissionLevels } = require('../constants.js');
 const { logInfo, logError } = require('../modules/errors.js');
 
 const constantsModel = require('./model.js');
 const constantsInitializer = require('./initializer.js');
-
-const userModel = require('../users/model.js');
-
-const challengeModel = require('../challenges/model.js');
 
 
 /*
@@ -42,49 +37,15 @@ exports.initSiteState = () => {
     resolve(flatResults);
   })
 
-  const setAdminPermissions = (resultMap) => new Promise((resolve, reject) => {
-    if(
-      Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
-      && Object.hasOwnProperty.call(resultMap, 'adminUser')
-    ){
-      userModel.patchUser(
-        resultMap['adminUser']._id, 
-        {permissionLevel: permissionLevels.ADMIN},
-      )
-        .then(resolve)
-        .catch(reject)
-    } else {
-      resolve()
-    }
-  })
-
-  const setAmbassadorApplicationOwner = (resultMap) => new Promise((resolve, reject) => {
-    if(
-      Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
-      && Object.hasOwnProperty.call(resultMap, 'adminUser')
-    ){
-      challengeModel.updateChallengeById(
-        resultMap['ambassadorApplication']._id, 
-        {creator: resultMap['adminUser']._id},
-      )
-        .then(resolve)
-        .catch(reject)
-    } else {
-      resolve()
-    }
-  })
 
   return Promise.all(buildfns)
     .then(() => {
       let resultMap = Promise.all(fns)
         .then(flattenResults)
-      Promise.all([
-        setAmbassadorApplicationOwner,
-        setAdminPermissions,
-      ].map(fn => resultMap.then(fn))
-      ).then(() => {
-        logInfo('[+] Server constants nominal.')
-      })
+      Promise.all(initializer.postProcessors.map(fn => resultMap.then(fn)))
+        .then(() => {
+          logInfo('[+] Server constants nominal.')
+        })
       .catch(logError);
     })
     .catch(logError);
