@@ -1,4 +1,5 @@
 const { processMode } = require('../environment.js');
+const { permissionLevels } = require('../constants.js');
 const { logInfo, logError } = require('../modules/errors.js');
 
 const constantModel = require('./model.js');
@@ -61,9 +62,34 @@ const adminUserConstantInitializer = () => createConstantPromise(
 
 class baseConstantsInitializer {
   constructor(){
+    /*
+     * initializers [Map, constantName [String] : initializerFn [null => Promise]
+     */
     this.initializers = {
       'adminUser': adminUserConstantInitializer,
-    }
+    };
+    /*
+     * postProcessors [Array, postProcessFn] 
+     *               - Function, (resultMap [Map, contantName: document]) => Promise
+     */
+    this.postProcessors = [
+      // set adminUser's permissions to Admin
+      (resultMap) => new Promise((resolve, reject) => {
+        if(
+          Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
+          && Object.hasOwnProperty.call(resultMap, 'adminUser')
+        ){
+          userModel.patchUser(
+            resultMap['adminUser']._id, 
+            {permissionLevel: permissionLevels.ADMIN},
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
+    ];
   }
 }
 
@@ -74,6 +100,26 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
       'ambassadorApplication',
       challengeModel.createChallenge,
       challengeConstants.ambassadorApplicationData,
+    );
+
+
+    this.postProcessors.push(
+      // set ambassadorApplication's creator to adminUser
+      (resultMap) => new Promise((resolve, reject) => {
+        if(
+          Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
+          && Object.hasOwnProperty.call(resultMap, 'adminUser')
+        ){
+          challengeModel.updateChallengeById(
+            resultMap['ambassadorApplication']._id, 
+            {creator: resultMap['adminUser']._id},
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
     );
   }
 }
