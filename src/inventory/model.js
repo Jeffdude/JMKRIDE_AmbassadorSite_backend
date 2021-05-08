@@ -66,6 +66,11 @@ exports.createPart = (partData) => {
   return part.save();
 };
 
+exports.patchPart = (id, partData) => 
+  Part.findOneAndUpdate({
+    _id: id
+  }, partData);
+
 exports.createCategory = (categoryData) => {
   const category = new Category(categoryData);
   return category.save();

@@ -2,7 +2,7 @@ const { processMode } = require('../environment.js');
 const { permissionLevels } = require('../constants.js');
 const { logInfo, logError } = require('../modules/errors.js');
 
-const constantModel = require('./model.js');
+const constantsModel = require('./model.js');
 
 const userConstants = require('../users/constants.js');
 const userModel = require('../users/model.js');
@@ -11,8 +11,8 @@ const userLib = require('../users/lib.js');
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
 
-const partModel = require('../inventory/model.js');
-const partConstants = require('../inventory/constants.js');
+const inventoryModel = require('../inventory/model.js');
+const inventoryConstants = require('../inventory/constants.js');
 
 
 /*
@@ -23,7 +23,7 @@ const partConstants = require('../inventory/constants.js');
  *  data [Object]: data to create the constant with
  */
 const createConstantPromise = (
-  constantName, creationFn, data,
+  constantName, type, creationFn, data,
 ) => {
   return new Promise((resolve, reject) => {
     creationFn(data)
@@ -32,9 +32,10 @@ const createConstantPromise = (
           reject(new Error('Failed to create constant:', constantName, data, res));
         }
         if(res._id) {
-          constantModel.createConstant({
+          constantsModel.createConstant({
             name: constantName,
             id: res._id,
+            type: type,
           }).then(() => {
             logInfo('[+] Created constant:', constantName);
             resolve([constantName, res]);
@@ -55,7 +56,7 @@ const createConstantPromise = (
 };
 
 const adminUserConstantInitializer = () => createConstantPromise(
-  'adminUser',
+  'adminUser', 'user',
   (userData) => userLib.createUser(userData),
   userConstants.adminUserData,
 )
@@ -97,7 +98,7 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
     this.initializers['ambassadorApplication'] = () => createConstantPromise(
-      'ambassadorApplication',
+      'ambassadorApplication', 'challenge',
       challengeModel.createChallenge,
       challengeConstants.ambassadorApplicationData,
     );
@@ -127,13 +128,44 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
 class stocktrackerConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
-    partConstants.allParts.forEach(part => this.initializers[part.name] = () => 
+    /* create parts */
+    inventoryConstants.allParts.forEach(part => this.initializers[part.name] = () => 
       createConstantPromise(
-        part.name,
-        (partData) => partModel.createPart(partData),
+        part.name, 'part',
+        (partData) => inventoryModel.createPart(partData),
         part,
       )
     );
+    /* create categories */
+    inventoryConstants.categories.forEach(category => 
+      this.initializers[category] = () => createConstantPromise(
+        category, 'category',
+        (categoryName) => inventoryModel.createCategory({name: categoryName}),
+        category,
+      )
+    );
+    /* create inventories */
+    inventoryConstants.inventories.forEach(inventory =>
+      this.initializers[inventory] = () => createConstantPromise(
+        inventory, 'inventory',
+        (inventoryName) => inventoryModel.createInventory({name: inventoryName}),
+        inventory,
+      )
+    );
+    /* set creator, category of all parts */
+    inventoryConstants.allParts.forEach(part => {
+      this.postProcessors.push(async (resultMap) => {
+        if(Object.hasOwnProperty.call(resultMap, part.name)) {
+          let category = await constantsModel.getByName(part.categoryName);
+          let adminUser = await constantsModel.getByName('adminUser');
+          let patchData = {
+            type: category.id,
+            creator: adminUser.id,
+          }
+          return inventoryModel.patchPart(resultMap[part.name]._id, patchData)
+        }
+      })
+    });
   }
 }
 
