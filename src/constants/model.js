@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 /* ------------------- Model Definitions ------------------  */
 
 
-const constantModels = ['user', 'challenge'];
 
 /*
  * A constant is a specific document of type {enum: constantModels}
@@ -22,10 +21,7 @@ const constantSchema = new Schema({
     refPath: 'type',
     required: true,
   },
-  type: {
-    type: String,
-    enum: constantModels,
-  },
+  type: String,
 });
 const Constant = mongoose.model('constant', constantSchema);
 

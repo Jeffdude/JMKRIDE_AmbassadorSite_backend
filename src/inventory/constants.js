@@ -1,4 +1,4 @@
-module.exports.PART_TYPES = [
+const categories = [
   "Wheel",
   "Truck",
   "Deck",
@@ -11,8 +11,9 @@ module.exports.PART_TYPES = [
   "Apparel", // Shirts, Bags, etc
   "Other", // Stickers, etc
 ];
+module.exports.categories = categories;
 
-module.exports.PART_COLORS = [ // Order from custom tool
+const colors = [ // Order from custom tool
   "Black",
   "White",
   "Cyan",
@@ -30,30 +31,35 @@ module.exports.PART_COLORS = [ // Order from custom tool
   "Sakura",
   "Brown",
 ];
+module.exports.colors = colors;
+
+module.exports.inventories = [
+  "JMKRIDE-USA-BackOffice",
+]
 
 const genAllParts = () => {
   const partTypeToPartColors = {
-    "Wheel": module.exports.PART_COLORS.filter(
+    "Wheel": colors.filter(
       color => !(["Brown", "Chrome", "Silver", "Sakura"].includes(color))
     ),
-    "Truck": module.exports.PART_COLORS.filter(
+    "Truck": colors.filter(
       color => !(["Brown"].includes(color))
     ),
-    "Deck": module.exports.PART_COLORS.filter(
+    "Deck": colors.filter(
       color => !(["Brown"].includes(color))
     ),
   }
 
 
   // Standard Color Parts for complete sets
-  let standardParts = []
+  let standardParts = [];
   Object.keys(partTypeToPartColors).map(partType => 
     standardParts = standardParts.concat(
       partTypeToPartColors[partType].map(partColor => ({
         name: partColor + " " + partType,
         color: partColor,
-        type: partType,
-        quantity: 0,
+        categoryName: partType, // will be persisted as category in postprocessing
+        quantityMap: {},
       }))
     )
   );
@@ -62,12 +68,12 @@ const genAllParts = () => {
     parts.map(part => ({
       name: part[0],
       color: part[1],
-      type: type,
+      categoryName: type,
       quantity: 0,
     }));
 
   let gripParts = createPartsWithType("Grip", [
-    ["Black&White Logo", "Black"],
+    ["Black/White Logo", "Black"],
     // TODO
   ]);
 
