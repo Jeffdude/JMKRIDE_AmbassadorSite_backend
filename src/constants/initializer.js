@@ -12,13 +12,14 @@ const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
 
 const inventoryModel = require('../inventory/model.js');
+const inventoryLib = require('../inventory/lib.js');
 const inventoryConstants = require('../inventory/constants.js');
 
 
 /*
  * createConstantPromise
  *  constantName [String]: unique name of the constant to create
- *  creationFn [Fn]: 
+ *  creationFn [Fn]:
  *    function that takes constant's data, returns created mongoose document
  *  data [Object]: data to create the constant with
  */
@@ -70,7 +71,7 @@ class baseConstantsInitializer {
       'adminUser': adminUserConstantInitializer,
     };
     /*
-     * postProcessors [Array, postProcessFn] 
+     * postProcessors [Array, postProcessFn]
      *               - Function, (resultMap [Map, contantName: document]) => Promise
      */
     this.postProcessors = [
@@ -81,7 +82,7 @@ class baseConstantsInitializer {
           && Object.hasOwnProperty.call(resultMap, 'adminUser')
         ){
           userModel.patchUser(
-            resultMap['adminUser']._id, 
+            resultMap['adminUser']._id,
             {permissionLevel: permissionLevels.ADMIN},
           )
             .then(resolve)
@@ -91,6 +92,7 @@ class baseConstantsInitializer {
         }
       }),
     ];
+    this.postSetup = () => {}
   }
 }
 
@@ -112,7 +114,7 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
           && Object.hasOwnProperty.call(resultMap, 'adminUser')
         ){
           challengeModel.updateChallengeById(
-            resultMap['ambassadorApplication']._id, 
+            resultMap['ambassadorApplication']._id,
             {creator: resultMap['adminUser']._id},
           )
             .then(resolve)
@@ -129,7 +131,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
     /* create parts */
-    inventoryConstants.allParts.forEach(part => this.initializers[part.name] = () => 
+    inventoryConstants.allParts.forEach(part => this.initializers[part.name] = () =>
       createConstantPromise(
         part.name, 'part',
         (partData) => inventoryModel.createPart(partData),
@@ -137,11 +139,19 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       )
     );
     /* create categories */
-    inventoryConstants.categories.forEach(category => 
+    inventoryConstants.categories.forEach(category =>
       this.initializers[category] = () => createConstantPromise(
         category, 'category',
         (categoryName) => inventoryModel.createCategory({name: categoryName}),
         category,
+      )
+    );
+    /* create category sets */
+    inventoryConstants.categorySets.forEach(categorySet =>
+      this.initializers[categorySet] = () => createConstantPromise(
+        categorySet, 'categorySet',
+        (categorySetName) => inventoryModel.createCategory({name: categorySetName}),
+        categorySet,
       )
     );
     /* create inventories */
@@ -156,16 +166,18 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
     inventoryConstants.allParts.forEach(part => {
       this.postProcessors.push(async (resultMap) => {
         if(Object.hasOwnProperty.call(resultMap, part.name)) {
-          let category = await constantsModel.getByName(part.categoryName);
+          let categoryConstant = await constantsModel.getByName(part.categoryName);
+          let category = await inventoryModel.getCategoryById(categoryConstant.id);
           let adminUser = await constantsModel.getByName('adminUser');
           let patchData = {
-            type: category.id,
+            categories: [{sortIndex: 0, category: category}],
             creator: adminUser.id,
           }
           return inventoryModel.patchPart(resultMap[part.name]._id, patchData)
         }
       })
     });
+    this.postSetup = inventoryLib.sortAllCategories;
   }
 }
 

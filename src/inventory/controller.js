@@ -1,4 +1,5 @@
 const inventoryLib = require('./lib.js');
+const inventoryModel = require('./model.js');
 
 const { controller_run } = require('../modules/templates.js');
 
@@ -17,3 +18,7 @@ exports.patchById = (req, res) => {
     (result) => res.status(200).send({result})
   )
 }
+
+exports.debug = () => inventoryModel.debug();
+
+

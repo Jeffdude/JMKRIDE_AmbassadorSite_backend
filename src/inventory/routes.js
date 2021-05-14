@@ -21,5 +21,10 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     InventoryController.patchById
   ]);
+
+  app.get('/api/v1/parts/debug', [
+    DebugMiddleware.printRequest,
+    InventoryController.debug
+  ]);
 };
 
