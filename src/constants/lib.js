@@ -37,16 +37,15 @@ exports.initSiteState = () => {
     resolve(flatResults);
   })
 
-
   return Promise.all(buildfns)
     .then(() => {
       let resultMap = Promise.all(fns)
         .then(flattenResults)
-      Promise.all(initializer.postProcessors.map(fn => resultMap.then(fn)))
-        .then(() => {
-          logInfo('[+] Server constants nominal.')
-        })
-      .catch(logError);
-    })
-    .catch(logError);
+      Promise.all(
+        initializer.postProcessors.map(fn => resultMap.then(fn))
+      ).then(initializer.postSetup
+      ).then(() => {
+        logInfo('[+] Server constants nominal.')
+      }).catch(logError);
+    }).catch(logError);
 };

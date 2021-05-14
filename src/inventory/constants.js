@@ -3,9 +3,9 @@ const categories = [
   "Truck",
   "Deck",
   "Grip",
-  // Other parts of Complete Sets 
+  // Other parts of Complete Sets
   // that are always included e.g. screw kits, shock pads, & bearings
-  "Auxiliary", 
+  "Auxiliary",
   "Shipping", // Boxes, truck inserts, Learn brochures
   "Accessory", // Optional parts of CS (Edge guards, etc)
   "Apparel", // Shirts, Bags, etc
@@ -36,6 +36,9 @@ module.exports.colors = colors;
 module.exports.inventories = [
   "JMKRIDE-USA-BackOffice",
 ]
+module.exports.categorySets = [
+  "Default",
+]
 
 const genAllParts = () => {
   const partTypeToPartColors = {
@@ -53,7 +56,7 @@ const genAllParts = () => {
 
   // Standard Color Parts for complete sets
   let standardParts = [];
-  Object.keys(partTypeToPartColors).map(partType => 
+  Object.keys(partTypeToPartColors).map(partType =>
     standardParts = standardParts.concat(
       partTypeToPartColors[partType].map(partColor => ({
         name: partColor + " " + partType,
@@ -108,8 +111,9 @@ const genAllParts = () => {
 module.exports.allParts = genAllParts();
 
 module.exports.inventoryActions = {
-  CREATE: "CREATE", 
-  UPDATE: "UPDATE", 
-  DELETE: "DELETE",
-  TOGGLE: "TOGGLE", // enabling/disabling complete sets
+  CREATE: "CREATE",                       // create part/complete set
+  MODIFY: "MODIFY",                       // edit data of a part/complete set
+  DELETE: "DELETE",                       // delete part/complete set
+  UPDATE_QUANTITY: "UPDATE_QUANTITY",     // add/subtract from an inventory
+  TRANSFER_QUANTITY: "TRANSFER_QUANTITY", // transfer to/from inventories
 };
