@@ -1,4 +1,4 @@
-const { processMode } = require('../environment.js');
+const { processMode, operationMode } = require('../environment.js');
 const { permissionLevels } = require('../constants.js');
 const { logInfo, logError } = require('../modules/errors.js');
 
@@ -77,10 +77,7 @@ class baseConstantsInitializer {
     this.postProcessors = [
       // set adminUser's permissions to Admin
       (resultMap) => new Promise((resolve, reject) => {
-        if(
-          Object.hasOwnProperty.call(resultMap, 'ambassadorApplication')
-          && Object.hasOwnProperty.call(resultMap, 'adminUser')
-        ){
+        if(Object.hasOwnProperty.call(resultMap, 'adminUser')){
           userModel.patchUser(
             resultMap['adminUser']._id,
             {permissionLevel: permissionLevels.ADMIN},
@@ -130,6 +127,26 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
 class stocktrackerConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
+
+    if(["development", "unittest"].includes(operationMode)) {
+      /* create test users */
+      this.initializers['testNobody'] = () => createConstantPromise(
+        'testNobody', 'user',
+        (data) => userLib.createUser(data),
+        userConstants.testNobodyData,
+      );
+      this.initializers['testUser'] = () => createConstantPromise(
+        'testUser', 'user',
+        (data) => userLib.createUser(data),
+        userConstants.testUserData,
+      );
+      this.initializers['testAmbassador'] = () => createConstantPromise(
+        'testAmbassador', 'user',
+        (data) => userLib.createUser(data),
+        userConstants.testAmbassadorData,
+      );
+    }
+
     /* create parts */
     inventoryConstants.allParts.forEach(part => this.initializers[part.name] = () =>
       createConstantPromise(
@@ -161,6 +178,46 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
         (inventoryName) => inventoryModel.createInventory({name: inventoryName}),
         inventory,
       )
+    );
+
+    this.postProcessors.push(
+      // set adminUser's permissions to Admin
+      (resultMap) => new Promise((resolve, reject) => {
+        if(Object.hasOwnProperty.call(resultMap, 'testNobody')){
+          userModel.patchUser(
+            resultMap['testNobody']._id,
+            {permissionLevel: permissionLevels.NONE},
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
+      (resultMap) => new Promise((resolve, reject) => {
+        if(Object.hasOwnProperty.call(resultMap, 'testUser')){
+          userModel.patchUser(
+            resultMap['testUser']._id,
+            {permissionLevel: permissionLevels.USER},
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
+      (resultMap) => new Promise((resolve, reject) => {
+        if(Object.hasOwnProperty.call(resultMap, 'testAmbassador')){
+          userModel.patchUser(
+            resultMap['testAmbassador']._id,
+            {permissionLevel: permissionLevels.AMBASSADOR},
+          )
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
     );
     /* set creator, category of all parts */
     inventoryConstants.allParts.forEach(part => {
