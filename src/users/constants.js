@@ -11,3 +11,24 @@ exports.adminUserData = {
   email: 'admin@admin.com',
   password: adminSecret,
 }
+
+exports.testNobodyData = {
+  firstName: 'Test',
+  lastName: 'None',
+  email: 'none@test.com',
+  password: adminSecret,
+}
+
+exports.testUserData = {
+  firstName: 'Test',
+  lastName: 'User',
+  email: 'user@test.com',
+  password: adminSecret,
+}
+
+exports.testAmbassadorData = {
+  firstName: 'Test',
+  lastName: 'Ambassador',
+  email: 'ambassador@test.com',
+  password: adminSecret,
+}
