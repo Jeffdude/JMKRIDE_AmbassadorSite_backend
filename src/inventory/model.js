@@ -4,9 +4,7 @@ const Schema = mongoose.Schema;
 const partConstants = require('./constants.js')
 
 
-/* ------------------  Inventory Model Definitions ------------------
- *
- *             ┌──────────┐  ┌───────────┐
+/*             ┌──────────┐  ┌───────────┐
  *             │Inventory │  │ Inventory │ ...
  *             └▲─────────┘  └───▲───────┘
  *              │   One:All      │
@@ -24,6 +22,7 @@ const partConstants = require('./constants.js')
  *  - unique collections of quantities of parts
  *    * useful for storefront/back office, or remote countries like
  *      Canada/Brazil
+ *
  */
 const inventorySchema = new Schema({name: String});
 const Inventory = mongoose.model('inventory', inventorySchema);
@@ -145,6 +144,9 @@ exports.updatePartQuantity = ({ partId, inventoryId, quantity }) => {
 exports.getPartById = (partId) =>
   Part.findById(partId);
 
+exports.getPartsById = (partIds) =>
+  Part.find({"_id": {"$in": partIds}});
+
 exports.setPartCategoryOrder = ({partId, categoryId, sortIndex}) =>
   Part.findOneAndUpdate(
     {'_id': partId, 'categories.category': categoryId},
@@ -152,13 +154,13 @@ exports.setPartCategoryOrder = ({partId, categoryId, sortIndex}) =>
   );
 
 /*
- * getCategoryParts
+ * getPartsByCategory
  *  Returns - parts in category
  *    * javascript objects (not documents)
  *    * these JS objects are 100% sufficient for returning to the client,
  *      but cannot be modified or save()d
  */
-exports.getCategoryParts = ({ categoryId }) =>
+exports.getPartsByCategory = ({ categoryId }) =>
   Part.aggregate([
     /* elemMatch any part belonging to this category */
     {'$match': {'categories.category': mongoose.Types.ObjectId(categoryId)}},
@@ -182,6 +184,29 @@ exports.deleteCategory = (categoryId) =>
   Category.findOneAndDelete({_id: categoryId})
 exports.getCategoryById = (categoryId) =>
   Category.findById(categoryId).populate('length');
+exports.getCategoriesById = (categoryIds) =>
+  Category.find({"_id": {"$in": categoryIds}}).populate('length');
+exports.getAllCategories = () => Category.find();
+/*
+ * getCategoriesByCategorySet
+ *  Returns - categories in categorySet
+ *    * javascript objects (not documents)
+ *    * these JS objects are 100% sufficient for returning to the client,
+ *      but cannot be modified or save()d
+ */
+exports.getCategoriesByCategorySet = ({categorySetId}) =>
+  Category.aggregate([
+    /* elemMatch any categories belonging to this categorySet */
+    {'$match': {'categorySets.category': mongoose.Types.ObjectId(categorySetId)}},
+    /* expand those categories into one doc per categorySet */
+    {'$unwind': '$categorySets'},
+    /* re-match only those category-categorySet pairs that are this categorySet*/
+    {'$match': {'categorySets.category': mongoose.Types.ObjectId(categorySetId)}},
+    /* sort by the sortIndex */
+    {'$sort': {'categorySets.sortIndex': 1}},
+    /* remove the modified 'categorySets' field for bug avoidance */
+    {'$project': {'categorySets': 0}},
+  ]);
 
 //exports.getCategorySetCategories = ({categorySetId}) =>
 
@@ -192,7 +217,9 @@ exports.createCategorySet = (categorySetData) => {
 };
 exports.deleteCategorySet = (categorySetId) =>
   CategorySet.findOneAndDelete({_id: categorySetId})
-exports.getAllCategories = () => Category.find();
+exports.getCategorySetById = (categorySetId) => CategorySet.findById(categorySetId);
+exports.getCategorySetsById = (categorySetIds) => 
+  CategorySet.find({"_id": {"$in": categorySetIds}});
 
 /*   Inventories    */
 exports.createInventory = (inventoryData) => {

@@ -55,7 +55,15 @@ exports.updatePartQuantity = (actor, payload) =>
     },
   );
 
-exports.createCategory = (actor, payload) =>
+exports.createCategory = (actor, categorySetIds, payload) => {
+  let allCategorySetOrders = []
+  const categorySets = inventoryModel.getCategorySetsById(categorySetIds);
+  categorySets.forEach(
+    category => allCategorySetOrders.push(
+      {category: category._id, sortIndex: category.length}
+    )
+  );
+  payload.categorySets = allCategorySetOrders;
   executeThenLog(
     () => inventoryModel.createCategory(payload),
     {
@@ -64,10 +72,11 @@ exports.createCategory = (actor, payload) =>
       payload: payload,
     },
   );
+}
 
 exports.sortCategory = async ({categoryId}) => {
   const allPartIds = (
-    await inventoryModel.getCategoryParts({categoryId})
+    await inventoryModel.getPartsByCategory({categoryId})
   ).map((doc) => doc._id);
   return await Promise.all(
     allPartIds.map(async (id, index) =>
