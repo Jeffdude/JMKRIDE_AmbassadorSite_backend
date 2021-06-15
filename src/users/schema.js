@@ -63,7 +63,10 @@ const genAmbassadorUserSchema = () => {
 const genStocktrackerUserSchema = () => {
   const stocktrackerUserSchema = new Schema({
     ...baseSchema,
-    ...{},
+    ...{
+      defaultInventory: { type: Schema.Types.ObjectId, ref: 'inventory' },
+      defaultCategorySet: { type: Schema.Types.ObjectId, ref: 'categoryset' },
+    },
   }, {timestamps: true});
   addSchemaGenerics(stocktrackerUserSchema);
 
