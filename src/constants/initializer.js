@@ -180,14 +180,21 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       )
     );
 
+    let defaultInventory = inventoryConstants.defaultDefaultInventory;
+    let defaultCategorySet = inventoryConstants.defaultDefaultCategorySet;
     this.postProcessors.push(
-      // set adminUser's permissions to Admin
+      // set permissionLevels, defaultInventory, defaultCategorySet
+      // for all test users
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testNobody')){
-          userModel.patchUser(
-            resultMap['testNobody']._id,
-            {permissionLevel: permissionLevels.NONE},
-          )
+          let patchData = {permissionLevel: permissionLevels.NONE};
+          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
+            patchData.defaultInventory = resultMap[defaultInventory].id;
+          }
+          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
+            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
+          }
+          userModel.patchUser(resultMap['testNobody']._id, patchData)
             .then(resolve)
             .catch(reject)
         } else {
@@ -196,10 +203,14 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }),
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testUser')){
-          userModel.patchUser(
-            resultMap['testUser']._id,
-            {permissionLevel: permissionLevels.USER},
-          )
+          let patchData = {permissionLevel: permissionLevels.USER};
+          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
+            patchData.defaultInventory = resultMap[defaultInventory].id;
+          }
+          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
+            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
+          }
+          userModel.patchUser(resultMap['testUser']._id, patchData)
             .then(resolve)
             .catch(reject)
         } else {
@@ -208,10 +219,31 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }),
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testAmbassador')){
-          userModel.patchUser(
-            resultMap['testAmbassador']._id,
-            {permissionLevel: permissionLevels.AMBASSADOR},
-          )
+          let patchData = {permissionLevel: permissionLevels.USER};
+          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
+            patchData.defaultInventory = resultMap[defaultInventory].id;
+          }
+          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
+            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
+          }
+          userModel.patchUser(resultMap['testAmbassador']._id, patchData)
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve()
+        }
+      }),
+      // set defaultInventory, defaultCategorySet for adminUser
+      (resultMap) => new Promise((resolve, reject) => {
+        if(Object.hasOwnProperty.call(resultMap, 'adminUser')){
+          let patchData = {permissionLevel: permissionLevels.USER};
+          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
+            patchData.defaultInventory = resultMap[defaultInventory].id;
+          }
+          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
+            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
+          }
+          userModel.patchUser(resultMap['adminUser']._id, patchData)
             .then(resolve)
             .catch(reject)
         } else {

@@ -33,12 +33,11 @@ const colors = [ // Order from custom tool
 ];
 module.exports.colors = colors;
 
-module.exports.inventories = [
-  "JMKRIDE-USA-BackOffice",
-]
-module.exports.categorySets = [
-  "Default",
-]
+module.exports.inventories = ["JMKRIDE-USA-BackOffice"]
+module.exports.defaultDefaultInventory = "JMKRIDE-USA-BackOffice";
+
+module.exports.categorySets = ["Default"]
+module.exports.defaultDefaultCategorySet = "Default";
 
 const genAllParts = () => {
   const partTypeToPartColors = {
