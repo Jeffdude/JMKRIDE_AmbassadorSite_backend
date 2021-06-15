@@ -26,7 +26,6 @@ const baseUserRoutes = (app) => {
   app.get('/api/v1/users/id/:userId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById
   ]);
