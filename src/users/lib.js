@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
 const userModel = require('../users/model.js');
+const inventoryConstants = require('../inventory/constants.js');
 const authModel = require('../auth/model.js');
 
 const { permissionLevels } = require('../constants.js');
@@ -53,7 +54,21 @@ class AmbassadorsiteUserLib extends UserLib {
   }
 }
 
-class StocktrackerUserLib extends UserLib {}
+class StocktrackerUserLib extends UserLib {
+  static createUser(userData) {
+    if( !(userData.email && userData.password)) {
+      throw new Error("Missing email or password");
+    }
+
+    userData.password = this.hashPassword(userData.password);
+    userData.permissionLevel = permissionLevels.NONE;
+
+    userData.defaultInventory = inventoryConstants.defaultDefaultInventory;
+    userData.defaultCategorySet = inventoryConstants.defaultDefaultCategorySet;
+
+    return userModel.createUser(userData);
+  }
+}
 
 module.exports = {
   ambassadorsite: AmbassadorsiteUserLib,
