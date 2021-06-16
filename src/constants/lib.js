@@ -43,9 +43,9 @@ exports.initSiteState = () => {
         .then(flattenResults)
       Promise.all(
         initializer.postProcessors.map(fn => resultMap.then(fn))
+      ).then(() => logInfo('[+] Server constants nominal. Running post setup.')
       ).then(initializer.postSetup
-      ).then(() => {
-        logInfo('[+] Server constants nominal.')
-      }).catch(logError);
+      ).then(() => logInfo('[+] Done.')
+      ).catch(logError);
     }).catch(logError);
 };

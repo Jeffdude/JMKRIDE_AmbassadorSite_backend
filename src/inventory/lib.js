@@ -87,12 +87,30 @@ exports.sortCategory = async ({categoryId}) => {
   );
 }
 
-exports.sortAllCategories = async () =>
-  inventoryModel.getAllCategories().then(categories => Promise.all(
+exports.sortCategorySet = async ({categorySetId}) => {
+  const allCategoryIds = (
+    await inventoryModel.getCategoriesByCategorySet({categorySetId})
+  ).map((doc) => doc._id);
+  return await Promise.all(
+    allCategoryIds.map((id, index) =>
+      inventoryModel.setCategoryCategorySetOrder({
+        categoryId: id, categorySetId: categorySetId, sortIndex: index,
+      })
+    )
+  );
+}
+
+exports.sortAllCategoriesAndCategorySets = async () => {
+  await inventoryModel.getAllCategories().then(categories => Promise.all(
     categories.map(category =>
       exports.sortCategory({categoryId: category._id})
     )
   ));
-
+  await inventoryModel.getAllCategorySets().then(categorySets => Promise.all(
+    categorySets.map(categorySet =>
+      exports.sortCategorySet({categorySetId: categorySet._id})
+    )
+  ));
+}
 
 exports.debug = () => exports.sortCategory({categoryId: "609c3a19f0bbf1efaa2e1ea7"});

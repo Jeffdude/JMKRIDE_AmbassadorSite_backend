@@ -187,6 +187,16 @@ exports.getCategoryById = (categoryId) =>
 exports.getCategoriesById = (categoryIds) =>
   Category.find({"_id": {"$in": categoryIds}}).populate('length');
 exports.getAllCategories = () => Category.find();
+exports.patchCategory = (id, categoryData) =>
+  Category.findOneAndUpdate({
+    _id: id
+  }, categoryData);
+
+exports.setCategoryCategorySetOrder = ({categoryId, categorySetId, sortIndex}) =>
+  Category.findOneAndUpdate(
+    {'_id': categoryId, 'categorySets.categorySet': categorySetId},
+    {'$set': {'categorySets.$.sortIndex': sortIndex}}
+  );
 /*
  * getCategoriesByCategorySet
  *  Returns - categories in categorySet
@@ -197,11 +207,11 @@ exports.getAllCategories = () => Category.find();
 exports.getCategoriesByCategorySet = ({categorySetId}) =>
   Category.aggregate([
     /* elemMatch any categories belonging to this categorySet */
-    {'$match': {'categorySets.category': mongoose.Types.ObjectId(categorySetId)}},
+    {'$match': {'categorySets.categorySet': mongoose.Types.ObjectId(categorySetId)}},
     /* expand those categories into one doc per categorySet */
     {'$unwind': '$categorySets'},
     /* re-match only those category-categorySet pairs that are this categorySet*/
-    {'$match': {'categorySets.category': mongoose.Types.ObjectId(categorySetId)}},
+    {'$match': {'categorySets.categorySet': mongoose.Types.ObjectId(categorySetId)}},
     /* sort by the sortIndex */
     {'$sort': {'categorySets.sortIndex': 1}},
     /* remove the modified 'categorySets' field for bug avoidance */
@@ -218,8 +228,9 @@ exports.createCategorySet = (categorySetData) => {
 exports.deleteCategorySet = (categorySetId) =>
   CategorySet.findOneAndDelete({_id: categorySetId})
 exports.getCategorySetById = (categorySetId) => CategorySet.findById(categorySetId);
-exports.getCategorySetsById = (categorySetIds) => 
+exports.getCategorySetsById = (categorySetIds) =>
   CategorySet.find({"_id": {"$in": categorySetIds}});
+exports.getAllCategorySets = () => CategorySet.find();
 
 /*   Inventories    */
 exports.createInventory = (inventoryData) => {
