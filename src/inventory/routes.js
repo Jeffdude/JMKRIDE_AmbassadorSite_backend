@@ -22,6 +22,21 @@ exports.configRoutes = (app) => {
     InventoryController.patchById
   ]);
 
+  app.get('/api/v1/categorysets/id/:categorySetId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getCategorySetById
+  ]);
+
+  app.get('/api/v1/categorysets/categories/id/:categorySetId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getCategoriesByCategorySet
+  ]);
+
+
   app.get('/api/v1/parts/debug', [
     DebugMiddleware.printRequest,
     InventoryController.debug

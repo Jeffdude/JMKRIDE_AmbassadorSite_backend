@@ -19,6 +19,20 @@ exports.patchById = (req, res) => {
   )
 }
 
+exports.getCategorySetById = (req, res) =>
+  controller_run(req,res)(
+    () => inventoryModel.getCategorySetById(req.params.categorySetId),
+    (result) => res.status(200).send({result}),
+  );
+
+exports.getCategoriesByCategorySet = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getCategoriesByCategorySet({
+      categorySetId: req.params.categorySetId,
+    }),
+    (result) => res.status(200).send({result}),
+  );
+
 exports.debug = () => inventoryModel.debug();
 
 

@@ -89,7 +89,7 @@ class baseConstantsInitializer {
         }
       }),
     ];
-    this.postSetup = () => {}
+    this.postSetup = [];
   }
 }
 
@@ -127,6 +127,7 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
 class stocktrackerConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
+    this.postSetup = inventoryLib.sortAllCategoriesAndCategorySets;
 
     if(["development", "unittest"].includes(operationMode)) {
       /* create test users */
@@ -167,7 +168,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
     inventoryConstants.categorySets.forEach(categorySet =>
       this.initializers[categorySet] = () => createConstantPromise(
         categorySet, 'categorySet',
-        (categorySetName) => inventoryModel.createCategory({name: categorySetName}),
+        (categorySetName) => inventoryModel.createCategorySet({name: categorySetName}),
         categorySet,
       )
     );
@@ -236,7 +237,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       // set defaultInventory, defaultCategorySet for adminUser
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'adminUser')){
-          let patchData = {permissionLevel: permissionLevels.USER};
+          let patchData = {};
           if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
             patchData.defaultInventory = resultMap[defaultInventory].id;
           }
@@ -266,7 +267,28 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
         }
       })
     });
-    this.postSetup = inventoryLib.sortAllCategories;
+    /* set categorySet for all categories */
+    inventoryConstants.categories.forEach(category => {
+      this.postProcessors.push(async (resultMap) => {
+        if(Object.hasOwnProperty.call(resultMap, category)) {
+          let defaultCategorySetName = inventoryConstants.defaultDefaultCategorySet;
+          let patchData;
+          if(Object.hasOwnProperty.call(resultMap, defaultCategorySetName)) {
+            patchData = {categorySets:
+              [{sortIndex: 0, categorySet: resultMap[defaultCategorySetName].id}]
+            };
+          } else {
+            patchData = {categorySets: [{
+              sortIndex: 0,
+              categorySet: await constantsModel.getByName(
+                defaultCategorySetName,
+              ).id
+            }]};
+          }
+          return inventoryModel.patchCategory(resultMap[category].id, patchData);
+        }
+      })
+    });
   }
 }
 

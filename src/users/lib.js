@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 
 const userModel = require('../users/model.js');
+const constantsModel = require('../constants/model.js');
 const inventoryConstants = require('../inventory/constants.js');
 const authModel = require('../auth/model.js');
 
@@ -55,7 +56,7 @@ class AmbassadorsiteUserLib extends UserLib {
 }
 
 class StocktrackerUserLib extends UserLib {
-  static createUser(userData) {
+  static async createUser(userData) {
     if( !(userData.email && userData.password)) {
       throw new Error("Missing email or password");
     }
@@ -63,8 +64,12 @@ class StocktrackerUserLib extends UserLib {
     userData.password = this.hashPassword(userData.password);
     userData.permissionLevel = permissionLevels.NONE;
 
-    userData.defaultInventory = inventoryConstants.defaultDefaultInventory;
-    userData.defaultCategorySet = inventoryConstants.defaultDefaultCategorySet;
+    userData.defaultInventory = await constantsModel.getByName(
+      inventoryConstants.defaultDefaultInventory
+    );
+    userData.defaultCategorySet = await constantsModel.getByName(
+      inventoryConstants.defaultDefaultCategorySet
+    );
 
     return userModel.createUser(userData);
   }

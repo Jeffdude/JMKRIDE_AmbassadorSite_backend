@@ -36,8 +36,8 @@ module.exports.colors = colors;
 module.exports.inventories = ["JMKRIDE-USA-BackOffice"]
 module.exports.defaultDefaultInventory = "JMKRIDE-USA-BackOffice";
 
-module.exports.categorySets = ["Default"]
-module.exports.defaultDefaultCategorySet = "Default";
+module.exports.categorySets = ["Default Category Set"]
+module.exports.defaultDefaultCategorySet = "Default Category Set";
 
 const genAllParts = () => {
   const partTypeToPartColors = {
