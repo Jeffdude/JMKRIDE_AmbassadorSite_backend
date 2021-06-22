@@ -15,11 +15,39 @@ exports.configRoutes = (app) => {
     InventoryController.createPart
   ]);
 
-  app.patch('/api/v1/parts/inventory/:partId', [
+  app.patch('/api/v1/parts/id/:partId', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     InventoryController.patchById
+  ]);
+
+  app.get('/api/v1/parts/category/id/:categoryId/inventory/id/:inventoryId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getPartsByCategory
+  ]);
+
+  app.get('/api/v1/categories/categorySet/id/:categorySetId', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getCategoriesByCategorySet
+  ]);
+
+  app.get('/api/v1/categorySets/all', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getAllCategorySets
+  ]);
+
+  app.get('/api/v1/inventories/all', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getAllInventories
   ]);
 
   app.get('/api/v1/categorysets/id/:categorySetId', [

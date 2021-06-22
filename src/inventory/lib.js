@@ -1,5 +1,6 @@
 const inventoryModel = require('./model.js');
 const { inventoryActions } = require('./constants.js');
+const { operationMode } = require('../environment.js');
 
 const executeThenLog = (fn, { action, actor, payload}) =>
   fn().then(doc =>
@@ -100,17 +101,57 @@ exports.sortCategorySet = async ({categorySetId}) => {
   );
 }
 
-exports.sortAllCategoriesAndCategorySets = async () => {
+exports.postSetup = async () => {
+  /* sort all categories */
   await inventoryModel.getAllCategories().then(categories => Promise.all(
     categories.map(category =>
       exports.sortCategory({categoryId: category._id})
     )
   ));
+  /* sort all categorysets */
   await inventoryModel.getAllCategorySets().then(categorySets => Promise.all(
     categorySets.map(categorySet =>
       exports.sortCategorySet({categorySetId: categorySet._id})
     )
   ));
+
+  /* initialize all uninitialized inventories */
+  await inventoryModel.getAllInventories().then(inventories =>
+    Promise.all(inventories.map((inventory) => {
+      if(!inventory.initialized) {
+        inventoryModel.getAllParts().then(parts => Promise.all(
+          parts.map(part => inventoryModel.updatePartQuantity(
+            {
+              partId: part._id,
+              inventoryId: inventory._id,
+              quantity: (
+                /* if in development mode, set random inventory amounts */
+                ["development", "unittest"].includes(operationMode)
+                ? Math.floor(Math.random() * 1000)
+                : 0
+              ) 
+            },
+          ))
+        )).then(() => inventoryModel.patchInventory(inventory._id, {initialized: true}))
+      }
+    }))
+  )
 }
+
+/*
+ * adds 'quantity' property to results for ease of use from client
+ */
+exports.setPartResultsQuantity = (inventoryId) => (parts) => {
+  parts.forEach(part => {
+    if(Object.hasOwnProperty.call(part.quantityMap, inventoryId)) {
+      part.quantity = part.quantityMap[inventoryId];
+    } else {
+      part.quantity = 0;
+    }
+    delete(part.quantityMap);
+  });
+  return parts;
+}
+
 
 exports.debug = () => exports.sortCategory({categoryId: "609c3a19f0bbf1efaa2e1ea7"});

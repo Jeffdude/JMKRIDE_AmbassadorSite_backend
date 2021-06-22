@@ -24,7 +24,10 @@ const partConstants = require('./constants.js')
  *      Canada/Brazil
  *
  */
-const inventorySchema = new Schema({name: String});
+const inventorySchema = new Schema({
+  name: String,
+  initialized: false, // for development mode
+});
 const Inventory = mongoose.model('inventory', inventorySchema);
 
 /* CategorySet
@@ -135,9 +138,17 @@ exports.patchPart = (id, partData) =>
     _id: id
   }, partData);
 
-exports.updatePartQuantity = ({ partId, inventoryId, quantity }) => {
-  const part = Part.findById(partId);
-  part.quantityMap[inventoryId] = part.quantityMap[inventoryId] + quantity;
+exports.updatePartQuantity = async ({ partId, inventoryId, quantity }) => {
+  const part = await Part.findById(partId);
+  const stringInventoryId = inventoryId.toString()
+
+  if(! part.quantityMap.get(stringInventoryId)) {
+    part.quantityMap.set(stringInventoryId, 0);
+  }
+  part.quantityMap.set(
+    stringInventoryId,
+    part.quantityMap.get(stringInventoryId) + quantity,
+  )
   return part.save();
 };
 
@@ -146,6 +157,8 @@ exports.getPartById = (partId) =>
 
 exports.getPartsById = (partIds) =>
   Part.find({"_id": {"$in": partIds}});
+
+exports.getAllParts = () => Part.find();
 
 exports.setPartCategoryOrder = ({partId, categoryId, sortIndex}) =>
   Part.findOneAndUpdate(
@@ -197,13 +210,6 @@ exports.setCategoryCategorySetOrder = ({categoryId, categorySetId, sortIndex}) =
     {'_id': categoryId, 'categorySets.categorySet': categorySetId},
     {'$set': {'categorySets.$.sortIndex': sortIndex}}
   );
-/*
- * getCategoriesByCategorySet
- *  Returns - categories in categorySet
- *    * javascript objects (not documents)
- *    * these JS objects are 100% sufficient for returning to the client,
- *      but cannot be modified or save()d
- */
 exports.getCategoriesByCategorySet = ({categorySetId}) =>
   Category.aggregate([
     /* elemMatch any categories belonging to this categorySet */
@@ -214,9 +220,12 @@ exports.getCategoriesByCategorySet = ({categorySetId}) =>
     {'$match': {'categorySets.categorySet': mongoose.Types.ObjectId(categorySetId)}},
     /* sort by the sortIndex */
     {'$sort': {'categorySets.sortIndex': 1}},
-    /* remove the modified 'categorySets' field for bug avoidance */
-    {'$project': {'categorySets': 0}},
-  ]);
+    /* group into an array of ids */
+    {'$group': {_id: null, array: {"$push": "$_id"}}},
+    {'$project': {array: true, _id: false}}
+  ]).then(result => 
+    Category.find({"_id": {"$in": result[0].array }}).populate('length')
+  );
 
 //exports.getCategorySetCategories = ({categorySetId}) =>
 
@@ -239,6 +248,9 @@ exports.createInventory = (inventoryData) => {
 };
 exports.deleteInventory = (inventoryId) =>
   Inventory.findOneAndDelete({_id: inventoryId})
+exports.getAllInventories = () => Inventory.find();
+exports.patchInventory = (id, inventoryData) =>
+  Inventory.findOneAndUpdate({_id: id}, inventoryData);
 
 /*   CompleteSets    */
 exports.createCompleteSet = (completeSetData) => {
