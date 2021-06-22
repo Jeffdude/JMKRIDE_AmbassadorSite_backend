@@ -71,7 +71,7 @@ const genAllParts = () => {
       name: part[0],
       color: part[1],
       categoryName: type,
-      quantity: 0,
+      quantityMap: {},
     }));
 
   let gripParts = createPartsWithType("Grip", [

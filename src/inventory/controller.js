@@ -19,11 +19,31 @@ exports.patchById = (req, res) => {
   )
 }
 
+exports.getPartsByCategory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getPartsByCategory(
+      { categoryId: req.params.categoryId}
+    ).then(inventoryLib.setPartResultsQuantity(req.params.inventoryId)),
+    (result) => res.status(200).send({result})
+  );
+
 exports.getCategorySetById = (req, res) =>
   controller_run(req,res)(
     () => inventoryModel.getCategorySetById(req.params.categorySetId),
     (result) => res.status(200).send({result}),
   );
+
+exports.getAllCategorySets = (req, res) =>
+  controller_run(req,res)(
+    () => inventoryModel.getAllCategorySets(),
+    (result) => res.status(200).send({result}),
+  )
+
+exports.getAllInventories = (req, res) =>
+  controller_run(req,res)(
+    () => inventoryModel.getAllInventories(),
+    (result) => res.status(200).send({result}),
+  )
 
 exports.getCategoriesByCategorySet = (req, res) =>
   controller_run(req, res)(

@@ -127,7 +127,7 @@ class ambassadorsiteConstantsInitializer extends baseConstantsInitializer {
 class stocktrackerConstantsInitializer extends baseConstantsInitializer {
   constructor() {
     super();
-    this.postSetup = inventoryLib.sortAllCategoriesAndCategorySets;
+    this.postSetup = inventoryLib.postSetup;
 
     if(["development", "unittest"].includes(operationMode)) {
       /* create test users */
@@ -220,7 +220,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }),
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testAmbassador')){
-          let patchData = {permissionLevel: permissionLevels.USER};
+          let patchData = {permissionLevel: permissionLevels.AMBASSADOR};
           if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
             patchData.defaultInventory = resultMap[defaultInventory].id;
           }
