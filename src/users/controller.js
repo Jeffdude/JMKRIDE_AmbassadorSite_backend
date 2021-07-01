@@ -108,7 +108,24 @@ class AmbassadorsiteUserController extends BaseUserController {
   }
 }
 
-class StocktrackerUserController extends BaseUserController {}
+class StocktrackerUserController extends BaseUserController {
+  static setDefaultInventory(req, res) {
+    return controller_run(req, res)(
+      () => userModel.patchUser(
+        req.jwt.userId,
+        { defaultInventory: req.params.inventoryId }
+      )
+    )
+  }
+  static setDefaultCategorySet(req, res) {
+    return controller_run(req, res)(
+      () => userModel.patchUser(
+        req.jwt.userId,
+        { defaultCategorySet: req.params.categorySetId }
+      )
+    )
+  }
+}
 
 module.exports = {
   ambassadorsite: AmbassadorsiteUserController,

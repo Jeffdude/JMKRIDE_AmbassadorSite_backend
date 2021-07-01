@@ -117,8 +117,8 @@ const CompleteSet = mongoose.model('completeSet', completeSetSchema);
 
 const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
-  action: {type: String, enum: Object.values(partConstants.inventoryActions)},
-  subjectId: {type: Schema.Types.ObjectId, refPath: 'targetType'},
+  action: {type: String, enum: Object.values(partConstants.actions)},
+  subject: {type: Schema.Types.ObjectId, refPath: 'subjectType'},
   subjectType: String,
   payload: {type: Schema.Types.Mixed},
 }, {timestamps: true});
@@ -149,7 +149,7 @@ exports.updatePartQuantity = async ({ partId, inventoryId, quantity }) => {
     stringInventoryId,
     part.quantityMap.get(stringInventoryId) + quantity,
   )
-  return part.save();
+  return part.save({new: true});
 };
 
 exports.getPartById = (partId) =>
@@ -187,6 +187,15 @@ exports.getPartsByCategory = ({ categoryId }) =>
     {'$project': {'categories': 0}},
   ]);
 
+exports.getPartIdsByCategory = ({ categoryId }) =>
+  Part.aggregate([
+    /* elemMatch any part belonging to this category */
+    {'$match': {'categories.category': mongoose.Types.ObjectId(categoryId)}},
+    /* group into an array of ids */
+    {'$group': {_id: null, array: {"$push": "$_id"}}},
+    {'$project': {array: true, _id: false}},
+  ]);
+
 
 /*   Categories    */
 exports.createCategory = (categoryData) => {
@@ -218,16 +227,12 @@ exports.getCategoriesByCategorySet = ({categorySetId}) =>
     {'$unwind': '$categorySets'},
     /* re-match only those category-categorySet pairs that are this categorySet*/
     {'$match': {'categorySets.categorySet': mongoose.Types.ObjectId(categorySetId)}},
-    /* sort by the sortIndex */
-    {'$sort': {'categorySets.sortIndex': 1}},
     /* group into an array of ids */
     {'$group': {_id: null, array: {"$push": "$_id"}}},
     {'$project': {array: true, _id: false}}
   ]).then(result => 
     Category.find({"_id": {"$in": result[0].array }}).populate('length')
   );
-
-//exports.getCategorySetCategories = ({categorySetId}) =>
 
 /*   Category Sets    */
 exports.createCategorySet = (categorySetData) => {
@@ -268,19 +273,23 @@ exports.createLog = (logData) => {
   return log.save();
 }
 
-exports.debug = async () => {
-  //console.log((await exports.getCategoryById("609c3a19f0bbf1efaa2e1ea7")).length);
-  console.log(
-    await exports.getPartById(
-      (await exports.getCategoryParts({categoryId: "609d9fc1c8cff990906eee19"}))[0]._id
-    )
+exports.getLogsByCategory = ({categoryId, perPage = 150, page = 0}) =>
+  exports.getPartIdsByCategory({categoryId}).then(result =>
+    Log.find({subjectType: "part", subject: {"$in": result[0].array}})
+    .populate("actor", ["firstName", "lastName"])
+    .populate("subject")
+    .sort({createdAt: -1})
+    .limit(perPage)
+    .skip(perPage * page)
   );
-  //console.log(await exports.setPartCategoryOrder({
-  //  partId: "609c3a19f0bbf1efaa2e1e8c",
-  //  categoryId: "609c3a19f0bbf1efaa2e1ea7",
-  //  sortIndex: 5,
-  //}));
-}
+
+exports.getLogsByPart = ({partId, perPage = 150, page = 0}) =>
+  Log.find({subjectType: "part", subject: partId})
+    .populate("actor", ["firstName", "lastName"])
+    .populate("subject")
+    .sort({createdAt: -1})
+    .limit(perPage)
+    .skip(perPage * page);
 
 exports.getLogs = (perPage = 150, page = 0) =>
   Log.find()

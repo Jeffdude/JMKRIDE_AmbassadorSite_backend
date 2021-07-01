@@ -1,17 +1,18 @@
 const inventoryModel = require('./model.js');
-const { inventoryActions } = require('./constants.js');
+const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
 const executeThenLog = (fn, { action, actor, payload}) =>
-  fn().then(doc =>
-    inventoryModel.createLog({
+  fn().then(async doc => {
+    await inventoryModel.createLog({
       actor: actor,
       action: action,
-      subject: doc._id,
       subjectType: doc.constructor.modelName,
+      subject: doc._id,
       payload: payload,
-    })
-  );
+    });
+    return doc;
+  });
 
 /* createPartWithCategories
  *  categoryIds - [categoryIds]
@@ -29,7 +30,7 @@ exports.createPart = ({actor, ...partData}) =>
   executeThenLog(
     () => inventoryModel.createPart(partData),
     {
-      action: inventoryActions.CREATE,
+      action: actions.CREATE,
       actor: actor,
       payload: partData,
     }
@@ -39,22 +40,21 @@ exports.patchPart = ({actor, partId, ...partData}) =>
   executeThenLog(
     () => inventoryModel.patchPart(partId, partData),
     {
-      action: inventoryActions.MODIFY,
+      action: actions.MODIFY,
       actor: actor,
       payload: partData,
     }
   );
 
-
-exports.updatePartQuantity = (actor, payload) =>
+exports.updatePartQuantity = ({partId, inventoryId, quantity, actor}) =>
   executeThenLog(
-    () => inventoryModel.updatePartQuantity(payload),
+    () => inventoryModel.updatePartQuantity({partId, inventoryId, quantity}),
     {
-      action: inventoryActions.UPDATE,
-      actor: actor,
-      payload: payload,
+      action: actions.UPDATE_QUANTITY,
+      actor,
+      payload: {quantity},
     },
-  );
+  ),
 
 exports.createCategory = (actor, categorySetIds, payload) => {
   let allCategorySetOrders = []
@@ -68,7 +68,7 @@ exports.createCategory = (actor, categorySetIds, payload) => {
   executeThenLog(
     () => inventoryModel.createCategory(payload),
     {
-      action: inventoryActions.UPDATE,
+      action: actions.UPDATE,
       actor: actor,
       payload: payload,
     },
@@ -100,6 +100,13 @@ exports.sortCategorySet = async ({categorySetId}) => {
     )
   );
 }
+
+exports.setCategoryPartOrder = async ({categoryId, partOrder}) => 
+  await Promise.all(
+    partOrder.map(({id, index}) => inventoryModel.setPartCategoryOrder({
+      partId: id, categoryId, sortIndex: index,
+    }))
+  );
 
 exports.postSetup = async () => {
   /* sort all categories */
@@ -139,19 +146,33 @@ exports.postSetup = async () => {
 }
 
 /*
- * adds 'quantity' property to results for ease of use from client
+ * adds "quantity" property to results for ease of use from client
+ *  - parts must be an array of JS objects (mongoose docs must be lean()ed)
  */
-exports.setPartResultsQuantity = (inventoryId) => (parts) => {
-  parts.forEach(part => {
+exports.setPartResultsQuantity = (inventoryId) => (parts) => 
+  parts.map(part => {
     if(Object.hasOwnProperty.call(part.quantityMap, inventoryId)) {
       part.quantity = part.quantityMap[inventoryId];
     } else {
       part.quantity = 0;
     }
-    delete(part.quantityMap);
+    delete part.quantityMap;
+    return part;
   });
-  return parts;
-}
 
+/* 
+ * adds "sortIndex' property for ease of use from client
+ *  - mongoose documents are turned into objects
+ */
+exports.setCategorySortIndex = (categorySetId) => (categories) => 
+  categories.map(category => {
+    const result = category.categorySets.filter(
+      categorySet => categorySet.categorySet.toString() === categorySetId.toString()
+    )
+    let categoryObject = category.toObject();
+    categoryObject.sortIndex = result[0].sortIndex;
+    delete categoryObject.categorySets;
+    return categoryObject;
+  });
 
 exports.debug = () => exports.sortCategory({categoryId: "609c3a19f0bbf1efaa2e1ea7"});

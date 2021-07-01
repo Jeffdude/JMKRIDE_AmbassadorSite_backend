@@ -84,15 +84,17 @@ exports.validateCleanBodyFields = (allowedFields) => (req, res, next) => {
 };
 
 exports.validateMandatoryBodyFields = (requiredFields) => (req, res, next) => {
-  requiredFields.forEach(key => {
-    if (!Object.prototype.hasOwnProperty.call(req.body, key)){
-      logError(
-        "[!][401][validateMandatoryBodyFields] Missing body parameter:",
-        key,
-        req.body,
-      );
-      return res.status(400).send({error: 'Missing body parameter: ' + key});
-    }
-  });
+  const missing_fields = requiredFields.filter(
+    key => !Object.prototype.hasOwnProperty.call(req.body, key),
+  );
+  if(missing_fields.length) {
+    logError(
+      "[!][401][validateMandatoryBodyFields] Missing body parameters:",
+      "'" + missing_fields.join() + "'",
+      "received:",
+      req.body,
+    );
+    return res.status(400).send({error: 'Missing body parameters: ' + missing_fields.join()});
+  }
   return next();
 };
