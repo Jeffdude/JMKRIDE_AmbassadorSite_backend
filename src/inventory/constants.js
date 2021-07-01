@@ -109,7 +109,7 @@ const genAllParts = () => {
 
 module.exports.allParts = genAllParts();
 
-module.exports.inventoryActions = {
+module.exports.actions = {
   CREATE: "CREATE",                       // create part/complete set
   MODIFY: "MODIFY",                       // edit data of a part/complete set
   DELETE: "DELETE",                       // delete part/complete set

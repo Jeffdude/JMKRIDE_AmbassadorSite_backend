@@ -10,14 +10,40 @@ exports.createPart = (req, res) => {
   );
 }
 
-exports.patchById = (req, res) => {
+exports.getPart = (req, res) => 
   controller_run(req, res)(
-    () => inventoryLib.updatePartQuantity(
-      {partId: req.params.partId, quantity: req.body.quantity, actor: req.jwt.userId}
-    ),
+    () => inventoryModel.getPartById(req.params.partId),
     (result) => res.status(200).send({result})
   )
-}
+
+exports.getPartWithQuantity = (req, res) => 
+  controller_run(req, res)(
+    () => inventoryModel.getPartById(req.params.partId).lean().then(
+      result => [result]
+    ).then(
+      inventoryLib.setPartResultsQuantity(req.params.inventoryId),
+    ).then(result => result[0]),
+    (result) => res.status(200).send({result})
+  )
+
+exports.patchPart = () => undefined;
+
+exports.updatePartQuantity = (req, res) => 
+  controller_run(req, res)(
+    () => inventoryLib.updatePartQuantity({
+      partId: req.params.partId,
+      inventoryId: req.params.inventoryId,
+      quantity: req.body.quantity,
+      actor: req.jwt.userId,
+    }),
+    (result) => res.status(201).send({result})
+  );
+
+exports.getCategory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getCategoryById(req.params.categoryId),
+    (result) => res.status(200).send({result}),
+  );
 
 exports.getPartsByCategory = (req, res) =>
   controller_run(req, res)(
@@ -39,6 +65,15 @@ exports.getAllCategorySets = (req, res) =>
     (result) => res.status(200).send({result}),
   )
 
+exports.setCategoryPartOrder = (req, res) =>
+  controller_run(req,res)(
+    () => inventoryLib.setCategoryPartOrder({
+      categoryId: req.params.categoryId,
+      partOrder: req.body.partOrder,
+    }),
+    () => res.status(200).send({result: true}),
+  );
+
 exports.getAllInventories = (req, res) =>
   controller_run(req,res)(
     () => inventoryModel.getAllInventories(),
@@ -49,8 +84,31 @@ exports.getCategoriesByCategorySet = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getCategoriesByCategorySet({
       categorySetId: req.params.categorySetId,
+    }).then(inventoryLib.setCategorySortIndex(req.params.categorySetId)),
+    (result) => res.status(200).send({result}),
+  );
+
+exports.getLogsByCategory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getLogsByCategory({
+      categoryId: req.params.categoryId,
+      perPage: req.query.perPage,
+      page: req.query.page,
     }),
     (result) => res.status(200).send({result}),
+  );
+
+exports.getLogsByPart = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getLogsByPart({
+      partId: req.params.partId,
+      perPage: req.query.perPage,
+      page: req.query.page,
+    }),
+    (result) => {
+      console.log(result);
+      res.status(200).send({result})
+    }
   );
 
 exports.debug = () => inventoryModel.debug();
