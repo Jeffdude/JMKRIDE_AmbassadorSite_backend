@@ -1,33 +1,20 @@
 const inventoryModel = require('./model.js');
+const inventoryConstants = require('./constants.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
-const executeThenLog = (fn, { action, actor, payload}) =>
+const executeThenLog = (fn, { action, actor, payload, quantity}) =>
   fn().then(async doc => {
     await inventoryModel.createLog({
-      actor: actor,
-      action: action,
+      actor, action,
       subjectType: doc.constructor.modelName,
       subject: doc._id,
-      payload: payload,
+      quantity, payload,
     });
     return doc;
   });
 
-/* createPartWithCategories
- *  categoryIds - [categoryIds]
- */
-exports.createPartWithCategories = ({actor, categoryIds, ...partData}) => {
-  partData.categories = [];
-  Promise.all(categoryIds.forEach(categoryId =>
-    inventoryModel.getCategoryById(categoryId).then(category =>
-      partData.categories.push({sortIndex: category.length, category: category._id})
-    )
-  )).then(exports.createPart({actor, partData}))
-}
-
-exports.createPart = ({actor, ...partData}) =>
-  executeThenLog(
+exports.createPart = ({actor, ...partData}) => executeThenLog(
     () => inventoryModel.createPart(partData),
     {
       action: actions.CREATE,
@@ -35,6 +22,24 @@ exports.createPart = ({actor, ...partData}) =>
       payload: partData,
     }
   );
+
+/* createPartWithCategories
+ *  categoryIds - [categoryIds]
+ */
+exports.createPartWithCategories = async ({actor, categoryIds, inventoryId, quantity, ...partData}) => {
+  partData = {
+    ...partData,
+    creator: actor,
+    categories: [],
+    quantityMap: (inventoryId && quantity) ?  {[inventoryId]: quantity} : {},
+  }
+  await Promise.all(categoryIds.map(categoryId =>
+    inventoryModel.getCategoryById(categoryId).then(category => {
+      partData.categories.push({sortIndex: category.length, category: category.id})
+    })
+  ))
+  return await exports.createPart({actor, ...partData})
+}
 
 exports.patchPart = ({actor, partId, ...partData}) =>
   executeThenLog(
@@ -51,38 +56,61 @@ exports.updatePartQuantity = ({partId, inventoryId, quantity, actor}) =>
     () => inventoryModel.updatePartQuantity({partId, inventoryId, quantity}),
     {
       action: actions.UPDATE_QUANTITY,
-      actor,
-      payload: {quantity},
+      actor, quantity,
     },
-  ),
+  )
 
-exports.createCategory = (actor, categorySetIds, payload) => {
-  let allCategorySetOrders = []
-  const categorySets = inventoryModel.getCategorySetsById(categorySetIds);
-  categorySets.forEach(
-    category => allCategorySetOrders.push(
-      {category: category._id, sortIndex: category.length}
-    )
-  );
-  payload.categorySets = allCategorySetOrders;
-  executeThenLog(
-    () => inventoryModel.createCategory(payload),
+const fixCategoryData = async ({actor, categorySetIds, ...categoryData}) => {
+  let fixedCategoryData = {
+    ...categoryData,
+    creator: actor,
+    categorySets: [],
+  }
+  await Promise.all(categorySetIds.map(categorySetId =>
+    inventoryModel.getCategorySetById(categorySetId).then(categorySet => {
+      fixedCategoryData.categorySets.push(
+        {sortIndex: categorySet.length, categorySet: categorySet.id}
+      )
+    })
+  ))
+  return fixedCategoryData;
+};
+
+exports.createCategory = async ({actor, partIds, ...categoryData}) => {
+  let fixedData = await fixCategoryData({actor, ...categoryData});
+  return executeThenLog(
+    () => inventoryModel.createCategory(fixedData).then(async doc => {
+      await syncPartIdsWithCategory({categoryId: doc._id, partIds})
+      return doc;
+    }),
     {
-      action: actions.UPDATE,
-      actor: actor,
-      payload: payload,
+      action: actions.CREATE,
+      actor, payload: {partIds, ...categoryData},
     },
   );
 }
 
-exports.sortCategory = async ({categoryId}) => {
-  const allPartIds = (
-    await inventoryModel.getPartsByCategory({categoryId})
-  ).map((doc) => doc._id);
-  return await Promise.all(
-    allPartIds.map(async (id, index) =>
+exports.setCategoryPartOrder = ({categoryId, itemOrder}) =>
+  Promise.all(
+    itemOrder.map(({id, index}) =>
       inventoryModel.setPartCategoryOrder({
         partId: id, categoryId: categoryId, sortIndex: index
+      })
+    )
+  );
+
+exports.sortCategory = async ({categoryId}) => {
+  const itemOrder = (
+    await inventoryModel.getPartsByCategory({categoryId})
+  ).map((doc, index) => ({id: doc._id, index}));
+  return await exports.setCategoryPartOrder({categoryId, itemOrder});
+}
+
+exports.setCategorySetCategoryOrder = async ({categorySetId, itemOrder}) => {
+  return await Promise.all(
+    itemOrder.map(({id, index}) =>
+      inventoryModel.setCategoryCategorySetOrder({
+        categoryId: id, categorySetId: categorySetId, sortIndex: index,
       })
     )
   );
@@ -91,20 +119,21 @@ exports.sortCategory = async ({categoryId}) => {
 exports.sortCategorySet = async ({categorySetId}) => {
   const allCategoryIds = (
     await inventoryModel.getCategoriesByCategorySet({categorySetId})
-  ).map((doc) => doc._id);
-  return await Promise.all(
-    allCategoryIds.map((id, index) =>
-      inventoryModel.setCategoryCategorySetOrder({
-        categoryId: id, categorySetId: categorySetId, sortIndex: index,
-      })
-    )
-  );
+  ).map((doc, index) => ({id: doc._id, index}));
+  return exports.setCategorySetCategoryOrder({categorySetId, itemOrder: allCategoryIds});
 }
 
-exports.setCategoryPartOrder = async ({categoryId, partOrder}) => 
+exports.setCategoryPartOrder = async ({categoryId, itemOrder}) => 
   await Promise.all(
-    partOrder.map(({id, index}) => inventoryModel.setPartCategoryOrder({
+    itemOrder.map(({id, index}) => inventoryModel.setPartCategoryOrder({
       partId: id, categoryId, sortIndex: index,
+    }))
+  );
+
+exports.setCSSetCSOrder = async ({CSSetId, itemOrder}) =>
+  await Promise.all(
+    itemOrder.map(({id, index}) => inventoryModel.setCSCSSetOrder({
+      CSId: id, CSSetId: CSSetId, sortIndex: index,
     }))
   );
 
@@ -145,6 +174,49 @@ exports.postSetup = async () => {
   )
 }
 
+exports.createCompleteSet = ({actor, ...CSData}) => {
+  return executeThenLog(
+    () => inventoryModel.createCompleteSet(CSData),
+    {
+      action: actions.CREATE,
+      actor, payload: CSData,
+    }
+  );
+}
+exports.patchCompleteSet = ({completeSetId, actor, ...CSData}) => {
+  return executeThenLog(
+    () => inventoryModel.patchCompleteSet(completeSetId, CSData),
+    {
+      action: actions.MODIFY,
+      actor, payload: CSData,
+    }
+  );
+}
+
+const fixCSData = async ({actor, CSSetIds, ...CSData}) => {
+  CSData = {
+    ...CSData,
+    creator: actor,
+    CSSets: [],
+  }
+  await Promise.all(CSSetIds.map(CSSetId =>
+    inventoryModel.getCSSetById(CSSetId).then(CSSet => {
+      CSData.CSSets.push({sortIndex: CSSet.length, CSSet: CSSet.id})
+    })
+  ))
+  return CSData;
+};
+
+exports.patchCompleteSetWithCSSets = async (CSData) => {
+  return await exports.patchCompleteSet(await fixCSData(CSData));
+}
+
+exports.createCompleteSetWithCSSets = async (CSData) => {
+  return await exports.createCompleteSet(await fixCSData(CSData));
+}
+
+
+
 /*
  * adds "quantity" property to results for ease of use from client
  *  - parts must be an array of JS objects (mongoose docs must be lean()ed)
@@ -160,19 +232,187 @@ exports.setPartResultsQuantity = (inventoryId) => (parts) =>
     return part;
   });
 
-/* 
- * adds "sortIndex' property for ease of use from client
- *  - mongoose documents are turned into objects
- */
-exports.setCategorySortIndex = (categorySetId) => (categories) => 
-  categories.map(category => {
-    const result = category.categorySets.filter(
-      categorySet => categorySet.categorySet.toString() === categorySetId.toString()
-    )
-    let categoryObject = category.toObject();
-    categoryObject.sortIndex = result[0].sortIndex;
-    delete categoryObject.categorySets;
-    return categoryObject;
+exports.handleDeletedCSSet = (CSSetId) =>
+  inventoryModel.getCompleteSets({CSSetId}).then(results => Promise.all(
+    results.map(completeSet => inventoryModel.removeCompleteSetFromCSSetId(
+      {completeSetId: completeSet._id, CSSetId}
+    ))
+  ));
+
+exports.handleDeletedCategory = (categoryId) =>
+  inventoryModel.getPartsByCategory({categoryId}).then(results => Promise.all(
+    results.map(part => inventoryModel.removePartFromCategory(
+      {partId: part._id, categoryId}
+    ))
+  ));
+
+exports.handleDeletedCategorySet = (categorySetId) =>
+  inventoryModel.getCategoriesByCategorySet({categorySetId}).then(results => Promise.all(
+    results.map(category => inventoryModel.removeCategoryFromCategorySet(
+      {categoryId: category._id, categorySetId}
+    ))
+  ));
+
+exports.addCompleteSetHelperInfo = (inventoryId) => (completeSet) => {
+  /* <id>: <num appearances> */
+  let idOccurances = {}
+  let uniqueParts = []
+  inventoryConstants.CSPropertyList.forEach(prop => {
+    let part = completeSet[prop];
+    let id = part._id.toString()
+    // increment part count
+    if(!Object.hasOwnProperty.call(idOccurances, id)) {
+      idOccurances[id] = 0;
+      uniqueParts.push(part);
+    }
+    idOccurances[id] += 1;
   });
+  completeSet.idOccurances = idOccurances;
+  completeSet.allParts = uniqueParts.map(part => {
+    let opart = JSON.parse(JSON.stringify(part));
+    if(part.quantityMap.has(inventoryId)) {
+      opart.quantity = part.quantityMap.get(inventoryId);
+    } else {
+      opart.quantity = 0;
+    }
+    return opart;
+  });
+  return completeSet;
+}
+exports.createCSSetWithCSIds = ({actor, CSIds, ...CSSetData}) =>
+  executeThenLog(
+    () => inventoryModel.createCSSet(CSSetData).then(
+      async (doc) => {
+        await syncCSIdsWithCSSet({CSSetId: doc._id, CSIds: CSIds});
+        return doc;
+      }
+    ),
+    {
+      action: actions.CREATE,
+      actor, payload: {...CSSetData, CSIds}
+    }
+  );
+exports.patchCSSetWithCSIds = ({actor, CSSetId, CSIds, ...CSSetData}) =>
+  executeThenLog(
+    () => inventoryModel.patchCSSet(CSSetId, CSSetData).then(
+      async (doc) => {
+        await syncCSIdsWithCSSet({CSSetId: doc._id, CSIds: CSIds});
+        return doc;
+      }
+    ),
+    {
+      action: actions.MODIFY,
+      actor, payload: {...CSSetData, CSIds}
+    }
+  );
+
+const syncSingleWithMany = async (
+  {singleId, manyIds, singleKey, manyKey, getMany, addManyToSingle, removeManyFromSingle}
+) => {
+  const idsInSingle = (await getMany({[singleKey]: singleId})).map(doc => doc._id.toString());
+  const idsToRemove = idsInSingle.filter(id => !manyIds.includes(id));
+  const idsToAdd = manyIds.filter(id => !idsInSingle.includes(id));
+  return await Promise.all(
+    idsToAdd.map(id => 
+      addManyToSingle({[singleKey]: singleId, [manyKey]: id})
+    ).concat(idsToRemove.map(id => removeManyFromSingle(
+      {[singleKey]: singleId, [manyKey]: id}
+    )))
+  );
+}
+
+const syncPartIdsWithCategory = ({categoryId, partIds}) => syncSingleWithMany({
+  singleId: categoryId, singleKey: "categoryId", manyIds: partIds, manyKey: "partId",
+  getMany: inventoryModel.getPartsByCategory,
+  addManyToSingle: inventoryModel.addPartToCategory,
+  removeManyFromSingle: inventoryModel.removePartFromCategory
+});
+const syncCategorySetIdsWithCategory = ({categoryId, categorySetIds}) => syncSingleWithMany({
+  singleId: categoryId, singleKey: "categoryId", manyIds: categorySetIds, manyKey: "categorySetId",
+  getMany: (({categoryId}) => 
+    inventoryModel.getCategoryById(categoryId)
+      .then(c => c.categorySets.map(cset => cset.categorySet))
+  ),
+  addManyToSingle: inventoryModel.addCategoryToCategorySet,
+  removeManyFromSingle: inventoryModel.removeCategoryFromCategorySet,
+});
+const syncCSIdsWithCSSet = ({CSSetId, CSIds}) => syncSingleWithMany({
+  singleId: CSSetId, singleKey: "CSSetId", manyIds: CSIds, manyKey: "completeSetId",
+  getMany: inventoryModel.getCompleteSets,
+  addManyToSingle: inventoryModel.addCompleteSetToCSSetId,
+  removeManyFromSingle: inventoryModel.removeCompleteSetFromCSSetId,
+});
+const syncCategoryIdsWithCategorySet = ({categorySetId, categoryIds}) => syncSingleWithMany({
+  singleId: categorySetId, singleKey: "categorySetId", manyIds: categoryIds, manyKey: "categoryId",
+  getMany: inventoryModel.getCategoriesByCategorySet,
+  addManyToSingle: inventoryModel.addCategoryToCategorySet,
+  removeManyFromSingle: inventoryModel.removeCategoryFromCategorySet,
+});
+
+
+exports.patchCategory = (categoryId, {actor, partIds, categorySetIds, ...categoryData}) =>
+  executeThenLog(
+    () => inventoryModel.patchCategory(categoryId, categoryData).then(
+      async doc => {
+        await syncPartIdsWithCategory({categoryId, partIds});
+        await syncCategorySetIdsWithCategory({categoryId, categorySetIds});
+        return doc;
+      }
+    ),
+    {
+      action: actions.MODIFY,
+      actor, payload: {...categoryData, partIds},
+    },
+  );
+
+exports.patchCategorySetWithCategoryIds = (
+  categorySetId, {actor, categoryIds, ...categorySetData}
+) => executeThenLog(
+    () => inventoryModel.patchCategorySet(categorySetId, categorySetData).then(
+      async doc => {
+        await syncCategoryIdsWithCategorySet({categorySetId, categoryIds})
+        return doc;
+      }
+    ),
+    {
+      action: actions.MODIFY,
+      actor, payload: {...categorySetData, categoryIds},
+    },
+  );
+exports.createCategorySetWithCategoryIds = ({actor, categoryIds, ...categorySetData}) =>
+  executeThenLog(
+    () => inventoryModel.createCategorySet(categorySetData).then(
+      async doc => {
+        await syncCategoryIdsWithCategorySet({categorySetId: doc._id, categoryIds})
+        return doc;
+      }
+    ),
+    {
+      action: actions.CREATE,
+      actor, payload: {...categorySetData, categoryIds},
+    },
+  );
+
+exports.updateCompleteSetQuantity = async ({ completeSetId, inventoryId, quantity, actor }) => {
+  const completeSet = await inventoryModel.getCompleteSetById(completeSetId)
+    .then(exports.addCompleteSetHelperInfo(inventoryId))
+  return Promise.all(Object.keys(completeSet.idOccurances).map(
+    async partId => await exports.updatePartQuantity({
+      partId, inventoryId, quantity: completeSet.idOccurances[partId] * quantity, actor,
+    })
+  ));
+}
+
+exports.redactCreatorInfo = (doc) => {
+  if (doc.creator) {
+    let object = {
+      firstName: doc.creator.firstName,
+      lastName: doc.creator.lastName,
+      fullName: doc.creator.fullName,
+    }
+    doc.creator = object;
+  }
+  return doc;
+}
 
 exports.debug = () => exports.sortCategory({categoryId: "609c3a19f0bbf1efaa2e1ea7"});

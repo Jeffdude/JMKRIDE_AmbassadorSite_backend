@@ -1,3 +1,5 @@
+const constantModel = require('../constants/model.js');
+
 const categories = [
   "Wheel",
   "Truck",
@@ -35,9 +37,21 @@ module.exports.colors = colors;
 
 module.exports.inventories = ["JMKRIDE-USA-BackOffice"]
 module.exports.defaultDefaultInventory = "JMKRIDE-USA-BackOffice";
+module.exports.getDefaultDefaultInventoryId = () => constantModel.getByName(
+  module.exports.defaultDefaultInventory
+).then(doc => doc.id)
 
 module.exports.categorySets = ["Default Category Set"]
 module.exports.defaultDefaultCategorySet = "Default Category Set";
+module.exports.getDefaultDefaultCategorySetId = () => constantModel.getByName(
+  module.exports.defaultDefaultCategorySet
+).then(doc => doc.id)
+
+module.exports.CSSets = ["Default CS Set"]
+module.exports.defaultDefaultCSSet = "Default CS Set";
+module.exports.getDefaultDefaultCSSetId = () => constantModel.getByName(
+  module.exports.defaultDefaultCSSet
+).then(doc => doc.id)
 
 const genAllParts = () => {
   const partTypeToPartColors = {
@@ -116,3 +130,10 @@ module.exports.actions = {
   UPDATE_QUANTITY: "UPDATE_QUANTITY",     // add/subtract from an inventory
   TRANSFER_QUANTITY: "TRANSFER_QUANTITY", // transfer to/from inventories
 };
+
+module.exports.CSPropertyList = [
+  'lwheel1', 'lwheel2',
+  'ltruck', 'ldeck', 'lgrip',
+  'rwheel1', 'rwheel2',
+  'rtruck', 'rdeck', 'rgrip',
+]

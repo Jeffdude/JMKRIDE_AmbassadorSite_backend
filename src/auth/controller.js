@@ -64,25 +64,20 @@ exports.refresh_token = (req, res) => {
   }
 };
 
-exports.get_user_sessions = (req, res) => {
-  try {
-    sessionModel.getByOwner(req.jwt.userId, true).lean().then(  // enabled sessions
-      (sessions) => {
-        let to_return = sessions.map((session) => {
-          if (session._id == req.jwt.sessionId) {
-            session.current = true;
-          }
-          session.id = session._id;
-          delete(session._id);
-          return session;
-        });
-        res.status(200).send(to_return);
-      }
-    ).catch(sendAndPrintErrorFn(res));
-  } catch (err) {
-    sendAndPrintError(err, res);
-  }
-};
+exports.get_user_sessions = (req, res) =>
+  controller_run(req, res)(
+    () => sessionModel.getByOwner(req.jwt.userId, true).lean().then(  // enabled sessions
+      (sessions) => sessions.map((session) => {
+        if (session._id == req.jwt.sessionId) {
+          session.current = true;
+        }
+        session.id = session._id;
+        delete(session._id);
+        return session;
+      })
+    ),
+    (result) => res.status(200).send({result}),
+  );
 
 exports.get_session = (req, res) => {
   controller_run(req, res)(

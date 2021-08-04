@@ -1,3 +1,4 @@
+const mongoose = require('../modules/mongoose.js');
 const User = require('./schema.js');
 const { processMode } = require('../environment.js');
 
@@ -32,6 +33,14 @@ class BaseUserModel {
           }
         })
     });
+  }
+
+  static setUserSettings(userId, settingsData) {
+    return User.findById(userId).then(user => {
+      user.settings = Object.assign({}, user.settings, settingsData);
+      user.markModified('settings');
+      return user.save()
+    })
   }
 
   static patchUser(id, userData) {
@@ -93,7 +102,15 @@ class AmbassadorsiteUserModel extends BaseUserModel {
 
 /* ------------------------ StockTracker -------------------------- */
 
-class StocktrackerUserModel extends BaseUserModel {}
+class StocktrackerUserModel extends BaseUserModel {
+  static handleDeletedDefault({propName, id, replacement}) {
+    console.log(propName, id, replacement);
+    return User.updateMany(
+      {[propName]: mongoose.Types.ObjectId(id)},
+      {$set: {[propName]: mongoose.Types.ObjectId(replacement)}},
+    );
+  }
+}
 
 
 /* ------------------------ Exports -------------------------- */

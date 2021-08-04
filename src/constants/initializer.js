@@ -180,21 +180,40 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
         inventory,
       )
     );
+    /* create CS sets */
+    inventoryConstants.CSSets.forEach(CSSet =>
+      this.initializers[CSSet] = () => createConstantPromise(
+        CSSet, 'CSSet',
+        (CSSetName) => inventoryModel.createCSSet({name: CSSetName}),
+        CSSet,
+      )
+    );
 
     let defaultInventory = inventoryConstants.defaultDefaultInventory;
     let defaultCategorySet = inventoryConstants.defaultDefaultCategorySet;
+    let defaultCSSet = inventoryConstants.defaultDefaultCSSet;
+    const getUserDefaults = (resultMap) => {
+      let patchData = {};
+      if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
+        patchData.defaultInventory = resultMap[defaultInventory].id;
+      }
+      if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
+        patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
+      }
+      if(Object.hasOwnProperty.call(resultMap, defaultCSSet)) {
+        patchData.defaultCSSet = resultMap[defaultCSSet].id;
+      }
+      return patchData;
+    }
     this.postProcessors.push(
       // set permissionLevels, defaultInventory, defaultCategorySet
       // for all test users
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testNobody')){
-          let patchData = {permissionLevel: permissionLevels.NONE};
-          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
-            patchData.defaultInventory = resultMap[defaultInventory].id;
-          }
-          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
-            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
-          }
+          let patchData = {
+            ...getUserDefaults(resultMap),
+            permissionLevel: permissionLevels.NONE
+          };
           userModel.patchUser(resultMap['testNobody']._id, patchData)
             .then(resolve)
             .catch(reject)
@@ -204,13 +223,10 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }),
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testUser')){
-          let patchData = {permissionLevel: permissionLevels.USER};
-          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
-            patchData.defaultInventory = resultMap[defaultInventory].id;
-          }
-          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
-            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
-          }
+          let patchData = {
+            ...getUserDefaults(resultMap),
+            permissionLevel: permissionLevels.USER
+          };
           userModel.patchUser(resultMap['testUser']._id, patchData)
             .then(resolve)
             .catch(reject)
@@ -220,13 +236,10 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }),
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'testAmbassador')){
-          let patchData = {permissionLevel: permissionLevels.AMBASSADOR};
-          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
-            patchData.defaultInventory = resultMap[defaultInventory].id;
-          }
-          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
-            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
-          }
+          let patchData = {
+            ...getUserDefaults(resultMap),
+            permissionLevel: permissionLevels.AMBASSADOR
+          };
           userModel.patchUser(resultMap['testAmbassador']._id, patchData)
             .then(resolve)
             .catch(reject)
@@ -237,13 +250,10 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       // set defaultInventory, defaultCategorySet for adminUser
       (resultMap) => new Promise((resolve, reject) => {
         if(Object.hasOwnProperty.call(resultMap, 'adminUser')){
-          let patchData = {};
-          if(Object.hasOwnProperty.call(resultMap, defaultInventory)) {
-            patchData.defaultInventory = resultMap[defaultInventory].id;
-          }
-          if(Object.hasOwnProperty.call(resultMap, defaultCategorySet)) {
-            patchData.defaultCategorySet = resultMap[defaultCategorySet].id;
-          }
+          let patchData = {
+            ...getUserDefaults(resultMap),
+            permissionLevel: permissionLevels.ADMIN
+          };
           userModel.patchUser(resultMap['adminUser']._id, patchData)
             .then(resolve)
             .catch(reject)
