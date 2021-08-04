@@ -32,6 +32,11 @@ const baseUserRoutes = (app) => {
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.patchById
   ]);
+  app.post('/api/v1/user-settings/user/id/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    UsersController.setUserSettings
+  ]);
   app.delete('/api/v1/users/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
@@ -58,6 +63,11 @@ const stockTrackerRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     UsersController.setDefaultCategorySet
+  ]);
+  app.post('/api/v1/users/defaults/csset/id/:CSSetId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    UsersController.setDefaultCSSet
   ]);
 }
 

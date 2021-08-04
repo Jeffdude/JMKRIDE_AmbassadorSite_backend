@@ -13,6 +13,7 @@ const baseSchema = {
   email: {type: String, unique: true},
   password: String,  // Salted + SHA512 hashed
   permissionLevel: { type: String, enum: Object.values(permissionLevels) },
+  settings: { type: Schema.Types.Mixed, default: {}},
 }
 
 const addSchemaGenerics = (schema) => {
@@ -66,6 +67,7 @@ const genStocktrackerUserSchema = () => {
     ...{
       defaultInventory: { type: Schema.Types.ObjectId, ref: 'inventory' },
       defaultCategorySet: { type: Schema.Types.ObjectId, ref: 'categoryset' },
+      defaultCSSet: { type: Schema.Types.ObjectId, ref: 'csset' },
     },
   }, {timestamps: true});
   addSchemaGenerics(stocktrackerUserSchema);

@@ -74,6 +74,16 @@ class BaseUserController {
       });
   }
 
+  static setUserSettings(req, res){
+    return controller_run(req, res)(
+      () => userModel.setUserSettings(
+        req.params.userId,
+        req.body,
+      ),
+      (result) => res.status(200).send({result}),
+    );
+  }
+
   static removeById(req, res){
     userModel.removeById(req.params.userId)
       .then(()=>{
@@ -122,6 +132,14 @@ class StocktrackerUserController extends BaseUserController {
       () => userModel.patchUser(
         req.jwt.userId,
         { defaultCategorySet: req.params.categorySetId }
+      )
+    )
+  }
+  static setDefaultCSSet(req, res) {
+    return controller_run(req, res)(
+      () => userModel.patchUser(
+        req.jwt.userId,
+        { defaultCSSet: req.params.CSSetId },
       )
     )
   }

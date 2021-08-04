@@ -1,7 +1,7 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
-const partConstants = require('./constants.js')
+const inventoryConstants = require('./constants.js')
 
 
 /*             ┌──────────┐  ┌───────────┐
@@ -11,7 +11,7 @@ const partConstants = require('./constants.js')
  *              │    ┌───────────┘
  *              │    │
  * Inventory  ┌─┴────┴──┐            ┌──────────┐            ┌──────────────┐
- * Model      │Part     │ One:Many   │Category  │ One:Many   │CategorySet   │
+ * Model      │Part     │ Many:One   │Category  │ Many:One   │CategorySet   │
  * Hierarchy  │         ├───────────►│          ├───────────►│              │
  *            │         │ (Ordered)  │          │ (Ordered)  │              │
  *            └─────────┘            └──────────┘            └──────────────┘
@@ -27,7 +27,7 @@ const partConstants = require('./constants.js')
 const inventorySchema = new Schema({
   name: String,
   initialized: false, // for development mode
-});
+}, {timestamps: true});
 const Inventory = mongoose.model('inventory', inventorySchema);
 
 /* CategorySet
@@ -53,7 +53,7 @@ const CategorySet = new mongoose.model('categoryset', categorySetSchema);
 const categorySetOrderSchema = new Schema({
   sortIndex: Number,
   categorySet: {type: Schema.Types.ObjectId, ref: 'categoryset'},
-});
+}, {timestamps: true});
 mongoose.model('categorysetorder', categorySetOrderSchema);
 
 
@@ -70,6 +70,7 @@ const categorySchema = new Schema(
   {
     toJSON: {virtuals: true},
     toObject: {virtuals: true},
+    timestamps: true,
   },
 );
 categorySchema.virtual('length', {
@@ -87,39 +88,63 @@ const Category = mongoose.model('category', categorySchema)
  */
 const partSchema = new Schema({
   name: String,
-  color: {type: String, enum: partConstants.PART_COLORS},
+  color: {type: String, enum: inventoryConstants.PART_COLORS},
   categories: [
     {sortIndex: Number, category: {type: Schema.Types.ObjectId, ref: 'category'}}
   ],
   creator: {type: Schema.Types.ObjectId, ref: 'user'},
   quantityMap: {type: Map, of: Number},
+}, {timestamps: true});
+partSchema.index({
+  name: 'text',
+  color: 'text',
+  'categories.category': 'text',
 });
 const Part = mongoose.model('part', partSchema);
 
+const CSSetSchema = new Schema(
+  {name: String},
+  {
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true},
+    timestamps: true,
+  },
+);
+CSSetSchema.virtual('length', {
+  ref: 'completeset',
+  localField: '_id',
+  foreignField: 'CSSets.CSSet',
+  count: true,
+});
+const CSSet = mongoose.model('csset', CSSetSchema);
 const completeSetSchema = new Schema({
   name: String,
-  enabledInventories: [{type: Schema.Types.ObjectId, ref: 'inventory'}],
-  sortIndex: Number,
+  color: {type: String, enum: inventoryConstants.PART_COLORS},
+  creator: {type: Schema.Types.ObjectId, ref: 'user'},
+  CSSets: [
+    {sortIndex: Number, CSSet: {type: Schema.Types.ObjectId, ref: 'csset'}},
+  ],
 
-  lwheel1: {type: Schema.Types.ObjectId, ref: 'part'},
-  lwheel2: {type: Schema.Types.ObjectId, ref: 'part'},
-  ltruck: {type: Schema.Types.ObjectId, ref: 'part'},
-  ldeck: {type: Schema.Types.ObjectId, ref: 'part'},
-  lgrip: {type: Schema.Types.ObjectId, ref: 'part'},
+  lwheel1: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  lwheel2: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  ltruck: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  ldeck: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  lgrip: {type: Schema.Types.ObjectId, ref: 'part', required: true},
 
-  rwheel1: {type: Schema.Types.ObjectId, ref: 'part'},
-  rwheel2: {type: Schema.Types.ObjectId, ref: 'part'},
-  rtruck: {type: Schema.Types.ObjectId, ref: 'part'},
-  rdeck: {type: Schema.Types.ObjectId, ref: 'part'},
-  rgrip: {type: Schema.Types.ObjectId, ref: 'part'},
-});
-const CompleteSet = mongoose.model('completeSet', completeSetSchema);
+  rwheel1: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  rwheel2: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  rtruck: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  rdeck: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+  rgrip: {type: Schema.Types.ObjectId, ref: 'part', required: true},
+}, {timestamps: true});
+const CompleteSet = mongoose.model('completeset', completeSetSchema);
 
 const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
-  action: {type: String, enum: Object.values(partConstants.actions)},
+  action: {type: String, enum: Object.values(inventoryConstants.actions)},
   subject: {type: Schema.Types.ObjectId, refPath: 'subjectType'},
   subjectType: String,
+  quantity: Number,
   payload: {type: Schema.Types.Mixed},
 }, {timestamps: true});
 const Log = mongoose.model('log', logSchema);
@@ -153,17 +178,42 @@ exports.updatePartQuantity = async ({ partId, inventoryId, quantity }) => {
 };
 
 exports.getPartById = (partId) =>
-  Part.findById(partId);
+  Part.findById(partId).populate('creator')
+    .populate('creator').populate('categories.category');
+
+exports.deletePartById = (partId) =>
+  Part.findById(partId).remove();
 
 exports.getPartsById = (partIds) =>
-  Part.find({"_id": {"$in": partIds}});
+  Part.find({"_id": {"$in": partIds}})
+    .populate('creator').populate('categories.category');
 
-exports.getAllParts = () => Part.find();
+exports.patchPart = (partId, partData) => 
+  Part.findOneAndUpdate({"_id": partId}, {'$set': partData});
+
+exports.getAllParts = () => Part.find().populate('categories.category');
+exports.searchAllParts = (query) => Part.find(
+  {$text: {$search: query}}
+).populate('categories.category');
 
 exports.setPartCategoryOrder = ({partId, categoryId, sortIndex}) =>
   Part.findOneAndUpdate(
     {'_id': partId, 'categories.category': categoryId},
     {'$set': {'categories.$.sortIndex': sortIndex}},
+  );
+
+exports.addPartToCategory = ({partId, categoryId}) =>
+  Part.findById(partId).then(async part => {
+    let inCategory = part.categories.filter(category => category.category === categoryId).length;
+    if(inCategory) return;
+    let sortIndex = (await exports.getCategoryById(categoryId)).length;
+    part.categories.push({category: categoryId, sortIndex})
+    return part.save();
+  })
+exports.removePartFromCategory = ({partId, categoryId}) =>
+  Part.findOneAndUpdate(
+    {"_id": partId},
+    {$pull: { categories: { category: categoryId}}},
   );
 
 /*
@@ -202,13 +252,17 @@ exports.createCategory = (categoryData) => {
   const category = new Category(categoryData);
   return category.save();
 };
+const categoryPopulateProps = ['length', 'categorySets.categorySet'];
 exports.deleteCategory = (categoryId) =>
   Category.findOneAndDelete({_id: categoryId})
 exports.getCategoryById = (categoryId) =>
-  Category.findById(categoryId).populate('length');
+  Category.findById(categoryId)
+  .then(results => Category.populate(results, categoryPopulateProps));
 exports.getCategoriesById = (categoryIds) =>
-  Category.find({"_id": {"$in": categoryIds}}).populate('length');
-exports.getAllCategories = () => Category.find();
+  Category.find({"_id": {"$in": categoryIds}})
+  .then(results => Category.populate(results, categoryPopulateProps));
+exports.getAllCategories = () => Category.find()
+  .then(results => Category.populate(results, categoryPopulateProps));
 exports.patchCategory = (id, categoryData) =>
   Category.findOneAndUpdate({
     _id: id
@@ -227,11 +281,26 @@ exports.getCategoriesByCategorySet = ({categorySetId}) =>
     {'$unwind': '$categorySets'},
     /* re-match only those category-categorySet pairs that are this categorySet*/
     {'$match': {'categorySets.categorySet': mongoose.Types.ObjectId(categorySetId)}},
-    /* group into an array of ids */
-    {'$group': {_id: null, array: {"$push": "$_id"}}},
-    {'$project': {array: true, _id: false}}
-  ]).then(result => 
-    Category.find({"_id": {"$in": result[0].array }}).populate('length')
+    /* sort by the sortIndex */
+    {'$sort': {'categorySets.sortIndex': 1}},
+    /* remove the modified 'categories' field for bug avoidance */
+    {'$project': {'categorySets': 0}},
+  ]).then(results => Category.populate(results, categoryPopulateProps));
+
+exports.removeCategoryFromCategorySet = ({categoryId, categorySetId}) =>
+  Category.findOneAndUpdate(
+    {_id: categoryId}, 
+    {$pull: {categorySets: {categorySet: categorySetId}}},
+  );
+exports.addCategoryToCategorySet = ({categoryId, categorySetId}) =>
+  exports.getCategoryById(categoryId).then(category =>
+    exports.getCategorySetById(categorySetId).then(categorySet => {
+      console.log("csetId:", categorySetId);
+      category.categorySets.push(
+        {categorySet: categorySetId, sortIndex: categorySet.length}
+      )
+      return category.save();
+    })
   );
 
 /*   Category Sets    */
@@ -239,12 +308,18 @@ exports.createCategorySet = (categorySetData) => {
   const categoryset = new CategorySet(categorySetData);
   return categoryset.save();
 };
+const categorySetPopulators = ['length'];
+exports.patchCategorySet = (categorySetId, categorySetData) =>
+  CategorySet.findOneAndUpdate({"_id": categorySetId}, {$set: categorySetData});
 exports.deleteCategorySet = (categorySetId) =>
-  CategorySet.findOneAndDelete({_id: categorySetId})
-exports.getCategorySetById = (categorySetId) => CategorySet.findById(categorySetId);
+  CategorySet.findOneAndRemove({_id: categorySetId})
+exports.getCategorySetById = (categorySetId) => CategorySet.findById(categorySetId)
+  .then(results => CategorySet.populate(results, categorySetPopulators));
 exports.getCategorySetsById = (categorySetIds) =>
-  CategorySet.find({"_id": {"$in": categorySetIds}});
-exports.getAllCategorySets = () => CategorySet.find();
+  CategorySet.find({"_id": {"$in": categorySetIds}})
+  .then(results => CategorySet.populate(results, categorySetPopulators));
+exports.getAllCategorySets = () => CategorySet.find()
+  .then(results => CategorySet.populate(results, categorySetPopulators));
 
 /*   Inventories    */
 exports.createInventory = (inventoryData) => {
@@ -258,14 +333,66 @@ exports.patchInventory = (id, inventoryData) =>
   Inventory.findOneAndUpdate({_id: id}, inventoryData);
 
 /*   CompleteSets    */
+const getPopulateOptions = () => [
+  ...inventoryConstants.CSPropertyList, 'creator', 'CSSets.CSSet'
+].map(prop => ({path: prop, transform: doc => doc.toObject()}));
 exports.createCompleteSet = (completeSetData) => {
   const completeset = new CompleteSet(completeSetData);
   return completeset.save();
 };
-exports.getCompleteSets = (inventoryId) =>
-  CompleteSet.find(inventoryId ? {enabledInventories: inventoryId} : {})
-    .sort({sortIndex: 1});
+exports.patchCompleteSet = (completeSetId, CSData) => 
+  CompleteSet.findOneAndUpdate({"_id": completeSetId}, {"$set": CSData});
+exports.createCSSet = (CSSetData) => {
+  const newCSSet = new CSSet(CSSetData);
+  return newCSSet.save();
+};
+exports.patchCSSet = (CSSetId, CSSetData) =>
+  CSSet.findOneAndUpdate({"_id": CSSetId}, {$set: CSSetData});
+exports.getCSSetById = (CSSetId) => CSSet.findById(CSSetId).populate('length');
+exports.getCompleteSetById = (completeSetId) =>
+  CompleteSet.findById(completeSetId)
+  .then(results => CompleteSet.populate(results, getPopulateOptions()));
+exports.getAllCompleteSets = () => CompleteSet.find()
+  .then(results => CompleteSet.populate(results, getPopulateOptions()));
+exports.createCSSet = (CSSetData) => {
+  let cSSet = new CSSet(CSSetData);
+  return cSSet.save()
+}
+exports.deleteCSSet = (CSSetId) => CSSet.findById(CSSetId).remove();
+exports.addCompleteSetToCSSetId = ({completeSetId, CSSetId}) =>
+  CompleteSet.findById(completeSetId).then(async completeSet => {
+    let inCSSet = completeSet.CSSets.filter(CSSet => CSSet.CSSet === CSSetId).length;
+    if(inCSSet) return;
+    let sortIndex = (await exports.getCSSetById(CSSetId)).length;
+    completeSet.CSSets.push({CSSet: CSSetId, sortIndex})
+    return completeSet.save();
+  })
+exports.removeCompleteSetFromCSSetId = ({completeSetId, CSSetId}) =>
+  CompleteSet.findOneAndUpdate(
+    {"_id": completeSetId},
+    {$pull: { CSSets: { CSSet: CSSetId}}},
+  );
 
+exports.getCompleteSets = ({ CSSetId }) =>
+  CompleteSet.aggregate([
+    /* elemMatch any part belonging to this CSSet */
+    {'$match': {'CSSets.CSSet': mongoose.Types.ObjectId(CSSetId)}},
+    /* expand those CS into one doc per category */
+    {'$unwind': '$CSSets'},
+    /* re-match only those CS-CSSet pairs that are this CSSet*/
+    {'$match': {'CSSets.CSSet': mongoose.Types.ObjectId(CSSetId)}},
+    /* sort by the sortIndex */
+    {'$sort': {'CSSets.sortIndex': 1}},
+    /* remove the modified 'CSSets' field for bug avoidance */
+    {'$project': {'CSSets': 0}},
+  ]).then(results => CompleteSet.populate(results, getPopulateOptions()));
+exports.getAllCSSets = () => CSSet.find();
+exports.setCSCSSetOrder = ({CSId, CSSetId, sortIndex}) =>
+  CompleteSet.findOneAndUpdate(
+    {'_id': CSId, 'CSSets.CSSet': CSSetId},
+    {'$set': {'CSSets.$.sortIndex': sortIndex}},
+  );
+exports.deleteCS = (CSId) => CompleteSet.findById(CSId).remove();
 
 /*   Logs    */
 exports.createLog = (logData) => {
@@ -291,9 +418,18 @@ exports.getLogsByPart = ({partId, perPage = 150, page = 0}) =>
     .limit(perPage)
     .skip(perPage * page);
 
-exports.getLogs = (perPage = 150, page = 0) =>
+exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
+  Log.find({actor: userId})
+    .populate("actor", ["firstName", "lastName"])
+    .populate("subject")
+    .sort({createdAt: -1})
+    .limit(perPage)
+    .skip(perPage * page);
+
+exports.getLogs = ({perPage = 150, page = 0}) =>
   Log.find()
-    .populate('target')
-    .sort({createdAt: 1})
+    .populate("actor", ["firstName", "lastName"])
+    .populate("subject")
+    .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
