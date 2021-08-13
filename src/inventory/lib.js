@@ -1,5 +1,6 @@
 const inventoryModel = require('./model.js');
 const inventoryConstants = require('./constants.js');
+const userModel = require('../users/model.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
@@ -415,4 +416,78 @@ exports.redactCreatorInfo = (doc) => {
   return doc;
 }
 
-exports.debug = () => exports.sortCategory({categoryId: "609c3a19f0bbf1efaa2e1ea7"});
+exports.withdrawAuxiliaryParts = async ({userId, inventoryId, quantity}) => {
+  const user = await userModel.findById(userId);
+  if(user.settings.withdrawAuxiliaryParts) {
+    return Promise.all(
+      user.settings.auxiliaryParts.map(([perSet, partId]) => 
+        exports.updatePartQuantity(
+          {partId, inventoryId, quantity: quantity * perSet, actor: userId}
+        )
+      )
+    )
+  }
+}
+
+const logThenExecuteDeletion = (fn, { subject, action, actor}) =>
+  inventoryModel.createLog({
+    actor, action,
+    subjectType: subject.constructor.modelName,
+    subject: subject._id,
+    payload: subject,
+  }).then(fn);
+
+exports.deletePart = ({actor, partId}) => 
+  inventoryModel.getPartById(partId).then(part =>
+    logThenExecuteDeletion(
+      () => inventoryModel.deletePartById(partId),
+      {
+        action: actions.DELETE,
+        actor, subject: part,
+      },
+    )
+  )
+
+exports.deleteCSSet = ({actor, CSSetId}) => 
+  inventoryModel.getCSSetById(CSSetId).then(
+    CSSet => logThenExecuteDeletion(
+      () => inventoryModel.deleteCSSet(CSSetId),
+      {
+        action: actions.DELETE,
+        actor, subject: CSSet,
+      },
+    )
+  )
+
+exports.deleteCS = ({actor, completeSetId}) =>
+  inventoryModel.getCompleteSetById(completeSetId).then(
+    completeSet => logThenExecuteDeletion(
+      () => inventoryModel.deleteCS(completeSetId),
+      {
+        action: actions.DELETE,
+        actor, subject: completeSet,
+      },
+    )
+  )
+
+exports.deleteCategorySet = ({actor, categorySetId}) =>
+  inventoryModel.getCategorySetById(categorySetId).then(
+    categorySet => logThenExecuteDeletion(
+      () => inventoryModel.deleteCategorySet(categorySetId),
+      {
+        action: actions.DELETE,
+        actor, subject: categorySet,
+      },
+    )
+  )
+
+exports.deleteCategory = ({actor, categoryId}) => 
+  inventoryModel.getCategoryById(categoryId).then(
+    category => logThenExecuteDeletion(
+      () => inventoryModel.deleteCategory(categoryId),
+      {
+        action: actions.DELETE,
+        actor, subject: category,
+      },
+    )
+  )

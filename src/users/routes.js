@@ -19,12 +19,23 @@ const baseUserRoutes = (app) => {
   app.get('/api/v1/users/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
-    UsersController.list
+    UsersController.list({version: 1})
+  ]);
+  app.get('/api/v2/users/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    UsersController.list({version: 2})
   ]);
   app.get('/api/v1/users/id/:userId', [
+    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-    UsersController.getById
+    UsersController.getById({version: 1})
+  ]);
+  app.get('/api/v2/users/id/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    UsersController.getById({version: 2})
   ]);
   app.patch('/api/v1/users/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
@@ -54,6 +65,11 @@ const ambassadorsiteRoutes = (app) => {
 }
 
 const stockTrackerRoutes = (app) => {
+  app.post('/api/v1/users/create', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    UsersController.insert
+  ]);
   app.post('/api/v1/users/defaults/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),

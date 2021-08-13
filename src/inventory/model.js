@@ -182,7 +182,7 @@ exports.getPartById = (partId) =>
     .populate('creator').populate('categories.category');
 
 exports.deletePartById = (partId) =>
-  Part.findById(partId).remove();
+  Part.findOneAndDelete({"_id": partId});
 
 exports.getPartsById = (partIds) =>
   Part.find({"_id": {"$in": partIds}})
@@ -244,7 +244,7 @@ exports.getPartIdsByCategory = ({ categoryId }) =>
     /* group into an array of ids */
     {'$group': {_id: null, array: {"$push": "$_id"}}},
     {'$project': {array: true, _id: false}},
-  ]);
+  ]).then(result => result[0].array);
 
 
 /*   Categories    */
@@ -402,12 +402,12 @@ exports.createLog = (logData) => {
 
 exports.getLogsByCategory = ({categoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
-    Log.find({subjectType: "part", subject: {"$in": result[0].array}})
-    .populate("actor", ["firstName", "lastName"])
-    .populate("subject")
-    .sort({createdAt: -1})
-    .limit(perPage)
-    .skip(perPage * page)
+    Log.find({subjectType: "part", subject: {$in: result}})
+      .populate("actor", ["firstName", "lastName"])
+      .populate("subject")
+      .sort({createdAt: -1})
+      .limit(perPage)
+      .skip(perPage * page)
   );
 
 exports.getLogsByPart = ({partId, perPage = 150, page = 0}) =>

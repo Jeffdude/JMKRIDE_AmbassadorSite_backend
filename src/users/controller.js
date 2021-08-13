@@ -2,6 +2,7 @@ const crypto = require('crypto');
 
 const userModel = require('./model.js');
 const userLib = require('./lib.js');
+const userConstants = require('./constants.js');
 const challengeModel = require('../challenges/model.js');
 const { permissionValues } = require('../constants.js');
 const { processMode } = require('../environment.js');
@@ -34,7 +35,7 @@ class BaseUserController {
     res.status(200).send({id: req.jwt.userId});
   }
 
-  static list(req, res){
+  static list({version}){ return (req, res) => {
     let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 50;
     let page = 0;
     if (req.query) {
@@ -45,19 +46,30 @@ class BaseUserController {
     }
     userModel.list(limit, page)
       .then((result) => {
-        res.status(200).send(result);
+        if(version < 2) {
+          return res.status(200).send(result);
+        } 
+        return res.status(200).send({result});
       })
-  }
+  }}
 
-  static getById(req, res){
-    userModel.findById(req.params.userId)
-      .then((result) => {
-        let resultObject = result.toObject();
-        resultObject.permissionLevel = permissionValues[result.permissionLevel];
-        delete(resultObject.password);
-        delete(resultObject.__v);
-        res.status(200).send(resultObject);
-      });
+  static getById({version}){ 
+    return (req, res) => 
+      controller_run(req, res)(
+        () => userModel.findById(req.params.userId).then((result) => {
+          let resultObject = result.toObject();
+          resultObject.permissionLevel = permissionValues[result.permissionLevel];
+          delete(resultObject.password);
+          delete(resultObject.__v);
+          return resultObject;
+        }),
+        (result) => {
+          if(version < 2) {
+            return res.status(200).send(result);
+          }
+          return res.status(200).send({result});
+        },
+      );
   }
 
   static patchById(req, res){
@@ -70,7 +82,7 @@ class BaseUserController {
     }
     userModel.patchUser(req.params.userId, req.body)
       .then(() => {
-        res.status(204).send({});
+        res.status(201).send({result: "success"});
       });
   }
 
@@ -80,14 +92,14 @@ class BaseUserController {
         req.params.userId,
         req.body,
       ),
-      (result) => res.status(200).send({result}),
+      (result) => res.status(201).send({result}),
     );
   }
 
   static removeById(req, res){
     userModel.removeById(req.params.userId)
       .then(()=>{
-        res.status(204).send({});
+        res.status(201).send({});
       });
   }
 }
@@ -100,7 +112,7 @@ class AmbassadorsiteUserController extends BaseUserController {
     );
   }
 
-  static getById(req, res){
+  static getById() { return (req, res) => {
     userModel.findById(
       req.params.userId,
       {
@@ -115,10 +127,27 @@ class AmbassadorsiteUserController extends BaseUserController {
         delete(resultObject.__v);
         res.status(200).send(resultObject);
       });
-  }
+  }}
 }
 
 class StocktrackerUserController extends BaseUserController {
+  static insert(req, res){
+    try {
+      userLib.createUser({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        password: req.body.password,
+        settings: userConstants.defaultStocktrackerUserSettings,
+      })
+        .then(result => {
+          return res.status(201).send({id: result._id});
+        })
+        .catch(sendAndPrintErrorFn(res))
+    } catch(error) {
+      sendAndPrintError(res, error);
+    }
+  }
   static setDefaultInventory(req, res) {
     return controller_run(req, res)(
       () => userModel.patchUser(

@@ -35,7 +35,12 @@ exports.configRoutes = (app) => {
   app.get('/api/v1/auth/sessions/self', [
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
-    AuthController.get_user_sessions
+    AuthController.get_user_sessions({version: 1})
+  ]);
+  app.get('/api/v2/auth/sessions/self', [
+    DebugMiddleware.printRequest,
+    ValidationMiddleware.validJWTNeeded,
+    AuthController.get_user_sessions({version: 2})
   ]);
 
   app.delete('/api/v1/auth/sessions/all', [

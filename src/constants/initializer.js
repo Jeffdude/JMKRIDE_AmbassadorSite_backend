@@ -205,6 +205,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }
       return patchData;
     }
+    const defaultSettings = {partTypeCategories: {}, auxiliaryParts: [], withdrawAuxiliaryParts: true};
     this.postProcessors.push(
       // set permissionLevels, defaultInventory, defaultCategorySet
       // for all test users
@@ -215,6 +216,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
             permissionLevel: permissionLevels.NONE
           };
           userModel.patchUser(resultMap['testNobody']._id, patchData)
+            .then(userModel.setUserSettings(resultMap['testNobody']._id, defaultSettings))
             .then(resolve)
             .catch(reject)
         } else {
@@ -228,6 +230,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
             permissionLevel: permissionLevels.USER
           };
           userModel.patchUser(resultMap['testUser']._id, patchData)
+            .then(userModel.setUserSettings(resultMap['testUser']._id, defaultSettings))
             .then(resolve)
             .catch(reject)
         } else {
@@ -241,6 +244,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
             permissionLevel: permissionLevels.AMBASSADOR
           };
           userModel.patchUser(resultMap['testAmbassador']._id, patchData)
+            .then(userModel.setUserSettings(resultMap['testAmbassador']._id, defaultSettings))
             .then(resolve)
             .catch(reject)
         } else {
@@ -255,6 +259,7 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
             permissionLevel: permissionLevels.ADMIN
           };
           userModel.patchUser(resultMap['adminUser']._id, patchData)
+            .then(userModel.setUserSettings(resultMap['adminUser']._id, defaultSettings))
             .then(resolve)
             .catch(reject)
         } else {

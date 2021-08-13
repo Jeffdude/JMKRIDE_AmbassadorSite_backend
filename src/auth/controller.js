@@ -64,7 +64,7 @@ exports.refresh_token = (req, res) => {
   }
 };
 
-exports.get_user_sessions = (req, res) =>
+exports.get_user_sessions = ({version}) => (req, res) =>
   controller_run(req, res)(
     () => sessionModel.getByOwner(req.jwt.userId, true).lean().then(  // enabled sessions
       (sessions) => sessions.map((session) => {
@@ -76,7 +76,12 @@ exports.get_user_sessions = (req, res) =>
         return session;
       })
     ),
-    (result) => res.status(200).send({result}),
+    (result) => {
+      if(version > 1) {
+        return res.status(200).send({result});
+      }
+      return res.status(200).send(result)
+    },
   );
 
 exports.get_session = (req, res) => {

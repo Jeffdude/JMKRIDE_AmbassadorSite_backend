@@ -1,6 +1,12 @@
 const constantModel = require('../constants/model.js');
 const adminSecret = require('../environment.js').adminSecret;
 
+exports.defaultStocktrackerUserSettings = {
+  partTypeCategories: {},
+  auxiliaryParts: [],
+  withdrawAuxiliaryParts: true
+};
+
 exports.getAdminUser = () => {
   return constantModel.getByName('adminUser');
 };

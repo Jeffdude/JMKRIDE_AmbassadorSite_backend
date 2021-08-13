@@ -39,7 +39,7 @@ exports.getPartWithQuantity = (req, res) =>
 
 exports.deletePart = (req, res) => 
   controller_run(req, res)(
-    () => inventoryModel.deletePartById(req.params.partId),
+    () => inventoryLib.deletePart({actor: req.jwt.userId, partId: req.params.partId}),
     (result) => res.status(202).send({result}),
   );
 
@@ -201,7 +201,11 @@ exports.withdrawCompleteSet = (req, res) =>
         quantity: (-1 * Number(req.body.quantity)),
         actor: req.jwt.userId,
       })
-    )),
+    )).then(doc => inventoryLib.withdrawAuxiliaryParts({
+      userId: req.jwt.userId,
+      inventoryId: req.params.inventoryId,
+      quantity: (-1 * Number(req.body.quantity)),
+    }).then(() => doc)),
     (result) => res.status(201).send({result}),
   );
 
@@ -239,7 +243,11 @@ exports.updateCompleteSetQuantity = (req, res) =>
       inventoryId: req.params.inventoryId,
       quantity: req.body.quantity,
       actor: req.jwt.userId,
-    }),
+    }).then(doc => inventoryLib.withdrawAuxiliaryParts({
+      userId: req.jwt.userId,
+      inventoryId: req.params.inventoryId,
+      quantity: req.body.quantity,
+    }).then(() => doc)),
     (result) => res.status(201).send({result}),
   );
 exports.patchCSSet = (req, res) => 
@@ -256,16 +264,31 @@ exports.createCSSet = (req, res) =>
   );
 exports.deleteCSSet = (req, res) =>
   controller_run(req, res)(
-    () => inventoryModel.deleteCSSet(req.params.CSSetId).then(
-      doc => inventoryConstants.getDefaultDefaultCSSetId()
-        .then(defaultCSSetId => userModel.handleDeletedDefault({
-          propName: "defaultCSSet",
-          id: req.params.CSSetId,
-          replacement: defaultCSSetId,
-        })).then(() => inventoryLib.handleDeletedCSSet(req.params.CSSetId)
-        ).then(() => doc)
-    ),
-    () => res.status(201).send({result: true}),
+    async () => {
+      let id = await inventoryConstants.getDefaultDefaultCSSetId()
+      if(id.toString() === req.params.CSSetId) {
+        return false;
+      }
+      return inventoryLib.deleteCSSet(
+        {actor: req.jwt.userId, CSSetId: req.params.CSSetId}
+      ).then(
+        () => inventoryConstants.getDefaultDefaultCSSetId()
+          .then(defaultCSSetId => userModel.handleDeletedDefault({
+            propName: "defaultCSSet",
+            id: req.params.CSSetId,
+            replacement: defaultCSSetId,
+          }))
+          .then(() => inventoryLib.handleDeletedCSSet(req.params.CSSetId)
+        )
+      )
+    },
+    (result) => {
+      if(result) {
+        res.status(201).send({result})
+      } else {
+        res.status(403).send()
+      }
+    }
   )
 exports.setCSSetCSOrder = (req, res) =>
   controller_run(req,res)(
@@ -277,8 +300,10 @@ exports.setCSSetCSOrder = (req, res) =>
   );
 exports.deleteCS = (req, res) =>
   controller_run(req,res)(
-    () => inventoryModel.deleteCS(req.params.completeSetId),
-    () => res.status(200).send({result: true}),
+    () => inventoryLib.deleteCS(
+      {actor: req.jwt.userId, completeSetId: req.params.completeSetId}
+    ),
+    () => res.status(202).send({result: true}),
   );
 exports.patchCategorySet = (req, res) =>
   controller_run(req,res)(
@@ -289,16 +314,27 @@ exports.patchCategorySet = (req, res) =>
   );
 exports.deleteCategorySet = (req, res) =>
   controller_run(req,res)(
-    () => inventoryModel.deleteCategorySet(req.params.categorySetId).then(
-      doc => inventoryConstants.getDefaultDefaultCategorySetId()
-        .then(defaultCategorySetId => userModel.handleDeletedDefault({
-          propName: "defaultCategorySet",
-          id: req.params.categorySetId,
-          replacement: defaultCategorySetId,
-        })).then(() => inventoryLib.handleDeletedCategorySet(req.params.categorySetId)
-        ).then(() => doc)
-    ),
-    (result) => res.status(200).send({result}),
+    () => inventoryConstants.getDefaultDefaultCategorySetId()
+      .then(defaultCategorySetId => {
+        if(req.params.categorySetId === defaultCategorySetId.toString()) {
+          return false;
+        }
+        return inventoryLib.deleteCategorySet({
+          categorySetId: req.params.categorySetId, actor: req.jwt.userId,
+        }).then(() => userModel.handleDeletedDefault({
+            propName: "defaultCategorySet",
+            id: req.params.categorySetId,
+            replacement: defaultCategorySetId,
+          })).then(() => inventoryLib.handleDeletedCategorySet(req.params.categorySetId)
+          ).then(() => true)
+      }),
+    (result) => {
+      if(result) {
+        return res.status(200).send({result});
+      } else {
+        return res.status(403).send();
+      }
+    }
   );
 exports.createCategorySet = (req, res) =>
   controller_run(req,res)(
@@ -329,10 +365,9 @@ exports.patchCategory = (req, res) =>
   );
 exports.deleteCategory = (req, res) =>
   controller_run(res,res)(
-    () => inventoryModel.deleteCategory(
-      req.params.categoryId,
-      {actor: req.jwt.userId, ...req.body}
-    ).then(doc => inventoryLib.handleDeletedCategory(
+    () => inventoryLib.deleteCategory({
+      categoryId: req.params.categoryId, actor: req.jwt.userId,
+    }).then(doc => inventoryLib.handleDeletedCategory(
       req.params.categoryId
     ).then(() => doc)),
     (result) => res.status(201).send({result}),
