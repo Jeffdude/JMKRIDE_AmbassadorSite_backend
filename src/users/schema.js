@@ -69,7 +69,7 @@ const genStocktrackerUserSchema = () => {
       defaultCategorySet: { type: Schema.Types.ObjectId, ref: 'categoryset' },
       defaultCSSet: { type: Schema.Types.ObjectId, ref: 'csset' },
     },
-  }, {timestamps: true});
+  }, {timestamps: true, minimize: false});
   addSchemaGenerics(stocktrackerUserSchema);
 
   return mongoose.model('user', stocktrackerUserSchema);

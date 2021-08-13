@@ -44,9 +44,7 @@ class BaseUserModel {
   }
 
   static patchUser(id, userData) {
-    return User.findOneAndUpdate({
-      _id: id
-    }, userData);
+    return User.findOneAndUpdate({_id: id}, userData);
   }
 
   static removeById(userId) {
