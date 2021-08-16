@@ -24,7 +24,7 @@ module.exports = {
       unittest: "mongodb://localhost:27017/ambassadorsite-backend-unittest",
     },
     stocktracker: {
-      production: "mongodb://localhost:27017/stocktracker-backend",
+      production: "cluster0.gkctn.mongodb.net/stocktracker-backend?retryWrites=true&w=majority",
       development: "mongodb://localhost:27017/stocktracker-backend",
       unittest: "mongodb://localhost:27017/stocktracker-backend-test",
     },

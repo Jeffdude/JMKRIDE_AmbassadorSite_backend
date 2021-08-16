@@ -8,6 +8,7 @@
     "ambassadorsite-prod": "export NODE_ENV=production; export FUNCTION=ambassadorsite; node src/index.js",
     "ambassadorsite-test": "export NODE_ENV=unittest; export FUNCTION=ambassadorsite; mocha --recursive -c src/test",
     "stocktracker-devel": "export NODE_ENV=development; export FUNCTION=stocktracker; node --inspect src/index.js",
+    "stocktracker-prod": "export NODE_ENV=production; export FUNCTION=stocktracker; node src/index.js",
     "stocktracker-test": "export NODE_ENV=unittest; export FUNCTION=stocktracker; mocha --recursive -c src/test"
   },
   "repository": {
