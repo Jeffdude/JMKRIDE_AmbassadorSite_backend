@@ -34,7 +34,7 @@ exports.getPartWithQuantity = (req, res) =>
     ).then(result => result[0]).then(
       inventoryLib.redactCreatorInfo,
     ),
-    (result) => res.status(200).send({result})
+    (result) => res.status(200).send({result}),
   );
 
 exports.deletePart = (req, res) => 

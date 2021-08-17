@@ -1,12 +1,12 @@
 const {
-  sendAndPrintErrorFn,
-  sendAndPrintError
+  sendAndPrintErrorAndReqFn,
+  sendAndPrintErrorAndReq
 } = require('../modules/errors.js');
 
 exports.controller_run = (req, res) => (modelFn, thenFn) => {
   try {
-    modelFn().then(thenFn).catch(sendAndPrintErrorFn(res));
+    modelFn().then(thenFn).catch(sendAndPrintErrorAndReqFn(res, req));
   } catch (err) {
-    sendAndPrintError(res, err);
+    sendAndPrintErrorAndReq(res, req, err);
   }
 }
