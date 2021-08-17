@@ -27,7 +27,6 @@ const baseUserRoutes = (app) => {
     UsersController.list({version: 2})
   ]);
   app.get('/api/v1/users/id/:userId', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById({version: 1})

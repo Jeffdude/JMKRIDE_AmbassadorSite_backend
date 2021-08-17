@@ -7,6 +7,13 @@ const loggingMode = loggingLevel[processMode][operationMode];
 /*
  * Fn postfixed functions should be used in .catch() blocks
  */
+exports.sendAndPrintErrorAndReqFn = (res, req) => (error) => {
+  if(operationMode !== "unittest"){
+    console.log("[!][500][" + req.originalUrl + "][" + req.method + "] Caught error:", error);
+  }
+  return res.status(500).send({error: error.message});
+}
+
 exports.sendAndPrintErrorFn = (res) => (error) => {
   if(operationMode !== "unittest"){
     console.log("[!][500] Caught error:", error);
@@ -24,6 +31,12 @@ exports.printErrorFn = (res) => (error) => {
 /*
  * Non-Fn postfixed should be used in } catch (err) { blocks
  */
+exports.sendAndPrintErrorAndReq = (res, req, error) => {
+  if(operationMode !== "unittest"){
+    console.log("[!][500][" + req.originalUrl + "][" + req.method + "] Caught error:", error);
+  }
+  return res.status(500).send({error: error.message});
+}
 exports.sendAndPrintError = (res, error) => {
   if(operationMode !== "unittest"){
     console.log("[!][500] Caught error:", error);

@@ -224,6 +224,7 @@ exports.createCompleteSetWithCSSets = async (CSData) => {
  */
 exports.setPartResultsQuantity = (inventoryId) => (parts) => 
   parts.map(part => {
+    if(!part) return;
     if(Object.hasOwnProperty.call(part.quantityMap, inventoryId)) {
       part.quantity = part.quantityMap[inventoryId];
     } else {
@@ -405,7 +406,7 @@ exports.updateCompleteSetQuantity = async ({ completeSetId, inventoryId, quantit
 }
 
 exports.redactCreatorInfo = (doc) => {
-  if (doc.creator) {
+  if (doc && doc.creator) {
     let object = {
       firstName: doc.creator.firstName,
       lastName: doc.creator.lastName,

@@ -33,66 +33,55 @@ exports.configRoutes = (app) => {
   /* ----------------------- Sessions ----------------------- */
 
   app.get('/api/v1/auth/sessions/self', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.get_user_sessions({version: 1})
   ]);
   app.get('/api/v2/auth/sessions/self', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.get_user_sessions({version: 2})
   ]);
 
   app.delete('/api/v1/auth/sessions/all', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.disable_all_sessions
   ]);
 
   app.post('/api/v1/auth/email_verification', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.createAndSendEmailVerificationToken
   ]);
   app.post('/api/v1/auth/reset_password/password', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.resetPasswordWithPassword
   ]);
   app.post('/api/v1/auth/reset_password/admin', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     AuthController.resetUserPassword
   ]);
   app.delete('/api/v1/auth/sessions/self', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     DebugMiddleware.printJWT,
     AuthController.disable_current_session
   ]);
 
   app.get('/api/v1/auth/sessions/id/:sessionId', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.get_session
   ]);
 
   app.delete('/api/v1/auth/sessions/id/:sessionId', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     AuthController.disable_session
   ]);
 
   app.post('/api/v1/auth/email-verification/create', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     AuthController.createAndSendEmailVerificationToken
   ]);
 
   app.post('/api/v1/auth/email-verification/verify', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     AuthController.verifyEmailVerificationToken
