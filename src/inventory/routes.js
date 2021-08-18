@@ -241,5 +241,32 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     InventoryController.setCSSetCSOrder
   ]);
+
+  /* Inventory Routes */
+  app.post('/api/v1/inventory/create', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    InventoryController.createInventory
+  ]);
+  app.get('/api/v1/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getInventoryById
+  ]);
+  app.get('/api/v1/inventories/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getAllInventories
+  ]);
+  app.patch('/api/v1/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    InventoryController.patchInventory
+  ]);
+  app.delete('/api/v1/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    InventoryController.deleteInventory
+  ]);
 };
 

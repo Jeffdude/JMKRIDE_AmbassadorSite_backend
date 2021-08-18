@@ -102,7 +102,6 @@ class AmbassadorsiteUserModel extends BaseUserModel {
 
 class StocktrackerUserModel extends BaseUserModel {
   static handleDeletedDefault({propName, id, replacement}) {
-    console.log(propName, id, replacement);
     return User.updateMany(
       {[propName]: mongoose.Types.ObjectId(id)},
       {$set: {[propName]: mongoose.Types.ObjectId(replacement)}},

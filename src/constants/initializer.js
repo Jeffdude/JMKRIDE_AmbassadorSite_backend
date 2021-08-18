@@ -205,67 +205,34 @@ class stocktrackerConstantsInitializer extends baseConstantsInitializer {
       }
       return patchData;
     }
-    const defaultSettings = {partTypeCategories: {}, auxiliaryParts: [], withdrawAuxiliaryParts: true};
+    const users = {
+      testNobody: permissionLevels.NONE,
+      testUser: permissionLevels.USER,
+      testAmbassador: permissionLevels.AMBASSADOR,
+      adminUser: permissionLevels.ADMIN,
+    }
     this.postProcessors.push(
       // set permissionLevels, defaultInventory, defaultCategorySet
-      // for all test users
-      (resultMap) => new Promise((resolve, reject) => {
-        if(Object.hasOwnProperty.call(resultMap, 'testNobody')){
-          let patchData = {
-            ...getUserDefaults(resultMap),
-            permissionLevel: permissionLevels.NONE
-          };
-          userModel.patchUser(resultMap['testNobody']._id, patchData)
-            .then(userModel.setUserSettings(resultMap['testNobody']._id, defaultSettings))
-            .then(resolve)
-            .catch(reject)
-        } else {
-          resolve()
-        }
-      }),
-      (resultMap) => new Promise((resolve, reject) => {
-        if(Object.hasOwnProperty.call(resultMap, 'testUser')){
-          let patchData = {
-            ...getUserDefaults(resultMap),
-            permissionLevel: permissionLevels.USER
-          };
-          userModel.patchUser(resultMap['testUser']._id, patchData)
-            .then(userModel.setUserSettings(resultMap['testUser']._id, defaultSettings))
-            .then(resolve)
-            .catch(reject)
-        } else {
-          resolve()
-        }
-      }),
-      (resultMap) => new Promise((resolve, reject) => {
-        if(Object.hasOwnProperty.call(resultMap, 'testAmbassador')){
-          let patchData = {
-            ...getUserDefaults(resultMap),
-            permissionLevel: permissionLevels.AMBASSADOR
-          };
-          userModel.patchUser(resultMap['testAmbassador']._id, patchData)
-            .then(userModel.setUserSettings(resultMap['testAmbassador']._id, defaultSettings))
-            .then(resolve)
-            .catch(reject)
-        } else {
-          resolve()
-        }
-      }),
-      // set defaultInventory, defaultCategorySet for adminUser
-      (resultMap) => new Promise((resolve, reject) => {
-        if(Object.hasOwnProperty.call(resultMap, 'adminUser')){
-          let patchData = {
-            ...getUserDefaults(resultMap),
-            permissionLevel: permissionLevels.ADMIN
-          };
-          userModel.patchUser(resultMap['adminUser']._id, patchData)
-            .then(userModel.setUserSettings(resultMap['adminUser']._id, defaultSettings))
-            .then(resolve)
-            .catch(reject)
-        } else {
-          resolve()
-        }
-      }),
+      // for all users
+      ...Object.entries(users).map(([user, permissionLevel]) => (resultMap) =>
+        new Promise((resolve, reject) => {
+          if(Object.hasOwnProperty.call(resultMap, user)){
+            let patchData = {
+              ...getUserDefaults(resultMap),
+              permissionLevel,
+            };
+            userModel.patchUser(resultMap[user]._id, patchData)
+              .then(userModel.setUserSettings(
+                resultMap[user]._id,
+                userConstants.defaultStocktrackerUserSettings,
+              ))
+              .then(resolve)
+              .catch(reject)
+          } else {
+            resolve()
+          }
+        })
+      ),
     );
     /* set creator, category of all parts */
     inventoryConstants.allParts.forEach(part => {

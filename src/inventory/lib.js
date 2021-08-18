@@ -492,3 +492,26 @@ exports.deleteCategory = ({actor, categoryId}) =>
       },
     )
   )
+
+exports.createInventory = ({actor, inventoryData}) =>
+  executeThenLog(
+    () => inventoryModel.createInventory({...inventoryData, creator: actor}),
+    { action: actions.CREATE, actor, payload: inventoryData }
+  );
+
+exports.patchInventory = ({actor, inventoryId, patchData}) =>
+  executeThenLog(
+    () => inventoryModel.patchInventory(inventoryId, patchData),
+    { action: actions.MODIFY, actor, payload: patchData }
+  );
+
+exports.deleteInventory = ({actor, inventoryId}) =>
+  inventoryModel.getInventoryById(inventoryId).then(
+    inventory => logThenExecuteDeletion(
+      () => inventoryModel.deleteInventory(inventoryId),
+      {
+        actions: actions.DELETE,
+        actor, subject: inventory,
+      },
+    )
+  );

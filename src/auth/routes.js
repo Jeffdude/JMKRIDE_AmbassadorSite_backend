@@ -11,7 +11,6 @@ const AuthController = require('./controller.js');
 
 exports.configRoutes = (app) => {
   app.post('/api/v1/auth', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validateCleanBodyFields(['email', 'password']),
     UsersMiddleware.hasAuthValidFields,
     UsersMiddleware.passwordAndUserMatch,
@@ -20,7 +19,6 @@ exports.configRoutes = (app) => {
   ]);
 
   app.post('/api/v1/auth/refresh', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validateCleanBodyFields(['refresh_token']),
     ValidationMiddleware.validJWTNeeded,
     DebugMiddleware.printJWT,
