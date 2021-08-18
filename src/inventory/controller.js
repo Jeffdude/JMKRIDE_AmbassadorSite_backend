@@ -401,13 +401,23 @@ exports.patchInventory = (req, res) =>
   );
 exports.deleteInventory = (req, res) =>
   controller_run(req, res)(
-    () => inventoryLib.deleteInventory(
-      {actor: req.jwt.userId, inventoryId: req.params.inventoryId}
-    ).then(() => inventoryConstants.getDefaultDefaultInventoryId()
-    ).then((defaultInventoryId) => userModel.handleDeletedDefault({
-      propName: "defaultInventory",
-      id: req.params.inventoryId,
-      replacement: defaultInventoryId,
-    })),
-    () => res.status(202).send({result: "success"}),
+    () => inventoryConstants.getDefaultDefaultInventoryId()
+    .then(defaultInventoryId => {
+      if(req.params.inventoryId === defaultInventoryId.toString()) {
+        return false;
+      }
+      return inventoryLib.deleteInventory(
+        {actor: req.jwt.userId, inventoryId: req.params.inventoryId}
+      ).then(() => userModel.handleDeletedDefault({
+        propName: "defaultInventory",
+        id: req.params.inventoryId,
+        replacement: defaultInventoryId,
+      }))
+    }),
+    (result) => {
+      if(!result) {
+        return res.status(403).send()
+      }
+      return res.status(202).send({result: "success"})
+    },
   );
