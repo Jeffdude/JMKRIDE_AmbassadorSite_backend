@@ -26,6 +26,8 @@ const inventoryConstants = require('./constants.js')
  */
 const inventorySchema = new Schema({
   name: String,
+  description: String,
+  creator: {type: Schema.Types.ObjectId, ref: 'user'},
   initialized: false, // for development mode
 }, {timestamps: true});
 const Inventory = mongoose.model('inventory', inventorySchema);
@@ -321,17 +323,6 @@ exports.getCategorySetsById = (categorySetIds) =>
 exports.getAllCategorySets = () => CategorySet.find()
   .then(results => CategorySet.populate(results, categorySetPopulators));
 
-/*   Inventories    */
-exports.createInventory = (inventoryData) => {
-  const inventory = new Inventory(inventoryData);
-  return inventory.save();
-};
-exports.deleteInventory = (inventoryId) =>
-  Inventory.findOneAndDelete({_id: inventoryId})
-exports.getAllInventories = () => Inventory.find();
-exports.patchInventory = (id, inventoryData) =>
-  Inventory.findOneAndUpdate({_id: id}, inventoryData);
-
 /*   CompleteSets    */
 const getPopulateOptions = () => [
   ...inventoryConstants.CSPropertyList, 'creator', 'CSSets.CSSet'
@@ -433,3 +424,18 @@ exports.getLogs = ({perPage = 150, page = 0}) =>
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
+
+/* Inventories */
+
+exports.createInventory = (inventoryData) => {
+  const inventory = new Inventory(inventoryData);
+  return inventory.save();
+}
+exports.getInventoryById = (inventoryId) =>
+  Inventory.findById(inventoryId).populate("creator");
+exports.getAllInventories = () =>
+  Inventory.find().populate("creator");
+exports.patchInventory = (inventoryId, patchData) =>
+  Inventory.findOneAndUpdate({_id: inventoryId}, patchData);
+exports.deleteInventory = (inventoryId) =>
+  Inventory.findOneAndDelete({_id: inventoryId});

@@ -4,7 +4,8 @@ const adminSecret = require('../environment.js').adminSecret;
 exports.defaultStocktrackerUserSettings = {
   partTypeCategories: {},
   auxiliaryParts: [],
-  withdrawAuxiliaryParts: true
+  withdrawAuxiliaryParts: true,
+  debug: false,
 };
 
 exports.getAdminUser = () => {

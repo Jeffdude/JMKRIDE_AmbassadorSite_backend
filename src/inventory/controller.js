@@ -115,12 +115,6 @@ exports.setCategoryPartOrder = (req, res) =>
     () => res.status(200).send({result: true}),
   );
 
-exports.getAllInventories = (req, res) =>
-  controller_run(req,res)(
-    () => inventoryModel.getAllInventories(),
-    (result) => res.status(200).send({result}),
-  );
-
 exports.getCategoriesByCategorySet = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getCategoriesByCategorySet({
@@ -344,19 +338,19 @@ exports.createCategorySet = (req, res) =>
     (result) => res.status(201).send({result}),
   );
 exports.setCategorySetOrder = (req, res) =>
-  controller_run(res,res)(
+  controller_run(req,res)(
     () => inventoryLib.setCategorySetCategoryOrder(
       {categorySetId: req.params.categorySetId, itemOrder: req.body.itemOrder},
     ),
     () => res.status(200).send({result: true}),
   );
 exports.createCategory = (req, res) =>
-  controller_run(res,res)(
+  controller_run(req,res)(
     () => inventoryLib.createCategory({actor: req.jwt.userId, ...req.body}),
     (result) => res.status(201).send({result}),
   );
 exports.patchCategory = (req, res) =>
-  controller_run(res,res)(
+  controller_run(req,res)(
     () => inventoryLib.patchCategory(
       req.params.categoryId,
       {actor: req.jwt.userId, ...req.body}
@@ -364,11 +358,56 @@ exports.patchCategory = (req, res) =>
     (result) => res.status(201).send({result}),
   );
 exports.deleteCategory = (req, res) =>
-  controller_run(res,res)(
+  controller_run(req,res)(
     () => inventoryLib.deleteCategory({
       categoryId: req.params.categoryId, actor: req.jwt.userId,
     }).then(doc => inventoryLib.handleDeletedCategory(
       req.params.categoryId
     ).then(() => doc)),
     (result) => res.status(201).send({result}),
+  );
+
+exports.createInventory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryLib.createInventory(
+      {actor: req.jwt.userId, inventoryData: req.body}
+    ),
+    () => res.status(201).send({result: "success"}),
+  );
+exports.getInventoryById = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getInventoryById(req.params.inventoryId).then(
+      doc => inventoryLib.redactCreatorInfo(doc ? doc.toObject() : undefined),
+    ),
+    (result) => res.status(200).send({result}),
+  )
+exports.getAllInventories = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getAllInventories().then(
+      (result) => Promise.all(result.map(
+        doc => inventoryLib.redactCreatorInfo(doc.toObject()),
+      ))
+    ),
+    (result) => res.status(200).send({result}),
+  )
+exports.patchInventory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryLib.patchInventory({
+      actor: req.jwt.userId,
+      inventoryId: req.params.inventoryId,
+      patchData: req.body
+    }),
+    () => res.status(201).send({result: "success"}),
+  );
+exports.deleteInventory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryLib.deleteInventory(
+      {actor: req.jwt.userId, inventoryId: req.params.inventoryId}
+    ).then(() => inventoryConstants.getDefaultDefaultInventoryId()
+    ).then((defaultInventoryId) => userModel.handleDeletedDefault({
+      propName: "defaultInventory",
+      id: req.params.inventoryId,
+      replacement: defaultInventoryId,
+    })),
+    () => res.status(202).send({result: "success"}),
   );

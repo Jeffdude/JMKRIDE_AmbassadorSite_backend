@@ -15,20 +15,15 @@ const {
 
 class BaseUserController {
   static insert(req, res){
-    try {
-      userLib.createUser({
+    return controller_run(req, res)(
+      () => userLib.createUser({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
         password: req.body.password,
-      })
-        .then(result => {
-          return res.status(201).send({id: result._id});
-        })
-        .catch(sendAndPrintErrorFn(res))
-    } catch(error) {
-      sendAndPrintError(res, error);
-    }
+      }),
+      (result) => res.status(201).send({id: result._id}),
+    )
   }
 
   static lookup(req, res) {
@@ -57,6 +52,7 @@ class BaseUserController {
     return (req, res) => 
       controller_run(req, res)(
         () => userModel.findById(req.params.userId).then((result) => {
+          if(!result) return;
           let resultObject = result.toObject();
           resultObject.permissionLevel = permissionValues[result.permissionLevel];
           delete(resultObject.password);
