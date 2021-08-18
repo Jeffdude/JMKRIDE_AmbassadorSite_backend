@@ -152,27 +152,25 @@ exports.postSetup = async () => {
     )
   ));
 
-  /* initialize all uninitialized inventories */
-  await inventoryModel.getAllInventories().then(inventories =>
-    Promise.all(inventories.map((inventory) => {
-      if(!inventory.initialized) {
-        inventoryModel.getAllParts().then(parts => Promise.all(
-          parts.map(part => inventoryModel.updatePartQuantity(
-            {
-              partId: part._id,
-              inventoryId: inventory._id,
-              quantity: (
-                /* if in development mode, set random inventory amounts */
-                ["development", "unittest"].includes(operationMode)
-                ? Math.floor(Math.random() * 1000)
-                : 0
-              ) 
-            },
-          ))
-        )).then(() => inventoryModel.patchInventory(inventory._id, {initialized: true}))
-      }
-    }))
-  )
+  if(["development", "unittest"].includes(operationMode)) {
+    /* initialize all uninitialized inventories */
+    /* if in development mode, set random inventory amounts */
+    await inventoryModel.getAllInventories().then(inventories =>
+      Promise.all(inventories.map((inventory) => {
+        if(!inventory.initialized) {
+          inventoryModel.getAllParts().then(parts => Promise.all(
+            parts.map(part => inventoryModel.updatePartQuantity(
+              {
+                partId: part._id,
+                inventoryId: inventory._id,
+                quantity: Math.floor(Math.random() * 1000) ,
+              },
+            ))
+          )).then(() => inventoryModel.patchInventory(inventory._id, {initialized: true}))
+        }
+      }))
+    )
+  }
 }
 
 exports.createCompleteSet = ({actor, ...CSData}) => {
