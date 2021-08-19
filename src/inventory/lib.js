@@ -195,7 +195,7 @@ exports.patchCompleteSet = ({completeSetId, actor, ...CSData}) => {
 const fixCSData = async ({actor, CSSetIds, ...CSData}) => {
   CSData = {
     ...CSData,
-    creator: actor,
+    actor, creator: actor,
     CSSets: [],
   }
   await Promise.all(CSSetIds.map(CSSetId =>
