@@ -1,6 +1,7 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
+const { operationMode } = require('../constants.js')
 const inventoryConstants = require('./constants.js')
 
 
@@ -100,7 +101,6 @@ const partSchema = new Schema({
 partSchema.index({
   name: 'text',
   color: 'text',
-  'categories.category': 'text',
 });
 const Part = mongoose.model('part', partSchema);
 
@@ -147,6 +147,7 @@ const logSchema = new Schema({
   subject: {type: Schema.Types.ObjectId, refPath: 'subjectType'},
   subjectType: String,
   quantity: Number,
+  inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
   payload: {type: Schema.Types.Mixed},
 }, {timestamps: true});
 const Log = mongoose.model('log', logSchema);
@@ -194,9 +195,17 @@ exports.patchPart = (partId, partData) =>
   Part.findOneAndUpdate({"_id": partId}, {'$set': partData});
 
 exports.getAllParts = () => Part.find().populate('categories.category');
-exports.searchAllParts = (query) => Part.find(
-  {$text: {$search: query}}
-).populate('categories.category');
+exports.searchAllParts = (query) => {
+  if(operationMode === "production") {
+    return Part.aggregate([
+      {$search: {index: 'default', text: {query, path: {wildcard: '*'}}}}
+    ]).then(results => Part.populate(results, 'categories.category'))
+  } else {
+    return Part.find(
+      {$text: {$search: query}}
+    ).populate('categories.category').lean();
+  }
+}
 
 exports.setPartCategoryOrder = ({partId, categoryId, sortIndex}) =>
   Part.findOneAndUpdate(

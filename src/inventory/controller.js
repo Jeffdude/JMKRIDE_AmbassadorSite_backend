@@ -52,7 +52,7 @@ exports.getAllPartsWithQuantity = (req, res) =>
   );
 exports.searchAllPartsWithQuantity = (req, res) =>
   controller_run(req, res)(
-    () => inventoryModel.searchAllParts(req.body.query).lean().then(
+    () => inventoryModel.searchAllParts(req.body.query).then(
       inventoryLib.setPartResultsQuantity(req.params.inventoryId),
     ),
     (result) => res.status(200).send({result}),
