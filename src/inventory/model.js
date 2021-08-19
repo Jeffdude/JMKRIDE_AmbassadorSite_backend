@@ -400,20 +400,30 @@ exports.createLog = (logData) => {
   return log.save();
 }
 
-exports.getLogsByCategory = ({categoryId, perPage = 150, page = 0}) =>
+exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
-    Log.find({subjectType: "part", subject: {$in: result}})
+    Log.find({subjectType: "part", subject: {$in: result},
+    $or: [
+      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+      {inventory: inventoryId},
+    ]})
       .populate("actor", ["firstName", "lastName"])
-      .populate("subject")
+      .populate(["subject", "inventory"])
       .sort({createdAt: -1})
       .limit(perPage)
       .skip(perPage * page)
   );
 
-exports.getLogsByPart = ({partId, perPage = 150, page = 0}) =>
-  Log.find({subjectType: "part", subject: partId})
+exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
+  Log.find({
+    subjectType: "part", subject: partId,
+    $or: [
+      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+      {inventory: inventoryId},
+    ],
+  })
     .populate("actor", ["firstName", "lastName"])
-    .populate("subject")
+    .populate(["subject", "inventory"])
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
@@ -421,15 +431,18 @@ exports.getLogsByPart = ({partId, perPage = 150, page = 0}) =>
 exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.find({actor: userId})
     .populate("actor", ["firstName", "lastName"])
-    .populate("subject")
+    .populate(["subject", "inventory"])
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
 
-exports.getLogs = ({perPage = 150, page = 0}) =>
-  Log.find()
+exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
+  Log.find({$or: [
+    {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+    {inventory: inventoryId},
+  ]})
     .populate("actor", ["firstName", "lastName"])
-    .populate("subject")
+    .populate(["subject", "inventory"])
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
