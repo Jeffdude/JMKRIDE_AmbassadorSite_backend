@@ -4,13 +4,13 @@ const userModel = require('../users/model.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
-const executeThenLog = (fn, { action, actor, payload, quantity}) =>
+const executeThenLog = (fn, { action, actor, payload, quantity, inventory}) =>
   fn().then(async doc => {
     await inventoryModel.createLog({
       actor, action,
       subjectType: doc.constructor.modelName,
       subject: doc._id,
-      quantity, payload,
+      quantity, payload, inventory,
     });
     return doc;
   });
@@ -57,7 +57,7 @@ exports.updatePartQuantity = ({partId, inventoryId, quantity, actor}) =>
     () => inventoryModel.updatePartQuantity({partId, inventoryId, quantity}),
     {
       action: actions.UPDATE_QUANTITY,
-      actor, quantity,
+      actor, quantity, inventory: inventoryId,
     },
   )
 
@@ -163,7 +163,7 @@ exports.postSetup = async () => {
               {
                 partId: part._id,
                 inventoryId: inventory._id,
-                quantity: Math.floor(Math.random() * 1000) ,
+                quantity: Math.floor(Math.random() * 1000),
               },
             ))
           )).then(() => inventoryModel.patchInventory(inventory._id, {initialized: true}))
