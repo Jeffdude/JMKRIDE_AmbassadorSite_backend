@@ -198,7 +198,7 @@ exports.getAllParts = () => Part.find().populate('categories.category');
 exports.searchAllParts = (query) => {
   if(operationMode === "production") {
     return Part.aggregate([
-      {$search: {index: 'default', text: {query, path: {wildcard: '*'}}}}
+      {$search: {index: 'default', text: {query, path: {wildcard: '*'}, fuzzy: {maxEdits: 2}}}}
     ]).then(results => Part.populate(results, 'categories.category'))
   } else {
     return Part.find(
