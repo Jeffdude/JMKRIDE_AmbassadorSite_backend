@@ -126,6 +126,7 @@ const completeSetSchema = new Schema({
   CSSets: [
     {sortIndex: Number, CSSet: {type: Schema.Types.ObjectId, ref: 'csset'}},
   ],
+  custom: Boolean,
 
   lwheel1: {type: Schema.Types.ObjectId, ref: 'part', required: true},
   lwheel2: {type: Schema.Types.ObjectId, ref: 'part', required: true},
@@ -191,7 +192,7 @@ exports.getPartsById = (partIds) =>
   Part.find({"_id": {"$in": partIds}})
     .populate('creator').populate('categories.category');
 
-exports.patchPart = (partId, partData) => 
+exports.patchPart = (partId, partData) =>
   Part.findOneAndUpdate({"_id": partId}, {'$set': partData});
 
 exports.getAllParts = () => Part.find().populate('categories.category');
@@ -300,7 +301,7 @@ exports.getCategoriesByCategorySet = ({categorySetId}) =>
 
 exports.removeCategoryFromCategorySet = ({categoryId, categorySetId}) =>
   Category.findOneAndUpdate(
-    {_id: categoryId}, 
+    {_id: categoryId},
     {$pull: {categorySets: {categorySet: categorySetId}}},
   );
 exports.addCategoryToCategorySet = ({categoryId, categorySetId}) =>
@@ -340,8 +341,12 @@ exports.createCompleteSet = (completeSetData) => {
   const completeset = new CompleteSet(completeSetData);
   return completeset.save();
 };
-exports.patchCompleteSet = (completeSetId, CSData) => 
+exports.patchCompleteSet = (completeSetId, CSData) =>
   CompleteSet.findOneAndUpdate({"_id": completeSetId}, {"$set": CSData});
+exports.findOrCreateCompleteSet = ({quantity, ...CSData}) =>
+  CompleteSet.findOne(CSData).then(result =>
+    result ? result : exports.createCompleteSet(CSData)
+  )
 exports.createCSSet = (CSSetData) => {
   const newCSSet = new CSSet(CSSetData);
   return newCSSet.save();
