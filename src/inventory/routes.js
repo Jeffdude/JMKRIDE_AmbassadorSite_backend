@@ -193,7 +193,7 @@ exports.configRoutes = (app) => {
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
-    InventoryController.withdrawCompleteSet
+    InventoryController.createAndWithdrawCustomCompleteSet
   ]);
   app.patch('/api/v1/completeset/id/:completeSetId', [
     ValidationMiddleware.validJWTNeeded,

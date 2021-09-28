@@ -186,23 +186,21 @@ exports.patchCompleteSet = (req, res) =>
     ),
     (result) => res.status(201).send({result}),
   );
-exports.withdrawCompleteSet = (req, res) =>
+exports.createAndWithdrawCustomCompleteSet = (req, res) =>
   controller_run(req, res)(
-    async () => await Promise.all(inventoryConstants.CSPropertyList.map(
-      prop => inventoryLib.updatePartQuantity({
-        partId: req.body[prop], 
-        inventoryId: req.params.inventoryId, 
-        quantity: (-1 * Number(req.body.quantity)),
-        actor: req.jwt.userId,
-      })
-    )).then(doc => inventoryLib.withdrawAuxiliaryParts({
+    () => inventoryModel.findOrCreateCompleteSet({...req.body, custom: true}
+    ).then(CS => inventoryLib.updateCompleteSetQuantity({
+      completeSetId: CS._id,
+      inventoryId: req.params.inventoryId,
+      quantity: req.body.quantity,
+      actor: req.jwt.userId,
+    })).then(doc => inventoryLib.withdrawAuxiliaryParts({
       userId: req.jwt.userId,
       inventoryId: req.params.inventoryId,
-      quantity: (-1 * Number(req.body.quantity)),
+      quantity: req.body.quantity,
     }).then(() => doc)),
     (result) => res.status(201).send({result}),
   );
-
 exports.getCompleteSetsByCSSetId = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getCompleteSets({CSSetId: req.params.CSSetId}).then(
