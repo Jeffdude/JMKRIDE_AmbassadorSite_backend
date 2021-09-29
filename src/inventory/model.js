@@ -142,6 +142,37 @@ const completeSetSchema = new Schema({
 }, {timestamps: true});
 const CompleteSet = mongoose.model('completeset', completeSetSchema);
 
+/*
+ * a displayLog is a decorative grouping of logs
+ *   * grouped logs must be a part of a single transaction, at a single time
+ *   * 'raw' displayLogs are 1:1 log pointers
+ *
+ *  displayLog = [log]
+ */
+const displayLogSchema = new Schema({
+  // raw displayLogs are 1:1 log pointers
+  raw: Boolean,
+
+  // non-raw displayLogs provide useful operation summation information
+  // e.g. for a CS quantity adjustment, this will be a pointer to the CS and
+  // quantity will be the amount of CS, rather than parts, acted on.
+  actor: {type: Schema.Types.ObjectId, ref: 'user'},
+  action: {type: String, enum: Object.values(inventoryConstants.actions)},
+  subjectType: String,
+  subject: {type: Schema.Types.ObjectId, refPath: 'subjectType'},
+  quantity: Number,
+  inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
+
+}, {timestamps: true});
+/*
+displayLogSchema.virtual('logs', {
+  ref: 'log',
+  localField: '_id',
+  foreignField: 'displayLog',
+});
+*/
+const DisplayLog = mongoose.model('displaylog', displayLogSchema);
+
 const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
   action: {type: String, enum: Object.values(inventoryConstants.actions)},
@@ -150,6 +181,8 @@ const logSchema = new Schema({
   quantity: Number,
   inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
   payload: {type: Schema.Types.Mixed},
+
+  displayLog: {type: Schema.Types.ObjectId, ref: 'displaylog'},
 }, {timestamps: true});
 const Log = mongoose.model('log', logSchema);
 
@@ -343,6 +376,7 @@ exports.createCompleteSet = (completeSetData) => {
 };
 exports.patchCompleteSet = (completeSetId, CSData) =>
   CompleteSet.findOneAndUpdate({"_id": completeSetId}, {"$set": CSData});
+// eslint-disable-next-line no-unused-vars
 exports.findOrCreateCompleteSet = ({quantity, ...CSData}) =>
   CompleteSet.findOne(CSData).then(result =>
     result ? result : exports.createCompleteSet(CSData)
@@ -451,6 +485,26 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
+
+exports.createDisplayLog = (displayLogData) => {
+  const displayLog = new DisplayLog(displayLogData);
+  return displayLog.save();
+}
+exports.getDisplayLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
+  exports.getPartIdsByCategory({categoryId}).then(result =>
+    Log.aggregate([
+      {$match: {subjectType: "part", subject: {$in: result}}},
+      {$lookup: {
+        from: "displaylog",
+        localField: "displayLog",
+        foreignField: "_id",
+        as: "displayLogPopulated"
+      }},
+
+    ])
+  )
+exports.debug = exports.getDisplayLogsByCategory
+
 
 /* Inventories */
 

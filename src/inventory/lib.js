@@ -4,13 +4,19 @@ const userModel = require('../users/model.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
-const executeThenLog = (fn, { action, actor, payload, quantity, inventory}) =>
+const executeThenLog = (fn, { action, actor, payload, quantity, inventory, displayLogId}) =>
   fn().then(async doc => {
+    let displayLog = displayLogId;
+    if(!displayLogId) {
+      displayLog = await inventoryModel.createDisplayLog()._id;
+    }
+    console.log(displayLog)
     await inventoryModel.createLog({
       actor, action,
       subjectType: doc.constructor.modelName,
       subject: doc._id,
       quantity, payload, inventory,
+      displayLog: displayLog,
     });
     return doc;
   });
