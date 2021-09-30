@@ -186,6 +186,7 @@ exports.patchCompleteSet = (req, res) =>
     ),
     (result) => res.status(201).send({result}),
   );
+
 exports.createAndWithdrawCustomCompleteSet = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.findOrCreateCompleteSet({...req.body, custom: true}
@@ -194,11 +195,7 @@ exports.createAndWithdrawCustomCompleteSet = (req, res) =>
       inventoryId: req.params.inventoryId,
       quantity: req.body.quantity,
       actor: req.jwt.userId,
-    })).then(doc => inventoryLib.withdrawAuxiliaryParts({
-      userId: req.jwt.userId,
-      inventoryId: req.params.inventoryId,
-      quantity: req.body.quantity,
-    }).then(() => doc)),
+    })),
     (result) => res.status(201).send({result}),
   );
 exports.getCompleteSetsByCSSetId = (req, res) =>
@@ -235,11 +232,7 @@ exports.updateCompleteSetQuantity = (req, res) =>
       inventoryId: req.params.inventoryId,
       quantity: req.body.quantity,
       actor: req.jwt.userId,
-    }).then(doc => inventoryLib.withdrawAuxiliaryParts({
-      userId: req.jwt.userId,
-      inventoryId: req.params.inventoryId,
-      quantity: req.body.quantity,
-    }).then(() => doc)),
+    }),
     (result) => res.status(201).send({result}),
   );
 exports.patchCSSet = (req, res) => 
