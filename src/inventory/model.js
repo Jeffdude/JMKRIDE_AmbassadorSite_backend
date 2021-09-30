@@ -163,14 +163,16 @@ const displayLogSchema = new Schema({
   quantity: Number,
   inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
 
-}, {timestamps: true});
-/*
+}, {
+  timestamps: true,
+  toJSON: {virtuals: true},
+  toObject: {virtuals: true},
+})
 displayLogSchema.virtual('logs', {
   ref: 'log',
   localField: '_id',
   foreignField: 'displayLog',
 });
-*/
 const DisplayLog = mongoose.model('displaylog', displayLogSchema);
 
 const logSchema = new Schema({
@@ -188,6 +190,8 @@ const Log = mongoose.model('log', logSchema);
 
 
 /* ------------------  Inventory Model Definitions ------------------  */
+
+exports.getId = () => new mongoose.Types.ObjectId;
 
 /*   Parts    */
 exports.createPart = (partData) => {
@@ -494,14 +498,36 @@ exports.getDisplayLogsByCategory = ({categoryId, inventoryId, perPage = 150, pag
   exports.getPartIdsByCategory({categoryId}).then(result =>
     Log.aggregate([
       {$match: {subjectType: "part", subject: {$in: result}}},
-      {$lookup: {
-        from: "displaylog",
-        localField: "displayLog",
-        foreignField: "_id",
-        as: "displayLogPopulated"
-      }},
-
+      {$group: {_id: null, array: {$push: "$displayLog"}}},
+      {$project: {array: true, _id: false}},
     ])
+    .then(result => DisplayLog.find({_id: {$in: result[0].array}})
+      .populate("actor", ["firstName", "lastName"])
+      .populate(["subject", "inventory"])
+      .populate({
+        path: "logs",
+        populate: {
+          path: "actor",
+          model: "user",
+          select: ["firstName", "lastName"],
+        }
+      })
+      .populate({
+        path: "logs",
+        populate: {
+          path: "subject",
+        }
+      })
+      .populate({
+        path: "logs",
+        populate: {
+          path: "inventory",
+        }
+      })
+      .sort({createdAt: -1})
+      .limit(perPage)
+      .skip(perPage * page)
+    )
   )
 exports.debug = exports.getDisplayLogsByCategory
 
