@@ -7,7 +7,7 @@
     "ambassadorsite-devel": "export NODE_ENV=development; export FUNCTION=ambassadorsite; node --inspect src/index.js",
     "ambassadorsite-prod": "export NODE_ENV=production; export FUNCTION=ambassadorsite; node src/index.js",
     "ambassadorsite-test": "export NODE_ENV=unittest; export FUNCTION=ambassadorsite; mocha --recursive -c src/test",
-    "stocktracker-devel": "export NODE_ENV=development; export FUNCTION=stocktracker; node --inspect src/index.js",
+    "stocktracker-devel": "export NODE_ENV=development; export FUNCTION=stocktracker; nodemon --inspect src/index.js",
     "stocktracker-prod": "export NODE_ENV=production; export FUNCTION=stocktracker; node src/index.js",
     "stocktracker-test": "export NODE_ENV=unittest; export FUNCTION=stocktracker; mocha --recursive -c src/test"
   },
@@ -28,6 +28,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.9",
     "nodemailer": "^6.5.0",
+    "nodemon": "^2.0.13",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
