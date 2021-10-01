@@ -4,6 +4,8 @@ const userModel = require('../users/model.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
+/* -------------------------- Logging -------------------------------- */
+
 const executeThenLog = (fn, { action, actor, payload, quantity, inventory, displayLogId}) =>
   fn().then(async doc => {
     let displayLog = displayLogId ? displayLogId : inventoryModel.getId();
@@ -19,6 +21,21 @@ const executeThenLog = (fn, { action, actor, payload, quantity, inventory, displ
     });
     return doc;
   });
+
+const logThenExecuteDeletion = (fn, { subject, action, actor}) => {
+  let displayLogId = inventoryModel.getId();
+  inventoryModel.createDisplayLog({raw: true, _id: displayLog})
+  inventoryModel.createLog({
+    actor, action,
+    subjectType: subject.constructor.modelName,
+    subject: subject._id,
+    payload: subject,
+    displayLog: displayLogId,
+  }).then(fn);
+}
+
+
+/* -------------------------- Parts ----------------------------------- */
 
 exports.createPart = ({actor, ...partData}) => executeThenLog(
     () => inventoryModel.createPart(partData),
@@ -67,6 +84,8 @@ exports.updatePartQuantity = ({partId, inventoryId, quantity, actor, displayLogI
     },
   )
 
+/* -------------------------- Categories ----------------------------------- */
+
 const fixCategoryData = async ({actor, categorySetIds, ...categoryData}) => {
   let fixedCategoryData = {
     ...categoryData,
@@ -112,6 +131,8 @@ exports.sortCategory = async ({categoryId}) => {
   ).map((doc, index) => ({id: doc._id, index}));
   return await exports.setCategoryPartOrder({categoryId, itemOrder});
 }
+
+/* -------------------------- CategorySets ----------------------------------- */
 
 exports.setCategorySetCategoryOrder = async ({categorySetId, itemOrder}) => {
   return await Promise.all(
@@ -178,6 +199,8 @@ exports.postSetup = async () => {
     )
   }
 }
+
+/* -------------------------- Complete Sets ----------------------------------- */
 
 exports.createCompleteSet = ({actor, ...CSData}) => {
   return executeThenLog(
@@ -442,14 +465,6 @@ exports.withdrawAuxiliaryParts = async ({userId, inventoryId, quantity, displayL
     )
   }
 }
-
-const logThenExecuteDeletion = (fn, { subject, action, actor}) =>
-  inventoryModel.createLog({
-    actor, action,
-    subjectType: subject.constructor.modelName,
-    subject: subject._id,
-    payload: subject,
-  }).then(fn);
 
 exports.deletePart = ({actor, partId}) => 
   inventoryModel.getPartById(partId).then(part =>
