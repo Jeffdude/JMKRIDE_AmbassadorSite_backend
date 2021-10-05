@@ -1,5 +1,6 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
+const { ObjectId } = mongoose.Types;
 
 const { operationMode } = require('../constants.js')
 const inventoryConstants = require('./constants.js')
@@ -442,7 +443,12 @@ exports.createLog = (logData) => {
   const log = new Log(logData);
   return log.save();
 }
+exports.createDisplayLog = (displayLogData) => {
+  const displayLog = new DisplayLog(displayLogData);
+  return displayLog.save();
+}
 
+/*
 exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
     Log.find({subjectType: "part", subject: {$in: result},
@@ -456,80 +462,92 @@ exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0})
       .limit(perPage)
       .skip(perPage * page)
   );
+*/
 
-exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
-  Log.find({
-    subjectType: "part", subject: partId,
-    $or: [
-      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-      {inventory: inventoryId},
-    ],
-  })
+const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
+  DisplayLog.find({_id: {$in: result ? result[0].array : []}})
     .populate("actor", ["firstName", "lastName"])
     .populate(["subject", "inventory"])
+    .populate({
+      path: "logs",
+      populate: {
+        path: "actor",
+        model: "user",
+        select: ["firstName", "lastName"],
+      }
+    })
+    .populate({
+      path: "logs",
+      populate: {
+        path: "subject",
+      }
+    })
+    .populate({
+      path: "logs",
+      populate: {
+        path: "inventory",
+      }
+    })
     .sort({createdAt: -1})
     .limit(perPage)
-    .skip(perPage * page);
+    .skip(perPage * page)
 
-exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
-  Log.find({actor: userId})
-    .populate("actor", ["firstName", "lastName"])
-    .populate(["subject", "inventory"])
-    .sort({createdAt: -1})
-    .limit(perPage)
-    .skip(perPage * page);
-
-exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
-  Log.find({$or: [
-    {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-    {inventory: inventoryId},
-  ]})
-    .populate("actor", ["firstName", "lastName"])
-    .populate(["subject", "inventory"])
-    .sort({createdAt: -1})
-    .limit(perPage)
-    .skip(perPage * page);
-
-exports.createDisplayLog = (displayLogData) => {
-  const displayLog = new DisplayLog(displayLogData);
-  return displayLog.save();
-}
-exports.getDisplayLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
+exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
     Log.aggregate([
-      {$match: {subjectType: "part", subject: {$in: result}}},
+      {$match: {
+        $or: [{ // logs for a part in the category
+          subjectType: "part",
+          subject: {$in: result.map(ObjectId)},
+          $or: [
+            {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+            {inventory: ObjectId(inventoryId)},
+          ],
+        }, { // logs for the category
+          subjectType: "category",
+          subject: ObjectId(categoryId),
+        }],
+      }},
+      {$limit: perPage},
       {$group: {_id: null, array: {$push: "$displayLog"}}},
       {$project: {array: true, _id: false}},
-    ])
-    .then(result => DisplayLog.find({_id: {$in: result[0].array}})
-      .populate("actor", ["firstName", "lastName"])
-      .populate(["subject", "inventory"])
-      .populate({
-        path: "logs",
-        populate: {
-          path: "actor",
-          model: "user",
-          select: ["firstName", "lastName"],
-        }
-      })
-      .populate({
-        path: "logs",
-        populate: {
-          path: "subject",
-        }
-      })
-      .populate({
-        path: "logs",
-        populate: {
-          path: "inventory",
-        }
-      })
-      .sort({createdAt: -1})
-      .limit(perPage)
-      .skip(perPage * page)
-    )
+    ]).then(getDisplayLogsFromLogArray({perPage, page}))
   )
-exports.debug = exports.getDisplayLogsByCategory
+
+exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {
+      subjectType: "part", subject: ObjectId(partId),
+      $or: [
+        {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+        {inventory: ObjectId(inventoryId)},
+      ],
+    }},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
+exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {actor: ObjectId(userId)}},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
+exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {$or: [
+      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+      {inventory: ObjectId(inventoryId)},
+    ]}},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
+exports.debug = exports.getLogsByCategory
 
 
 /* Inventories */

@@ -146,12 +146,12 @@ exports.configRoutes = (app) => {
 
   /* Logs Routes */
 
-  app.get('/api/v1/logs/category/id/:categoryId', [
+  app.get('/api/v1/logs/category/id/:categoryId/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByCategory
   ]);
-  app.get('/api/v1/logs/part/id/:partId', [
+  app.get('/api/v1/logs/part/id/:partId/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByPart
@@ -161,7 +161,7 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByUser
   ]);
-  app.get('/api/v1/logs/all', [
+  app.get('/api/v1/logs/all/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getAllLogs
