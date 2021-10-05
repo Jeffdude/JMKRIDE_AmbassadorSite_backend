@@ -1,5 +1,6 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
+const { ObjectId } = mongoose.Types;
 
 const { operationMode } = require('../constants.js')
 const inventoryConstants = require('./constants.js')
@@ -126,6 +127,7 @@ const completeSetSchema = new Schema({
   CSSets: [
     {sortIndex: Number, CSSet: {type: Schema.Types.ObjectId, ref: 'csset'}},
   ],
+  custom: Boolean,
 
   lwheel1: {type: Schema.Types.ObjectId, ref: 'part', required: true},
   lwheel2: {type: Schema.Types.ObjectId, ref: 'part', required: true},
@@ -141,6 +143,39 @@ const completeSetSchema = new Schema({
 }, {timestamps: true});
 const CompleteSet = mongoose.model('completeset', completeSetSchema);
 
+/*
+ * a displayLog is a decorative grouping of logs
+ *   * grouped logs must be a part of a single transaction, at a single time
+ *   * 'raw' displayLogs are 1:1 log pointers
+ *
+ *  displayLog = [log]
+ */
+const displayLogSchema = new Schema({
+  // raw displayLogs are 1:1 log pointers
+  raw: Boolean,
+
+  // non-raw displayLogs provide useful operation summation information
+  // e.g. for a CS quantity adjustment, this will be a pointer to the CS and
+  // quantity will be the amount of CS, rather than parts, acted on.
+  actor: {type: Schema.Types.ObjectId, ref: 'user'},
+  action: {type: String, enum: Object.values(inventoryConstants.actions)},
+  subjectType: String,
+  subject: {type: Schema.Types.ObjectId, refPath: 'subjectType'},
+  quantity: Number,
+  inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
+
+}, {
+  timestamps: true,
+  toJSON: {virtuals: true},
+  toObject: {virtuals: true},
+})
+displayLogSchema.virtual('logs', {
+  ref: 'log',
+  localField: '_id',
+  foreignField: 'displayLog',
+});
+const DisplayLog = mongoose.model('displaylog', displayLogSchema);
+
 const logSchema = new Schema({
   actor: {type: Schema.Types.ObjectId, ref: 'user'},
   action: {type: String, enum: Object.values(inventoryConstants.actions)},
@@ -149,11 +184,15 @@ const logSchema = new Schema({
   quantity: Number,
   inventory: {type: Schema.Types.ObjectId, ref: 'inventory'},
   payload: {type: Schema.Types.Mixed},
+
+  displayLog: {type: Schema.Types.ObjectId, ref: 'displaylog'},
 }, {timestamps: true});
 const Log = mongoose.model('log', logSchema);
 
 
 /* ------------------  Inventory Model Definitions ------------------  */
+
+exports.getId = () => new mongoose.Types.ObjectId;
 
 /*   Parts    */
 exports.createPart = (partData) => {
@@ -191,7 +230,7 @@ exports.getPartsById = (partIds) =>
   Part.find({"_id": {"$in": partIds}})
     .populate('creator').populate('categories.category');
 
-exports.patchPart = (partId, partData) => 
+exports.patchPart = (partId, partData) =>
   Part.findOneAndUpdate({"_id": partId}, {'$set': partData});
 
 exports.getAllParts = () => Part.find().populate('categories.category');
@@ -300,7 +339,7 @@ exports.getCategoriesByCategorySet = ({categorySetId}) =>
 
 exports.removeCategoryFromCategorySet = ({categoryId, categorySetId}) =>
   Category.findOneAndUpdate(
-    {_id: categoryId}, 
+    {_id: categoryId},
     {$pull: {categorySets: {categorySet: categorySetId}}},
   );
 exports.addCategoryToCategorySet = ({categoryId, categorySetId}) =>
@@ -340,8 +379,13 @@ exports.createCompleteSet = (completeSetData) => {
   const completeset = new CompleteSet(completeSetData);
   return completeset.save();
 };
-exports.patchCompleteSet = (completeSetId, CSData) => 
+exports.patchCompleteSet = (completeSetId, CSData) =>
   CompleteSet.findOneAndUpdate({"_id": completeSetId}, {"$set": CSData});
+// eslint-disable-next-line no-unused-vars
+exports.findOrCreateCompleteSet = ({quantity, ...CSData}) =>
+  CompleteSet.findOne(CSData).then(result =>
+    result ? result : exports.createCompleteSet(CSData)
+  )
 exports.createCSSet = (CSSetData) => {
   const newCSSet = new CSSet(CSSetData);
   return newCSSet.save();
@@ -399,14 +443,14 @@ exports.createLog = (logData) => {
   const log = new Log(logData);
   return log.save();
 }
+exports.createDisplayLog = (displayLogData) => {
+  const displayLog = new DisplayLog(displayLogData);
+  return displayLog.save();
+}
 
-exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
+exports.getRawLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
-    Log.find({subjectType: "part", subject: {$in: result},
-    $or: [
-      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-      {inventory: inventoryId},
-    ]})
+    Log.find({subjectType: "part", subject: {$in: result}})
       .populate("actor", ["firstName", "lastName"])
       .populate(["subject", "inventory"])
       .sort({createdAt: -1})
@@ -414,21 +458,73 @@ exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0})
       .skip(perPage * page)
   );
 
-exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
-  Log.find({
-    subjectType: "part", subject: partId,
-    $or: [
-      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-      {inventory: inventoryId},
-    ],
-  })
+const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
+  DisplayLog.find({_id: {$in: result ? result[0].array : []}})
     .populate("actor", ["firstName", "lastName"])
     .populate(["subject", "inventory"])
+    .populate({
+      path: "logs",
+      populate: {
+        path: "actor",
+        model: "user",
+        select: ["firstName", "lastName"],
+      }
+    })
+    .populate({
+      path: "logs",
+      populate: {
+        path: "subject",
+      }
+    })
+    .populate({
+      path: "logs",
+      populate: {
+        path: "inventory",
+      }
+    })
     .sort({createdAt: -1})
-    .limit(perPage)
-    .skip(perPage * page);
 
-exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
+exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
+  exports.getPartIdsByCategory({categoryId}).then(result =>
+    Log.aggregate([
+      {$match: {
+        $or: [{ // logs for a part in the category
+          subjectType: "part",
+          subject: {$in: result.map(ObjectId)},
+          $or: [
+            {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+            {inventory: ObjectId(inventoryId)},
+          ],
+        }, { // logs for the category
+          subjectType: "category",
+          subject: ObjectId(categoryId),
+        }],
+      }},
+      {$skip: page * perPage},
+      {$limit: perPage},
+      {$group: {_id: null, array: {$push: "$displayLog"}}},
+      {$project: {array: true, _id: false}},
+    ]).then(getDisplayLogsFromLogArray({perPage, page}))
+  )
+
+exports.getRawLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {
+      subjectType: "part", subject: ObjectId(partId),
+      ...inventoryId ? {$or: [
+        {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+        {inventory: ObjectId(inventoryId)},
+      ]} : {},
+    }},
+    {$skip: page * perPage},
+    {$limit: perPage},
+  ]).then(results => Log.populate(results, [
+    {path: 'actor', select: ['firstName', 'lastName']},
+    {path: 'subject'},
+    {path: 'inventory'},
+  ]))
+
+exports.getRawLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.find({actor: userId})
     .populate("actor", ["firstName", "lastName"])
     .populate(["subject", "inventory"])
@@ -436,16 +532,35 @@ exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
     .limit(perPage)
     .skip(perPage * page);
 
-exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
-  Log.find({$or: [
-    {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-    {inventory: inventoryId},
-  ]})
+exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {actor: ObjectId(userId)}},
+    {$skip: page * perPage},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
+exports.getRawLogs = ({inventoryId, perPage = 150, page = 0}) =>
+  Log.find()
     .populate("actor", ["firstName", "lastName"])
     .populate(["subject", "inventory"])
     .sort({createdAt: -1})
     .limit(perPage)
     .skip(perPage * page);
+
+exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
+  Log.aggregate([
+    {$match: {$or: [
+      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
+      {inventory: ObjectId(inventoryId)},
+    ]}},
+    {$skip: page * perPage},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
 
 /* Inventories */
 

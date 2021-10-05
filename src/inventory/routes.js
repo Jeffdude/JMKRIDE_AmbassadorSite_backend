@@ -149,6 +149,11 @@ exports.configRoutes = (app) => {
   app.get('/api/v1/logs/category/id/:categoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getRawLogsByCategory
+  ]);
+  app.get('/api/v2/logs/category/id/:categoryId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByCategory
   ]);
   app.get('/api/v1/logs/part/id/:partId', [
@@ -156,12 +161,27 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByPart
   ]);
+  app.get('/api/v2/logs/part/id/:partId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getLogsByPart
+  ]);
   app.get('/api/v1/logs/user/id/:userId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getRawLogsByUser
+  ]);
+  app.get('/api/v2/logs/user/id/:userId/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByUser
   ]);
   app.get('/api/v1/logs/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getAllRawLogs
+  ]);
+  app.get('/api/v2/logs/all/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getAllLogs
@@ -193,7 +213,7 @@ exports.configRoutes = (app) => {
     DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
-    InventoryController.withdrawCompleteSet
+    InventoryController.createAndWithdrawCustomCompleteSet
   ]);
   app.patch('/api/v1/completeset/id/:completeSetId', [
     ValidationMiddleware.validJWTNeeded,
@@ -267,6 +287,11 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     InventoryController.deleteInventory
+  ]);
+
+  app.post('/api/v1/inventory/debug', [
+    ValidationMiddleware.validJWTNeeded,
+    InventoryController.debug
   ]);
 };
 

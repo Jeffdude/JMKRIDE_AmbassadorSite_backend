@@ -4,16 +4,38 @@ const userModel = require('../users/model.js');
 const { actions } = require('./constants.js');
 const { operationMode } = require('../environment.js');
 
-const executeThenLog = (fn, { action, actor, payload, quantity, inventory}) =>
+/* -------------------------- Logging -------------------------------- */
+
+const executeThenLog = (fn, { action, actor, payload, quantity, inventory, displayLogId}) =>
   fn().then(async doc => {
+    let displayLog = displayLogId ? displayLogId : inventoryModel.getId();
+    if(!displayLogId) {
+      await inventoryModel.createDisplayLog({raw: true, _id: displayLog})
+    }
     await inventoryModel.createLog({
       actor, action,
       subjectType: doc.constructor.modelName,
       subject: doc._id,
       quantity, payload, inventory,
+      displayLog: displayLog,
     });
     return doc;
   });
+
+const logThenExecuteDeletion = (fn, { subject, action, actor}) => {
+  let displayLogId = inventoryModel.getId();
+  inventoryModel.createDisplayLog({raw: true, _id: displayLog})
+  inventoryModel.createLog({
+    actor, action,
+    subjectType: subject.constructor.modelName,
+    subject: subject._id,
+    payload: subject,
+    displayLog: displayLogId,
+  }).then(fn);
+}
+
+
+/* -------------------------- Parts ----------------------------------- */
 
 exports.createPart = ({actor, ...partData}) => executeThenLog(
     () => inventoryModel.createPart(partData),
@@ -52,14 +74,17 @@ exports.patchPart = ({actor, partId, ...partData}) =>
     }
   );
 
-exports.updatePartQuantity = ({partId, inventoryId, quantity, actor}) =>
+exports.updatePartQuantity = ({partId, inventoryId, quantity, actor, displayLogId}) =>
   executeThenLog(
     () => inventoryModel.updatePartQuantity({partId, inventoryId, quantity}),
     {
       action: actions.UPDATE_QUANTITY,
       actor, quantity, inventory: inventoryId,
+      displayLogId,
     },
   )
+
+/* -------------------------- Categories ----------------------------------- */
 
 const fixCategoryData = async ({actor, categorySetIds, ...categoryData}) => {
   let fixedCategoryData = {
@@ -106,6 +131,8 @@ exports.sortCategory = async ({categoryId}) => {
   ).map((doc, index) => ({id: doc._id, index}));
   return await exports.setCategoryPartOrder({categoryId, itemOrder});
 }
+
+/* -------------------------- CategorySets ----------------------------------- */
 
 exports.setCategorySetCategoryOrder = async ({categorySetId, itemOrder}) => {
   return await Promise.all(
@@ -172,6 +199,8 @@ exports.postSetup = async () => {
     )
   }
 }
+
+/* -------------------------- Complete Sets ----------------------------------- */
 
 exports.createCompleteSet = ({actor, ...CSData}) => {
   return executeThenLog(
@@ -396,11 +425,20 @@ exports.createCategorySetWithCategoryIds = ({actor, categoryIds, ...categorySetD
 exports.updateCompleteSetQuantity = async ({ completeSetId, inventoryId, quantity, actor }) => {
   const completeSet = await inventoryModel.getCompleteSetById(completeSetId)
     .then(exports.addCompleteSetHelperInfo(inventoryId))
-  return Promise.all(Object.keys(completeSet.idOccurances).map(
-    async partId => await exports.updatePartQuantity({
-      partId, inventoryId, quantity: completeSet.idOccurances[partId] * quantity, actor,
-    })
-  ));
+  return inventoryModel.createDisplayLog({
+    actor, quantity, subjectType: 'completeset', subject: completeSet,
+    action: actions.UPDATE_QUANTITY, inventory: inventoryId,
+  }).then(result =>
+    Promise.all(Object.keys(completeSet.idOccurances).map(
+      async partId => await exports.updatePartQuantity({
+        partId, inventoryId, quantity: completeSet.idOccurances[partId] * quantity, actor,
+        displayLogId: result._id,
+      })
+    ))
+    .then(() => exports.withdrawAuxiliaryParts({
+      userId: actor, inventoryId, quantity, displayLogId: result._id,
+    }))
+  )
 }
 
 exports.redactCreatorInfo = (doc) => {
@@ -415,26 +453,18 @@ exports.redactCreatorInfo = (doc) => {
   return doc;
 }
 
-exports.withdrawAuxiliaryParts = async ({userId, inventoryId, quantity}) => {
+exports.withdrawAuxiliaryParts = async ({userId, inventoryId, quantity, displayLogId}) => {
   const user = await userModel.findById(userId);
   if(user.settings.withdrawAuxiliaryParts) {
     return Promise.all(
       user.settings.auxiliaryParts.map(([perSet, partId]) => 
         exports.updatePartQuantity(
-          {partId, inventoryId, quantity: quantity * perSet, actor: userId}
+          {partId, inventoryId, quantity: quantity * perSet, actor: userId, displayLogId}
         )
       )
     )
   }
 }
-
-const logThenExecuteDeletion = (fn, { subject, action, actor}) =>
-  inventoryModel.createLog({
-    actor, action,
-    subjectType: subject.constructor.modelName,
-    subject: subject._id,
-    payload: subject,
-  }).then(fn);
 
 exports.deletePart = ({actor, partId}) => 
   inventoryModel.getPartById(partId).then(part =>

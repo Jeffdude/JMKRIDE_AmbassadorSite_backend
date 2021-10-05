@@ -128,38 +128,71 @@ exports.getAllCategories = (req, res) =>
     (result) => res.status(200).send({result}),
   );
 
+exports.getRawLogsByCategory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getRawLogsByCategory({
+      categoryId: req.params.categoryId,
+      inventoryId: req.params.inventoryId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+    }),
+    (result) => res.status(200).send({result}),
+  );
 exports.getLogsByCategory = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogsByCategory({
       categoryId: req.params.categoryId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      inventoryId: req.params.inventoryId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result}),
+  );
+
+exports.getAllRawLogs = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getRawLogs({
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+    }),
+    (result) => res.status(200).send({result})
   );
 exports.getAllLogs = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogs({
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      inventoryId: req.params.inventoryId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result})
   );
+
 exports.getLogsByPart = (req, res) =>
   controller_run(req, res)(
-    () => inventoryModel.getLogsByPart({
+    () => inventoryModel.getRawLogsByPart({
       partId: req.params.partId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      inventoryId: req.params.inventoryId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result})
   );
+
+exports.getRawLogsByUser = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getRawLogsByUser({
+      userId: req.params.userId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+    }),
+    (result) => res.status(200).send({result}),
+  )
 exports.getLogsByUser = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogsByUser({
       userId: req.params.userId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result}),
   )
@@ -186,23 +219,18 @@ exports.patchCompleteSet = (req, res) =>
     ),
     (result) => res.status(201).send({result}),
   );
-exports.withdrawCompleteSet = (req, res) =>
+
+exports.createAndWithdrawCustomCompleteSet = (req, res) =>
   controller_run(req, res)(
-    async () => await Promise.all(inventoryConstants.CSPropertyList.map(
-      prop => inventoryLib.updatePartQuantity({
-        partId: req.body[prop], 
-        inventoryId: req.params.inventoryId, 
-        quantity: (-1 * Number(req.body.quantity)),
-        actor: req.jwt.userId,
-      })
-    )).then(doc => inventoryLib.withdrawAuxiliaryParts({
-      userId: req.jwt.userId,
+    () => inventoryModel.findOrCreateCompleteSet({...req.body, custom: true}
+    ).then(CS => inventoryLib.updateCompleteSetQuantity({
+      completeSetId: CS._id,
       inventoryId: req.params.inventoryId,
-      quantity: (-1 * Number(req.body.quantity)),
-    }).then(() => doc)),
+      quantity: req.body.quantity,
+      actor: req.jwt.userId,
+    })),
     (result) => res.status(201).send({result}),
   );
-
 exports.getCompleteSetsByCSSetId = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getCompleteSets({CSSetId: req.params.CSSetId}).then(
@@ -237,11 +265,7 @@ exports.updateCompleteSetQuantity = (req, res) =>
       inventoryId: req.params.inventoryId,
       quantity: req.body.quantity,
       actor: req.jwt.userId,
-    }).then(doc => inventoryLib.withdrawAuxiliaryParts({
-      userId: req.jwt.userId,
-      inventoryId: req.params.inventoryId,
-      quantity: req.body.quantity,
-    }).then(() => doc)),
+    }),
     (result) => res.status(201).send({result}),
   );
 exports.patchCSSet = (req, res) => 
