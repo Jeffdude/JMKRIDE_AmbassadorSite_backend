@@ -133,8 +133,8 @@ exports.getLogsByCategory = (req, res) =>
     () => inventoryModel.getLogsByCategory({
       categoryId: req.params.categoryId,
       inventoryId: req.params.inventoryId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result}),
   );
@@ -142,18 +142,18 @@ exports.getAllLogs = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogs({
       inventoryId: req.params.inventoryId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result})
   );
 exports.getLogsByPart = (req, res) =>
   controller_run(req, res)(
-    () => inventoryModel.getLogsByPart({
+    () => inventoryModel.getRawLogsByPart({
       partId: req.params.partId,
       inventoryId: req.params.inventoryId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result})
   );
@@ -161,8 +161,8 @@ exports.getLogsByUser = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogsByUser({
       userId: req.params.userId,
-      perPage: Number(req.query.perPage),
-      page: Number(req.query.page),
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
     }),
     (result) => res.status(200).send({result}),
   )
