@@ -489,8 +489,6 @@ const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
       }
     })
     .sort({createdAt: -1})
-    .limit(perPage)
-    .skip(perPage * page)
 
 exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
@@ -508,13 +506,14 @@ exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0})
           subject: ObjectId(categoryId),
         }],
       }},
+      {$skip: page * perPage},
       {$limit: perPage},
       {$group: {_id: null, array: {$push: "$displayLog"}}},
       {$project: {array: true, _id: false}},
     ]).then(getDisplayLogsFromLogArray({perPage, page}))
   )
 
-exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
+exports.getRawLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {
       subjectType: "part", subject: ObjectId(partId),
@@ -523,14 +522,18 @@ exports.getLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
         {inventory: ObjectId(inventoryId)},
       ],
     }},
+    {$skip: page * perPage},
     {$limit: perPage},
-    {$group: {_id: null, array: {$push: "$displayLog"}}},
-    {$project: {array: true, _id: false}},
-  ]).then(getDisplayLogsFromLogArray({perPage, page}))
+  ]).then(results => Log.populate(results, [
+    {path: 'actor', select: ['firstName', 'lastName']},
+    {path: 'subject'},
+    {path: 'inventory'},
+  ]))
 
 exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {actor: ObjectId(userId)}},
+    {$skip: page * perPage},
     {$limit: perPage},
     {$group: {_id: null, array: {$push: "$displayLog"}}},
     {$project: {array: true, _id: false}},
@@ -542,12 +545,13 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
       {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
       {inventory: ObjectId(inventoryId)},
     ]}},
+    {$skip: page * perPage},
     {$limit: perPage},
     {$group: {_id: null, array: {$push: "$displayLog"}}},
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
 
-exports.debug = exports.getLogsByCategory
+exports.debug = exports.getRawLogsByPart
 
 
 /* Inventories */
