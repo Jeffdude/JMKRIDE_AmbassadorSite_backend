@@ -146,12 +146,22 @@ exports.configRoutes = (app) => {
 
   /* Logs Routes */
 
-  app.get('/api/v1/logs/category/id/:categoryId/inventory/id/:inventoryId', [
+  app.get('/api/v1/logs/category/id/:categoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getRawLogsByCategory
+  ]);
+  app.get('/api/v2/logs/category/id/:categoryId/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByCategory
   ]);
-  app.get('/api/v1/logs/part/id/:partId/inventory/id/:inventoryId', [
+  app.get('/api/v1/logs/part/id/:partId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getLogsByPart
+  ]);
+  app.get('/api/v2/logs/part/id/:partId/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByPart
@@ -159,9 +169,19 @@ exports.configRoutes = (app) => {
   app.get('/api/v1/logs/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getRawLogsByUser
+  ]);
+  app.get('/api/v2/logs/user/id/:userId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByUser
   ]);
-  app.get('/api/v1/logs/all/inventory/id/:inventoryId', [
+  app.get('/api/v1/logs/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getAllRawLogs
+  ]);
+  app.get('/api/v2/logs/all/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getAllLogs
