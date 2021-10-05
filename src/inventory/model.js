@@ -561,8 +561,6 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
 
-exports.debug = exports.getRawLogsByPart
-
 
 /* Inventories */
 
