@@ -288,10 +288,5 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     InventoryController.deleteInventory
   ]);
-
-  app.post('/api/v1/inventory/debug', [
-    ValidationMiddleware.validJWTNeeded,
-    InventoryController.debug
-  ]);
 };
 
