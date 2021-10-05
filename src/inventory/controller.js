@@ -132,6 +132,7 @@ exports.getLogsByCategory = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogsByCategory({
       categoryId: req.params.categoryId,
+      inventoryId: req.params.inventoryId,
       perPage: Number(req.query.perPage),
       page: Number(req.query.page),
     }),
@@ -140,6 +141,7 @@ exports.getLogsByCategory = (req, res) =>
 exports.getAllLogs = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogs({
+      inventoryId: req.params.inventoryId,
       perPage: Number(req.query.perPage),
       page: Number(req.query.page),
     }),
@@ -149,6 +151,7 @@ exports.getLogsByPart = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getLogsByPart({
       partId: req.params.partId,
+      inventoryId: req.params.inventoryId,
       perPage: Number(req.query.perPage),
       page: Number(req.query.page),
     }),
