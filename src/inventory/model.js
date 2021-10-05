@@ -448,21 +448,15 @@ exports.createDisplayLog = (displayLogData) => {
   return displayLog.save();
 }
 
-/*
-exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
+exports.getRawLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
-    Log.find({subjectType: "part", subject: {$in: result},
-    $or: [
-      {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
-      {inventory: inventoryId},
-    ]})
+    Log.find({subjectType: "part", subject: {$in: result}})
       .populate("actor", ["firstName", "lastName"])
       .populate(["subject", "inventory"])
       .sort({createdAt: -1})
       .limit(perPage)
       .skip(perPage * page)
   );
-*/
 
 const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
   DisplayLog.find({_id: {$in: result ? result[0].array : []}})
@@ -517,10 +511,10 @@ exports.getRawLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {
       subjectType: "part", subject: ObjectId(partId),
-      $or: [
+      ...inventoryId ? {$or: [
         {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
         {inventory: ObjectId(inventoryId)},
-      ],
+      ]} : {},
     }},
     {$skip: page * perPage},
     {$limit: perPage},
@@ -530,6 +524,14 @@ exports.getRawLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
     {path: 'inventory'},
   ]))
 
+exports.getRawLogsByUser = ({userId, perPage = 150, page = 0}) =>
+  Log.find({actor: userId})
+    .populate("actor", ["firstName", "lastName"])
+    .populate(["subject", "inventory"])
+    .sort({createdAt: -1})
+    .limit(perPage)
+    .skip(perPage * page);
+
 exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {actor: ObjectId(userId)}},
@@ -538,6 +540,14 @@ exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
     {$group: {_id: null, array: {$push: "$displayLog"}}},
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
+
+exports.getRawLogs = ({inventoryId, perPage = 150, page = 0}) =>
+  Log.find()
+    .populate("actor", ["firstName", "lastName"])
+    .populate(["subject", "inventory"])
+    .sort({createdAt: -1})
+    .limit(perPage)
+    .skip(perPage * page);
 
 exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
   Log.aggregate([
