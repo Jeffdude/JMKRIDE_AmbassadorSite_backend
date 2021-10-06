@@ -197,6 +197,17 @@ exports.getLogsByUser = (req, res) =>
     (result) => res.status(200).send({result}),
   )
 
+exports.getLogsByCompleteSet = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getLogsByCompleteSet({
+      completeSetId: req.params.completeSetId,
+      inventoryId: req.params.inventoryId,
+      perPage: req.query.perPage ? Number(req.query.perPage) : undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+    }),
+    (result) => res.status(200).send({result}),
+  )
+
 exports.getAllCSSets = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getAllCSSets(),

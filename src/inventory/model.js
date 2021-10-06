@@ -565,6 +565,24 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
 
+exports.getLogsByCompleteSet = ({completeSetId, inventoryId, perPage = 150, page = 0}) =>
+  CompleteSet.findById(completeSetId).then(completeSet =>
+    inventoryConstants.CSPropertyList.map(prop => ObjectId(completeSet[prop]))
+  ).then(allParts => Log.aggregate([
+    {$match: {$or: [
+      {subjectType: "completeset", subject: ObjectId(completeSetId)},
+      {
+        subjectType: "part", subject: {$in: allParts},
+        action: inventoryConstants.actions.UPDATE_QUANTITY,
+      },
+    ]}},
+    {$sort: {createdAt: -1}},
+    {$skip: page * perPage},
+    {$limit: perPage},
+    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$project: {array: true, _id: false}},
+  ])).then(getDisplayLogsFromLogArray({perPage, page}))
+
 
 /* Inventories */
 
