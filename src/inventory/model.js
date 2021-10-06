@@ -500,6 +500,7 @@ exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0})
           subject: ObjectId(categoryId),
         }],
       }},
+      {$sort: createdAt: -1},
       {$skip: page * perPage},
       {$limit: perPage},
       {$group: {_id: null, array: {$push: "$displayLog"}}},
@@ -516,6 +517,7 @@ exports.getRawLogsByPart = ({partId, inventoryId, perPage = 150, page = 0}) =>
         {inventory: ObjectId(inventoryId)},
       ]} : {},
     }},
+    {$sort: createdAt: -1},
     {$skip: page * perPage},
     {$limit: perPage},
   ]).then(results => Log.populate(results, [
@@ -535,6 +537,7 @@ exports.getRawLogsByUser = ({userId, perPage = 150, page = 0}) =>
 exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {actor: ObjectId(userId)}},
+    {$sort: createdAt: -1},
     {$skip: page * perPage},
     {$limit: perPage},
     {$group: {_id: null, array: {$push: "$displayLog"}}},
@@ -555,6 +558,7 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
       {actionType: {$ne: inventoryConstants.actions.UPDATE_QUANTITY}},
       {inventory: ObjectId(inventoryId)},
     ]}},
+    {$sort: createdAt: -1},
     {$skip: page * perPage},
     {$limit: perPage},
     {$group: {_id: null, array: {$push: "$displayLog"}}},
