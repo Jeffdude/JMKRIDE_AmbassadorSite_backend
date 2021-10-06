@@ -570,7 +570,7 @@ exports.getLogsByCompleteSet = ({completeSetId, inventoryId, perPage = 150, page
     inventoryConstants.CSPropertyList.map(prop => ObjectId(completeSet[prop]))
   ).then(allParts => Log.aggregate([
     {$match: {$or: [
-      //{subjectType: "completeset", subject: ObjectId(completeSetId)},
+      {subjectType: "completeset", subject: ObjectId(completeSetId)},
       {
         subjectType: "part", subject: {$in: allParts},
         action: inventoryConstants.actions.UPDATE_QUANTITY,
