@@ -191,11 +191,6 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByCompleteSet
   ]);
-  app.post('/api/v2/logs/debug', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-    InventoryController.debug
-  ])
 
   /* CompleteSet Routes */
 

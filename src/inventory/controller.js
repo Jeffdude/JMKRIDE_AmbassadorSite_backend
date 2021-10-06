@@ -456,9 +456,3 @@ exports.deleteInventory = (req, res) =>
       return res.status(202).send({result: "success"})
     },
   );
-
-exports.debug = (req, res) =>
-  controller_run(req, res)(
-    () => inventoryModel.getLogsByCompleteSet(req.body),
-    (result) => res.status(200).send({result}),
-  )
