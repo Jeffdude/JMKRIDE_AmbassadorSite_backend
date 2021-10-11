@@ -450,6 +450,9 @@ exports.createDisplayLog = (displayLogData) => {
 
 const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
   DisplayLog.find({_id: {$in: result.length ? result[0].array : []}})
+    .sort({createdAt: -1})
+    .skip(perPage * page)
+    .limit(perPage)
     .populate("actor", ["firstName", "lastName"])
     .populate(["subject", "inventory"])
     .populate({
@@ -472,7 +475,6 @@ const getDisplayLogsFromLogArray = ({perPage, page}) => result =>
         path: "inventory",
       }
     })
-    .sort({createdAt: -1})
 
 exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0}) =>
   exports.getPartIdsByCategory({categoryId}).then(result =>
@@ -491,9 +493,7 @@ exports.getLogsByCategory = ({categoryId, inventoryId, perPage = 150, page = 0})
         }],
       }},
       {$sort: {createdAt: -1}},
-      {$skip: page * perPage},
-      {$limit: perPage},
-      {$group: {_id: null, array: {$push: "$displayLog"}}},
+      {$group: {_id: null, array: {$addToSet: "$displayLog"}}},
       {$project: {array: true, _id: false}},
     ]).then(getDisplayLogsFromLogArray({perPage, page}))
   )
@@ -520,9 +520,7 @@ exports.getLogsByUser = ({userId, perPage = 150, page = 0}) =>
   Log.aggregate([
     {$match: {actor: ObjectId(userId)}},
     {$sort: {createdAt: -1}},
-    {$skip: page * perPage},
-    {$limit: perPage},
-    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$group: {_id: null, array: {$addToSet: "$displayLog"}}},
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
 
@@ -533,9 +531,7 @@ exports.getLogs = ({inventoryId, perPage = 150, page = 0}) =>
       {inventory: ObjectId(inventoryId)},
     ]}},
     {$sort: {createdAt: -1}},
-    {$skip: page * perPage},
-    {$limit: perPage},
-    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$group: {_id: null, array: {$addToSet: "$displayLog"}}},
     {$project: {array: true, _id: false}},
   ]).then(getDisplayLogsFromLogArray({perPage, page}))
 
@@ -551,9 +547,7 @@ exports.getLogsByCompleteSet = ({completeSetId, inventoryId, perPage = 150, page
       },
     ]}},
     {$sort: {createdAt: -1}},
-    {$skip: page * perPage},
-    {$limit: perPage},
-    {$group: {_id: null, array: {$push: "$displayLog"}}},
+    {$group: {_id: null, array: {$addToSet: "$displayLog"}}},
     {$project: {array: true, _id: false}},
   ])).then(getDisplayLogsFromLogArray({perPage, page}))
 
