@@ -210,7 +210,7 @@ exports.createAndWithdrawCustomCompleteSet = (req, res) =>
     ).then(CS => inventoryLib.updateCompleteSetQuantity({
       completeSetId: CS._id,
       inventoryId: req.params.inventoryId,
-      quantity: req.body.quantity,
+      quantity: -req.body.quantity,
       actor: req.jwt.userId,
     })),
     (result) => res.status(201).send({result}),
