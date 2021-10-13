@@ -429,3 +429,40 @@ exports.deleteInventory = (req, res) =>
       return res.status(202).send({result: "success"})
     },
   );
+
+exports.getHistoryByPart = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getHistoryByParts({
+      partIds: [req.params.partId],
+      inventoryId: req.params.inventoryId,
+      ISOStartDate: req.query.start,
+      ISOEndDate: req.query.end,
+    }),
+    (result) => res.status(200).send({result}),
+  );
+exports.getHistoryByCompleteSet = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getPartIdsByCompleteSet(
+      {completeSetId: req.params.completeSetId}
+    ).then(
+      partIds => inventoryModel.getHistoryByParts({
+        partIds, inventoryId: req.params.inventoryId,
+        ISOStartDate: req.query.start,
+        ISOEndDate: req.query.end,
+      })
+    ),
+    (result) => res.status(200).send({result}),
+  );
+exports.getHistoryByCategory = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getPartIdsByCategory({categoryId: req.params.categoryId})
+    .then(
+      partIds => inventoryModel.getHistoryByParts({
+        partIds, inventoryId: req.params.inventoryId,
+        ISOStartDate: req.query.start,
+        ISOEndDate: req.query.end,
+      })
+    ),
+    (result) => res.status(200).send({result}),
+  );
+

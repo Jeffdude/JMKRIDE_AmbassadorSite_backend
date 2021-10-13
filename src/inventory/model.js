@@ -287,6 +287,11 @@ exports.getPartsByCategory = ({ categoryId }) =>
     {'$project': {'categories': 0}},
   ]);
 
+exports.getPartIdsByCompleteSet = ({completeSetId}) =>
+  CompleteSet.findById(completeSetId).then(completeSet =>
+    inventoryConstants.CSPropertyList.map(prop => completeSet[prop])
+  )
+
 exports.getPartIdsByCategory = ({ categoryId }) =>
   Part.aggregate([
     /* elemMatch any part belonging to this category */
@@ -566,3 +571,64 @@ exports.patchInventory = (inventoryId, patchData) =>
   Inventory.findOneAndUpdate({_id: inventoryId}, patchData);
 exports.deleteInventory = (inventoryId) =>
   Inventory.findOneAndDelete({_id: inventoryId});
+
+
+/* History */
+
+exports.getHistoryByParts = async ({partIds, inventoryId, ISOStartDate, ISOEndDate}) => {
+  let startDate = ISOStartDate 
+    ? new Date(ISOStartDate) 
+    : new Date(Date.now() - 12096e5); // 2 weeks ago
+  let endDate = ISOEndDate
+    ? new Date(ISOEndDate) 
+    : new Date(Date.now());
+
+  let currentPartQs = await Part.aggregate([ // Part quantities right now
+    {$match: {_id: {$in: partIds.map(ObjectId)}}},
+    {$project: {quantityList: {$objectToArray: "$quantityMap"}}},
+    {$unwind: "$quantityList"},
+    {$match: {"quantityList.k": inventoryId}},
+    {$project: {quantity: "$quantityList.v"}},
+  ])
+
+  let partDeltas = {} // Delta Q b/w Today and endDate
+  await Log.aggregate([
+    {$match: {
+      subjectType: 'part',
+      subject: {$in: partIds.map(ObjectId)},
+      action: inventoryConstants.actions.UPDATE_QUANTITY,
+      inventory: ObjectId(inventoryId),
+      createdAt: {$gt: endDate},
+    }},
+    {$group: {_id: '$subject', delta: {$sum: '$quantity'}}},
+  ]).then(parts => parts.map(part => partDeltas[part._id] = part.delta))
+
+  // Updated states representing part quantities as we move from endDate -> startDate
+  let partQs = {}
+  // Accumulating arrays [{date, Q}, ...], initialized with quantity @ endDate
+  let partHistories = {}
+  currentPartQs.map(part => {
+    partQs[part._id] = part.quantity - (
+      partDeltas[part._id] ? partDeltas[part._id] : 0
+    );
+    partHistories[part._id] = [{date: endDate, quantity: partQs[part._id]}];
+  })
+
+  await Log.aggregate([
+    {$match: {
+      subjectType: 'part',
+      subject: {$in: partIds.map(ObjectId)},
+      action: inventoryConstants.actions.UPDATE_QUANTITY,
+      inventory: ObjectId(inventoryId),
+      createdAt: {$gte: startDate, $lte: endDate},
+    }},
+    {$project: {subject: 1, quantity: 1, createdAt: 1}},
+    {$sort: {createdAt: -1}},
+  ]).then(logs => logs.map(log => {
+    partHistories[log.subject].push(
+      {date: log.createdAt, quantity: partQs[log.subject] - log.quantity}
+    );
+    partQs[log.subject] -= log.quantity;
+  }))
+  return partHistories;
+}

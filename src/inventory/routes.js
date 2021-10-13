@@ -172,6 +172,25 @@ exports.configRoutes = (app) => {
     InventoryController.getLogsByCompleteSet
   ]);
 
+  /* History Routes */
+
+  app.get('/api/v1/history/part/id/:partId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByPart
+  ]);
+  app.get('/api/v1/history/completeset/id/:completeSetId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByCompleteSet
+  ]);
+  app.get('/api/v1/history/category/id/:categoryId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByCategory
+  ]);
+
+
   /* CompleteSet Routes */
 
   app.get('/api/v1/completesets/csset/id/:CSSetId/inventory/id/:inventoryId', [
