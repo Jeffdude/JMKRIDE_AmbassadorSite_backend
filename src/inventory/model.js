@@ -630,5 +630,11 @@ exports.getHistoryByParts = async ({partIds, inventoryId, ISOStartDate, ISOEndDa
     );
     partQs[log.subject] -= log.quantity;
   }))
+  partIds.map(part =>
+    partHistories[part].push(
+      {date: startDate, quantity: partQs[part]}
+    )
+  )
+
   return partHistories;
 }
