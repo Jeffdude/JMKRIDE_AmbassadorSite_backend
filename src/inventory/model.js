@@ -288,9 +288,18 @@ exports.getPartsByCategory = ({ categoryId }) =>
   ]);
 
 exports.getPartIdsByCompleteSet = ({completeSetId}) =>
-  CompleteSet.findById(completeSetId).then(completeSet =>
-    inventoryConstants.CSPropertyList.map(prop => completeSet[prop])
-  )
+  CompleteSet.findById(completeSetId).then(completeSet => {
+    let partSet = []
+    inventoryConstants.CSPropertyList.map(prop => {
+      if(!partSet.includes(completeSet[prop].toString()))
+        partSet.push(completeSet[prop].toString());
+    })
+    return partSet;
+  })
+
+exports.getPartsByCompleteSet = ({completeSetId}) =>
+  exports.getPartIdsByCompleteSet({completeSetId})
+    .then(ids => Part.find({_id: {$in: ids}}))
 
 exports.getPartIdsByCategory = ({ categoryId }) =>
   Part.aggregate([
@@ -582,6 +591,10 @@ exports.getHistoryByParts = async ({partIds, inventoryId, ISOStartDate, ISOEndDa
   let endDate = ISOEndDate
     ? new Date(ISOEndDate) 
     : new Date(Date.now());
+
+  if(endDate > Date.now()) {
+    endDate = new Date(Date.now())
+  }
 
   let currentPartQs = await Part.aggregate([ // Part quantities right now
     {$match: {_id: {$in: partIds.map(ObjectId)}}},
