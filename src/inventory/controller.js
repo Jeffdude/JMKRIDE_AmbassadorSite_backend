@@ -94,6 +94,14 @@ exports.getPartsByCategory = (req, res) =>
     (result) => res.status(200).send({result})
   );
 
+exports.getPartsByCompleteSet = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryModel.getPartsByCompleteSet(
+      { completeSetId: req.params.completeSetId}
+    ),
+    (result) => res.status(200).send({result})
+  );
+
 exports.getCategorySetById = (req, res) =>
   controller_run(req,res)(
     () => inventoryModel.getCategorySetById(req.params.categorySetId),
