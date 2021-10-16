@@ -35,6 +35,16 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getPartWithQuantity
   ]);
+  app.get('/api/v1/parts/category/id/:categoryId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getPartsByCategory
+  ]);
+  app.get('/api/v1/parts/completeset/id/:completeSetId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getPartsByCompleteSet
+  ]);
   app.get('/api/v1/part/all/inventory/id/:inventoryId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
@@ -83,11 +93,6 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
     InventoryController.deleteCategory
-  ]);
-  app.get('/api/v1/parts/category/id/:categoryId/inventory/id/:inventoryId', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-    InventoryController.getPartsByCategory
   ]);
   app.get('/api/v1/categories/categorySet/id/:categorySetId', [
     ValidationMiddleware.validJWTNeeded,
@@ -171,6 +176,25 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     InventoryController.getLogsByCompleteSet
   ]);
+
+  /* History Routes */
+
+  app.get('/api/v1/history/part/id/:partId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByPart
+  ]);
+  app.get('/api/v1/history/completeset/id/:completeSetId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByCompleteSet
+  ]);
+  app.get('/api/v1/history/category/id/:categoryId/inventory/id/:inventoryId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    InventoryController.getHistoryByCategory
+  ]);
+
 
   /* CompleteSet Routes */
 
