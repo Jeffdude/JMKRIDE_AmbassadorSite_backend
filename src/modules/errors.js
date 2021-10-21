@@ -70,7 +70,7 @@ exports.logDebug = (...args) => {
 }
 
 exports.logError = (...args) => {
-  if(loggingMode >= loggingLevels.ERRORS) {
+  if(loggingMode >= loggingLevels.ERROR) {
     console.log(...args);
   }
 }

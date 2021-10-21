@@ -13,7 +13,7 @@ exports.permissionValues = {
 
 exports.loggingLevels = {
   NONE: 0,
-  ERRORS: 1,
+  ERROR: 1,
   INFO: 2,
   DEBUG: 3,
   VERBOSE_DEBUG: 4,

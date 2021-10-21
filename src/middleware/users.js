@@ -31,7 +31,7 @@ exports.passwordAndUserMatch = (req, res, next) => {
   UserModel.findByEmail(req.body.email)
     .then((user)=>{
       if(!user[0]){
-        logError("[!][403][passwordAndUserMatch] Failed to find user.");
+        logError("[!][403][passwordAndUserMatch] Failed to find user with email: " + req.body.email);
         res.status(403).send({});
       }else{
         let passwordFields = user[0].password.split('$');
@@ -48,7 +48,7 @@ exports.passwordAndUserMatch = (req, res, next) => {
           return next();
         } else {
           logError(
-            "[!][403][passwordAndUserMatch] Hash and PW didn't match:",
+            "[!][403][passwordAndUserMatch] Hash and PW didn't match for user " + req.body.email + ":",
             req.body.password,
             hash,
             "[redacted]",
