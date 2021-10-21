@@ -12,7 +12,7 @@ module.exports = {
       unittest: loggingLevels.NONE,
     },
     stocktracker: {
-      production: loggingLevels.INFO,
+      production: loggingLevels.ERROR,
       development: loggingLevels.VERBOSE_DEBUG,
       unittest: loggingLevels.NONE,
     },

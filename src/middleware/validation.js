@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const jwt_secret = require('../environment.js').JWTSecret;
 const sessionModel = require('../auth/model.js');
-const { logError } = require('../modules/errors.js');
+const { logInfo } = require('../modules/errors.js');
 
 exports.verifyRefreshBodyField = (req, res, next) => {
   if (req.body && req.body.refresh_token) {
@@ -33,7 +33,7 @@ exports.validJWTNeeded = async (req, res, next) => {
     try {
       let authorization = req.headers['authorization'].split(' ');
       if (authorization[0] !== 'Bearer') {
-        logError("[!][401][validJWTNeeded] Invalid authorization header:", req.headers);
+        logInfo("[!][401][validJWTNeeded] Invalid authorization header:", req.headers);
         return res.status(401).send();
       } else {
         req.jwt = jwt.verify(authorization[1], jwt_secret);
@@ -48,20 +48,20 @@ exports.validJWTNeeded = async (req, res, next) => {
             {sessionId: req.jwt.sessionId, sourceIP: req.ip}
           ).then(() => next()
           ).catch(error => {
-            logError("[!][500][validJWTNeeded] Failed to update session.");
+            logInfo("[!][500][validJWTNeeded] Failed to update session.");
             return res.status(500).send({errors: error});
           });
         } else {
-          logError("[!][403][validJWTNeeded] Invalid session:", req.jwt.sessionId);
+          logInfo("[!][403][validJWTNeeded] Invalid session:", req.jwt.sessionId);
           return res.status(403).send();
         }
       }
     } catch (err) {
-      logError("[!][403][validJWTNeeded] Unknown validJWTNeeded error:", err);
+      logInfo("[!][403][validJWTNeeded] Unknown validJWTNeeded error:", err);
       return res.status(403).send();
     }
   } else {
-    logError("[!][401][validJWTNeeded] Authorization headers not found.");
+    logInfo("[!][401][validJWTNeeded] Authorization headers not found.");
     return res.status(401).send();
   }
 };
