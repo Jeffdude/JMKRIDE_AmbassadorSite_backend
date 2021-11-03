@@ -24,7 +24,7 @@ const executeThenLog = (fn, { action, actor, payload, quantity, inventory, displ
 
 const logThenExecuteDeletion = (fn, { subject, action, actor}) => {
   let displayLogId = inventoryModel.getId();
-  inventoryModel.createDisplayLog({raw: true, _id: displayLog})
+  inventoryModel.createDisplayLog({raw: true, _id: displayLogId})
   inventoryModel.createLog({
     actor, action,
     subjectType: subject.constructor.modelName,
