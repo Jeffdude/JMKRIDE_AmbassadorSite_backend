@@ -5,9 +5,8 @@ const constantsInitializer = require('./initializer.js');
 
 
 /*
- * Setup all constants for Ambassador Server
- *
- * Returns: resultMap (thenable)
+ * initSiteState
+ * Setup all constants
  */
 exports.initSiteState = () => {
   let buildfns = []; // functions to check constants and compile create funcs if needed
