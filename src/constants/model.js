@@ -4,11 +4,9 @@ const Schema = mongoose.Schema;
 
 /* ------------------- Model Definitions ------------------  */
 
-
-
 /*
- * A constant is a specific document of type {enum: constantModels}
- *  useful for any needed exceptional server state
+ * A constant is a specific document of type 'type'
+ *  useful for any initial/default server state
  */
 const constantSchema = new Schema({
   name: { // used for reference around the codebase
