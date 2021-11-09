@@ -2,9 +2,7 @@ const { processMode, operationMode } = require('../environment.js');
 const { permissionLevels } = require('../constants.js');
 
 const constantsModel = require('./model.js');
-const {
-  createConstantPromise, BaseConstantsInitializer
-} = require('./initializer-lib.js');
+const BaseConstantsInitializer = require('./initializer-base.js');
 
 const userConstants = require('../users/constants.js');
 const userModel = require('../users/model.js');
@@ -21,11 +19,11 @@ const inventoryConstants = require('../inventory/constants.js');
 class AmbassadorsiteConstantsInitializer extends BaseConstantsInitializer {
   constructor() {
     super();
-    this.initializers['ambassadorApplication'] = () => createConstantPromise(
+    this.initializers['ambassadorApplication'] = [
       'ambassadorApplication', 'challenge',
       challengeModel.createChallenge,
       challengeConstants.ambassadorApplicationData,
-    );
+    ];
 
 
     this.postProcessors.push(
@@ -57,62 +55,63 @@ class StocktrackerConstantsInitializer extends BaseConstantsInitializer {
 
     if(["development", "unittest"].includes(operationMode)) {
       /* create test users */
-      this.initializers['testNobody'] = () => createConstantPromise(
-        'testNobody', 'user',
-        (data) => userLib.createUser(data),
-        userConstants.testNobodyData,
-      );
-      this.initializers['testUser'] = () => createConstantPromise(
-        'testUser', 'user',
-        (data) => userLib.createUser(data),
-        userConstants.testUserData,
-      );
-      this.initializers['testAmbassador'] = () => createConstantPromise(
-        'testAmbassador', 'user',
-        (data) => userLib.createUser(data),
-        userConstants.testAmbassadorData,
-      );
+      this.initializers = {
+        ...this.initializers,
+        'testNobody': [
+          'testNobody', 'user',
+          (data) => userLib.createUser(data),
+          userConstants.testNobodyData,
+        ],
+        'testUser': [
+          'testUser', 'user',
+          (data) => userLib.createUser(data),
+          userConstants.testUserData,
+        ],
+        'testAmbassador': [
+          'testAmbassador', 'user',
+          (data) => userLib.createUser(data),
+          userConstants.testAmbassadorData,
+        ],
+      };
     }
 
     /* create parts */
-    inventoryConstants.allParts.forEach(part => this.initializers[part.name] = () =>
-      createConstantPromise(
-        part.name, 'part',
-        (partData) => inventoryModel.createPart(partData),
-        part,
-      )
-    );
+    inventoryConstants.allParts.forEach(part => this.initializers[part.name] = [
+      part.name, 'part',
+      (partData) => inventoryModel.createPart(partData),
+      part,
+    ]);
     /* create categories */
     inventoryConstants.categories.forEach(category =>
-      this.initializers[category] = () => createConstantPromise(
+      this.initializers[category] = [
         category, 'category',
         (categoryName) => inventoryModel.createCategory({name: categoryName}),
         category,
-      )
+      ]
     );
     /* create category sets */
     inventoryConstants.categorySets.forEach(categorySet =>
-      this.initializers[categorySet] = () => createConstantPromise(
+      this.initializers[categorySet] = [
         categorySet, 'categorySet',
         (categorySetName) => inventoryModel.createCategorySet({name: categorySetName}),
         categorySet,
-      )
+      ]
     );
     /* create inventories */
     inventoryConstants.inventories.forEach(inventory =>
-      this.initializers[inventory] = () => createConstantPromise(
+      this.initializers[inventory] = [
         inventory, 'inventory',
         (inventoryName) => inventoryModel.createInventory({name: inventoryName}),
         inventory,
-      )
+      ]
     );
     /* create CS sets */
     inventoryConstants.CSSets.forEach(CSSet =>
-      this.initializers[CSSet] = () => createConstantPromise(
+      this.initializers[CSSet] = [
         CSSet, 'CSSet',
         (CSSetName) => inventoryModel.createCSSet({name: CSSetName}),
         CSSet,
-      )
+      ]
     );
 
     let defaultInventory = inventoryConstants.defaultDefaultInventory;

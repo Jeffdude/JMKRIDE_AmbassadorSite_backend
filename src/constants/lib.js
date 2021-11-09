@@ -5,6 +5,51 @@ const constantsInitializer = require('./initializer.js');
 
 
 /*
+ * createConstantPromise
+ *  Fn(
+ *    constantName::String - unique name of the constant to create
+ *    type::String - mongodb model name 
+ *    creationFn::Fn (data::Object => Promise(mongoose document))
+ *      - function that takes constant's data, returns Promise to create mongoose document
+ *      - will be 'await'ed
+ *    data::Object - data to create the constant with
+ *  => 
+ *    Promise(mongoosedocument)
+ *  )
+ */
+const createConstantPromise = (
+  constantName, type, creationFn, data,
+) => {
+  return new Promise((resolve, reject) => {
+    creationFn(data)
+      .then((res) => {
+        if(! res) {
+          reject(new Error('Failed to create constant:', constantName, data, res));
+        }
+        if(res._id) {
+          constantsModel.createConstant({
+            name: constantName,
+            id: res._id,
+            type: type,
+          }).then(() => {
+            logInfo('[+] Created constant:', constantName);
+            resolve([constantName, res]);
+          })
+          .catch(err => {
+            logError('[!] Error creating Constant mongoose document');
+            reject(err);
+          });
+        } else {
+          reject(new Error('Failed to create constant:', constantName, data, res.error));
+        }
+      })
+      .catch(err => {
+        logError('[!] Error creating', constantName, ':', err.message);
+        reject(err);
+      });
+  });
+};
+/*
  * initSiteState
  * Setup all constants
  */
@@ -21,7 +66,7 @@ exports.initSiteState = () => {
             logInfo(
               '[+]', key, 'not found. Creating...'
             )
-            fns.push(initializer.initializers[key]());
+            fns.push(createConstantPromise(...initializer.initializers[key]));
           } else {
             logInfo('[+]', key, 'already exists.');
           }
