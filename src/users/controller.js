@@ -95,7 +95,7 @@ class BaseUserController {
   static removeById(req, res){
     userModel.removeById(req.params.userId)
       .then(()=>{
-        res.status(201).send({});
+        res.status(202).send({});
       });
   }
 }
