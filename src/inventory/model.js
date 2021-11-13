@@ -410,7 +410,7 @@ exports.getCSSetById = (CSSetId) => CSSet.findById(CSSetId).populate('length');
 exports.getCompleteSetById = (completeSetId) =>
   CompleteSet.findById(completeSetId)
   .then(results => CompleteSet.populate(results, getPopulateOptions()));
-exports.getAllCompleteSets = () => CompleteSet.find()
+exports.getAllCompleteSets = () => CompleteSet.find({name: {$ne: null}})
   .then(results => CompleteSet.populate(results, getPopulateOptions()));
 exports.createCSSet = (CSSetData) => {
   let cSSet = new CSSet(CSSetData);
