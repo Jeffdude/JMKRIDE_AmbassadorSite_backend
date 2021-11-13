@@ -21,18 +21,9 @@ class BaseUserModel {
   }
 
   static list(perPage, page) {
-    return new Promise((resolve, reject) => {
-      User.find()
-        .limit(perPage)
-        .skip(perPage * page)
-        .exec(function (err, users) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(users);
-          }
-        })
-    });
+    return User.find()
+      .limit(perPage)
+      .skip(perPage * page)
   }
 
   static setUserSettings(userId, settingsData) {
@@ -48,15 +39,7 @@ class BaseUserModel {
   }
 
   static removeById(userId) {
-    return new Promise((resolve, reject) => {
-      User.deleteMany({_id: userId}, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(err);
-        }
-      });
-    });
+    return User.deleteMany({_id: userId});
   }
 }
 

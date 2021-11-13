@@ -49,12 +49,6 @@ const genAmbassadorUserSchema = () => {
   });
   addSchemaGenerics(ambassadorUserSchema);
 
-  ambassadorUserSchema.virtual('fullName').get(function () {
-    return this.firstName + " " + this.lastName;
-  });
-  ambassadorUserSchema.set('toJSON', {virtuals: true});
-  ambassadorUserSchema.set('toObject', {virtuals: true});
-
   return mongoose.model('user', ambassadorUserSchema);
 };
 
