@@ -10,14 +10,12 @@ const TransactionController = require('./controller.js');
 exports.configRoutes = (app) => {
   /* Transactions endpoints */
   app.get('/api/v1/transactions/get', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     TransactionController.getTransactions
   ]);
   app.post('/api/v1/transactions/admin/create', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -26,14 +24,12 @@ exports.configRoutes = (app) => {
     TransactionController.createAdminTransaction
   ]);
   app.post('/api/v1/transactions/admin/recalculateBalance', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields(['userId']),
     TransactionController.recalculateUserBalance
   ]);
   app.post('/api/v1/transactions/referralCodes/create', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -42,7 +38,6 @@ exports.configRoutes = (app) => {
     TransactionController.createReferralCode
   ]);
   app.post('/api/v1/transactions/referralCodes/usage/create', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -51,14 +46,12 @@ exports.configRoutes = (app) => {
     TransactionController.createReferralCodeUsage
   ]);
   app.get('/api/v1/transactions/referralCodes/get', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     TransactionController.getReferralCodes
   ]);
   app.get('/api/v1/transactions/referralCodes/get/all', [
-    DebugMiddleware.printRequest,
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     TransactionController.getAllReferralCodes
