@@ -21,7 +21,6 @@ exports.configRoutes = (app) => {
   app.post('/api/v1/auth/refresh', [
     ValidationMiddleware.validateCleanBodyFields(['refresh_token']),
     ValidationMiddleware.validJWTNeeded,
-    DebugMiddleware.printJWT,
     ValidationMiddleware.verifyRefreshBodyField,
     ValidationMiddleware.validRefreshNeeded,
     DebugMiddleware.printBody,
@@ -59,7 +58,6 @@ exports.configRoutes = (app) => {
   ]);
   app.delete('/api/v1/auth/sessions/self', [
     ValidationMiddleware.validJWTNeeded,
-    DebugMiddleware.printJWT,
     AuthController.disable_current_session
   ]);
 
