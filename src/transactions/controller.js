@@ -8,10 +8,11 @@ exports.getTransactions = (req, res) =>
   controller_run(req,res)(
     () => transactionModel.getTransactions(
       {
-        any: req.query.userId,
+        eitherSubject: req.query.userId,
         submissionId: req.query.submissionId,
         referralCodeId: req.query.referralCodeId,
-        populate: req.query.populate,
+        referralCodeOrderNumber: req.query.referralCodeOrderNumber,
+        populate: (req.query.populate === 'true'),
       }
     ),
     (result) => res.status(200).send(result),
