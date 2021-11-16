@@ -49,8 +49,12 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
 
 exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
   const adminUser = await userConstants.getAdminUser();
-  const referralCode = (await transactionModel.getReferralCode({id: code}).exec())[0];
-
+  const referralCode = (await transactionModel.getReferralCode({id: code}))[0]
+  const transaction = (await transactionModel.getTransactions({referralCodeId: code, referralCodeOrderNumber: orderNumber}))
+  if(transaction.length) {
+    logInfo("[&] Referal Code Usage already recorded for order #" + orderNumber + ". ID: " + transaction[0]._id.toString());
+    return true;
+  }
   const adjusted_usd = total * (referralCode.percent / 100);
   const points = adjusted_usd / config.usdPerAmbassadorPoint;
 
@@ -73,27 +77,27 @@ exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
 
 exports.calculateUserBalance = async (userId, debug = true) => {
   if(debug) {
-    logInfo("[$] Calculating user balance for user " + userId.toString());
+    logInfo("[-] Calculating user balance for user " + userId.toString());
   }
-  let in_transactions = await transactionModel.getTransactions({to: userId}).exec();
+  let in_transactions = await transactionModel.getTransactions({destination: userId}).exec();
   let in_total = 0;
   in_transactions.forEach(transaction => in_total += transaction.amount)
   in_total = fixAmount(in_total);
   if(debug) {
-    logInfo("[$] UserId (" + userId.toString() + ") input total: " + in_total);
+    logInfo("[-] UserId (" + userId.toString() + ") input total: " + in_total);
   }
 
-  let out_transactions = await transactionModel.getTransactions({from: userId}).exec();
+  let out_transactions = await transactionModel.getTransactions({source: userId}).exec();
   let out_total = 0;
   out_transactions.forEach(transaction => out_total += transaction.amount)
   out_total = fixAmount(out_total);
   if(debug) {
-    logInfo("[$] UserId (" + userId.toString() + ") output total: " + out_total);
+    logInfo("[-] UserId (" + userId.toString() + ") output total: " + out_total);
   }
 
   let total = in_total - out_total;
   if(debug) {
-    logInfo("[$] UserId (" + userId.toString() + ") balance: " + total);
+    logInfo("[-] UserId (" + userId.toString() + ") balance: " + total);
   }
   return userModel.patchUser(userId, {balance: total});
 }
