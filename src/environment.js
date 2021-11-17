@@ -64,3 +64,10 @@ if (! emailAPIKey) {
   emailAPIKey = "pass"
 }
 module.exports.emailAPIKey = emailAPIKey;
+
+let authorizedLambdaIP = process.env.AUTHORIZED_IP;
+if (! authorizedLambdaIP) {
+  console.log("[!] No authorizedLambdaIP specified. Defaulting to undefined.")
+  authorizedLambdaIP = undefined;
+}
+module.exports.authorizedLambdaIP = authorizedLambdaIP;

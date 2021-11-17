@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const jwt_secret = require('../environment.js').JWTSecret;
+const { JWTSecret : jwt_secret, authorizedLambdaIP} = require('../environment.js');
 const sessionModel = require('../auth/model.js');
 const { logInfo } = require('../modules/errors.js');
 
@@ -27,6 +27,7 @@ exports.validRefreshNeeded = (req, res, next) => {
   }
 };
 
+const isAuthorized = ({ email, password }) => true;
 
 exports.validJWTNeeded = async (req, res, next) => {
   if (req.headers['authorization']) {
@@ -60,6 +61,8 @@ exports.validJWTNeeded = async (req, res, next) => {
       logInfo("[!][403][validJWTNeeded] Unknown validJWTNeeded error:", err);
       return res.status(403).send();
     }
+  } else if (req.ips.includes(authorizedLambdaIP) && isAuthorized(req.body)) {
+    return next();
   } else {
     logInfo("[!][401][validJWTNeeded] Authorization headers not found.");
     return res.status(401).send();
