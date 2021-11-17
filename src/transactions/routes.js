@@ -1,6 +1,5 @@
 const { permissionLevels } = require('../constants.js');
 
-const DebugMiddleware = require('../middleware/debug.js');
 const PermissionMiddleware = require('../middleware/permission.js');
 const ValidationMiddleware = require('../middleware/validation.js');
 
