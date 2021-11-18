@@ -22,6 +22,7 @@ let operationMode = process.env.NODE_ENV;
 if (!([
     "production",
     "development",
+    "remotedevel",
     "unittest",
   ].includes(operationMode))
 ){

@@ -1,14 +1,14 @@
 branch-defaults:
   ambassadorsite:
     environment: ambassadorSite-1
-  ambassadorsite-test:
+  ambassador-shopify-endpoint-CU-1xghu5h:
     application_name: Backend
     environment: ambassadorSite-test
   master:
     environment: ambassadorSiteBackend
     group_suffix: null
   stocktracker:
-    environment: ambassadorSite-test
+    environment: Stocktracker-backend-env
 global:
   application_name: Stocktracker-backend
   branch: stocktracker
