@@ -1,0 +1,25 @@
+branch-defaults:
+  ambassadorsite:
+    environment: ambassadorSite-1
+  ambassadorsite-test:
+    application_name: Backend
+    environment: ambassadorSite-test
+  master:
+    environment: ambassadorSiteBackend
+    group_suffix: null
+  stocktracker:
+    environment: ambassadorSite-test
+global:
+  application_name: Stocktracker-backend
+  branch: stocktracker
+  default_ec2_keyname: null
+  default_platform: Node.js
+  default_region: us-east-2
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  repository: null
+  sc: git
+  workspace_type: Application
