@@ -45,8 +45,9 @@ exports.validJWTNeeded = async (req, res, next) => {
           refreshKey: req.jwt.refreshKey
         });
         if (session_valid){
+          console.log(req.ips)
           sessionModel.updateSession(
-            {sessionId: req.jwt.sessionId, sourceIP: req.ip}
+            {sessionId: req.jwt.sessionId, sourceIP: req.ips.length ? req.ips[0] : req.ip}
           ).then(() => next()
           ).catch(error => {
             logInfo("[!][500][validJWTNeeded] Failed to update session.");
