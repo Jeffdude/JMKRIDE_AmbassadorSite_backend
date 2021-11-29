@@ -27,8 +27,6 @@ exports.validRefreshNeeded = (req, res, next) => {
   }
 };
 
-const isAuthorized = ({ email, password }) => true;
-
 exports.validJWTNeeded = async (req, res, next) => {
   if (req.headers['authorization']) {
     try {
@@ -62,8 +60,6 @@ exports.validJWTNeeded = async (req, res, next) => {
       logInfo("[!][403][validJWTNeeded] Unknown validJWTNeeded error:", err);
       return res.status(403).send();
     }
-  } else if (req.ips.includes(authorizedLambdaIP) && isAuthorized(req.body)) {
-    return next();
   } else {
     logInfo("[!][401][validJWTNeeded] Authorization headers not found.");
     return res.status(401).send();

@@ -2,6 +2,9 @@ const { permissionLevels } = require('../constants.js');
 
 const PermissionMiddleware = require('../middleware/permission.js');
 const ValidationMiddleware = require('../middleware/validation.js');
+const UsersMiddleware = require('../middleware/users.js');
+const DebugMiddleware = require('../middleware/debug.js');
+const AWSMiddleware = require('../middleware/aws.js');
 
 const TransactionController = require('./controller.js');
 
@@ -55,4 +58,14 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     TransactionController.getAllReferralCodes
   ]);
+  app.post('/shopifyAPI/v1/transactions/referralCodes/usage', [
+    DebugMiddleware.printRequest,
+    UsersMiddleware.passwordAndUserMatch,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    AWSMiddleware.reformatBody({
+      code: undefined, total: undefined, orderNumber: undefined
+    }),
+    res => res.status(201).send()
+    //TransactionController.createReferralCodeUsage
+  ])
 }
