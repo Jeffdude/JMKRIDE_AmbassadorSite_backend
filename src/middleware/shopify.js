@@ -17,7 +17,6 @@ exports.validShopifyHmac = async (req, res, next) => {
   let requestHmac = req.get('X-Shopify-Hmac-Sha256');
   let requestStore = req.get('X-Shopify-Shop-Domain');
   let rawBody = req.rawBody;
-  console.log({requestHmac, requestStore, shopifyAppSecrets})
   if(!shopifyAppSecrets || !shopifyAppSecrets[requestStore]) {
     let error = '[403][validShopifyHmac] Rejecting shopifyAPI request. No valid SHOPIFY_APP_SECRETS found.'
     logError(error)

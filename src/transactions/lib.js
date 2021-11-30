@@ -3,7 +3,7 @@ const transactionModel = require('./model.js');
 
 const userConstants = require('../users/constants.js');
 const config = require('../config.js');
-const { logInfo } = require('../modules/errors.js');
+const { logInfo, logError } = require('../modules/errors.js');
 
 const fixAmount = (amount) => parseFloat(parseFloat(amount).toFixed(2));
 
@@ -50,6 +50,9 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
 exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => {
   const adminUser = await userConstants.getAdminUser();
   const referralCode = (await transactionModel.getReferralCode({id: codeId, code}))[0]
+  if(!referralCode){
+    logError('[!] Referral Code not found: ' + JSON.stringify({id: codeId, code}))
+  }
   const transaction = (await transactionModel.getTransactions({referralCodeId: code, referralCodeOrderNumber: orderNumber}))
   if(transaction.length) {
     logInfo("[&] Referal Code Usage already recorded for order #" + orderNumber + ". ID: " + transaction[0]._id.toString());

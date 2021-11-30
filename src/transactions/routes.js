@@ -59,21 +59,19 @@ exports.configRoutes = (app) => {
     TransactionController.getAllReferralCodes
   ]);
   app.post('/shopifyAPI/v1/transactions/referralCodes/usage', [
-    DebugMiddleware.printRequest,
     ShopifyMiddleware.validShopifyHmac,
     (req, res, next) => {
       if(!req.body.discount_codes.length) return res.status(200).send();
       next();
     },
     ShopifyMiddleware.reformatBody({
-      codeName: i => i.discount_codes[0],
+      codeName: i => i.discount_codes.length ? i.discount_codes[0].code : undefined,
       total: i => i.total_price,
       orderNumber: i => i.order_number,
     }),
     ValidationMiddleware.validateMandatoryBodyFields([
-      'code', 'total', 'orderNumber'
+      'codeName', 'total', 'orderNumber'
     ]),
-    (req, res) => res.status(201).send({body: req.body})
-    //TransactionController.createReferralCodeUsage
+    TransactionController.createReferralCodeUsage
   ])
 }
