@@ -2,8 +2,6 @@ const { permissionLevels } = require('../constants.js');
 
 const PermissionMiddleware = require('../middleware/permission.js');
 const ValidationMiddleware = require('../middleware/validation.js');
-const UsersMiddleware = require('../middleware/users.js');
-const DebugMiddleware = require('../middleware/debug.js');
 const ShopifyMiddleware = require('../middleware/shopify.js');
 
 const TransactionController = require('./controller.js');
