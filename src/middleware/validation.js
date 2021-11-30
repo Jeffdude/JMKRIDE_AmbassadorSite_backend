@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const { JWTSecret : jwt_secret, authorizedLambdaIP} = require('../environment.js');
+const jwt_secret = require('../environment.js').JWTSecret;
 const sessionModel = require('../auth/model.js');
 const { logError, logInfo } = require('../modules/errors.js');
 
@@ -43,9 +43,8 @@ exports.validJWTNeeded = async (req, res, next) => {
           refreshKey: req.jwt.refreshKey
         });
         if (session_valid){
-          console.log(req.ips)
           sessionModel.updateSession(
-            {sessionId: req.jwt.sessionId, sourceIP: req.ips.length ? req.ips[0] : req.ip}
+            {sessionId: req.jwt.sessionId, sourceIP: req.ip}
           ).then(() => next()
           ).catch(error => {
             logInfo("[!][500][validJWTNeeded] Failed to update session.");
