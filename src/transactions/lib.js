@@ -47,9 +47,9 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
   });
 }
 
-exports.createReferralCodeUsage = async ({code, total, orderNumber}) => {
+exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => {
   const adminUser = await userConstants.getAdminUser();
-  const referralCode = (await transactionModel.getReferralCode({id: code}))[0]
+  const referralCode = (await transactionModel.getReferralCode({id: codeId, code}))[0]
   const transaction = (await transactionModel.getTransactions({referralCodeId: code, referralCodeOrderNumber: orderNumber}))
   if(transaction.length) {
     logInfo("[&] Referal Code Usage already recorded for order #" + orderNumber + ". ID: " + transaction[0]._id.toString());

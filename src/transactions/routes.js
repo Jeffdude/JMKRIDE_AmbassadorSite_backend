@@ -4,7 +4,7 @@ const PermissionMiddleware = require('../middleware/permission.js');
 const ValidationMiddleware = require('../middleware/validation.js');
 const UsersMiddleware = require('../middleware/users.js');
 const DebugMiddleware = require('../middleware/debug.js');
-const AWSMiddleware = require('../middleware/aws.js');
+const ShopifyMiddleware = require('../middleware/shopify.js');
 
 const TransactionController = require('./controller.js');
 
@@ -60,12 +60,20 @@ exports.configRoutes = (app) => {
   ]);
   app.post('/shopifyAPI/v1/transactions/referralCodes/usage', [
     DebugMiddleware.printRequest,
-    UsersMiddleware.passwordAndUserMatch,
-    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
-    AWSMiddleware.reformatBody({
-      code: undefined, total: undefined, orderNumber: undefined
+    ShopifyMiddleware.validShopifyHmac,
+    (req, res, next) => {
+      if(!req.body.discount_codes.length) return res.status(200).send();
+      next();
+    },
+    ShopifyMiddleware.reformatBody({
+      codeName: i => i.discount_codes[0],
+      total: i => i.total_price,
+      orderNumber: i => i.order_number,
     }),
-    res => res.status(201).send()
+    ValidationMiddleware.validateMandatoryBodyFields([
+      'code', 'total', 'orderNumber'
+    ]),
+    (req, res) => res.status(201).send({body: req.body})
     //TransactionController.createReferralCodeUsage
   ])
 }

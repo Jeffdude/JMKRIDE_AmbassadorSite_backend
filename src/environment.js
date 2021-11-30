@@ -1,3 +1,14 @@
+
+const parseKeyValues = (input) => {
+  let result = {}
+  input.split(',').forEach(keyValue => {
+    let [key, value] = keyValue.split('=');
+    result[key] = value;
+  })
+  return result;
+}
+
+
 let port = process.env.PORT;
 if (! port) {
   console.log("[!] No port specified. Defaulting to DEVEL only value")
@@ -66,9 +77,6 @@ if (! emailAPIKey) {
 }
 module.exports.emailAPIKey = emailAPIKey;
 
-let authorizedLambdaIP = process.env.AUTHORIZED_IP;
-if (! authorizedLambdaIP) {
-  console.log("[!] No authorizedLambdaIP specified. Defaulting to undefined.")
-  authorizedLambdaIP = undefined;
-}
-module.exports.authorizedLambdaIP = authorizedLambdaIP;
+let shopifyAppSecrets = process.env.SHOPIFY_APP_SECRETS ? parseKeyValues(process.env.SHOPIFY_APP_SECRETS) : undefined;
+if (! shopifyAppSecrets) console.log("[!] No shopifyAppSecret specified. All shopifyAPI requests will be rejected.")
+module.exports.shopifyAppSecrets = shopifyAppSecrets;

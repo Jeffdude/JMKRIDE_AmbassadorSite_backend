@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const { JWTSecret : jwt_secret, authorizedLambdaIP} = require('../environment.js');
 const sessionModel = require('../auth/model.js');
-const { logInfo } = require('../modules/errors.js');
+const { logError, logInfo } = require('../modules/errors.js');
 
 exports.verifyRefreshBodyField = (req, res, next) => {
   if (req.body && req.body.refresh_token) {

@@ -70,10 +70,11 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({id, userId,  populate = true}) => {
+exports.getReferralCode = ({id, userId, code, populate = true}) => {
   const query = ReferralCode.find({
     ...id ? {_id: id} : {},
     ...userId ? {owner: userId} : {},
+    ...code ? {code} : {},
   })
   return populate 
     ? query.populate("owner usageCount")
