@@ -1,5 +1,4 @@
 const { logVerboseDebug, logDebug } = require('../modules/errors.js');
-
 const { loggingLevels } = require('../constants.js');
 const { processMode, operationMode } = require('../environment.js');
 const { loggingLevel } = require('../config.js');

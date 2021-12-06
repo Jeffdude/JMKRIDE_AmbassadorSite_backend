@@ -1,3 +1,14 @@
+
+const parseKeyValues = (input) => {
+  let result = {}
+  input.split(',').forEach(keyValue => {
+    let [key, value] = keyValue.split('=');
+    result[key] = value;
+  })
+  return result;
+}
+
+
 let port = process.env.PORT;
 if (! port) {
   console.log("[!] No port specified. Defaulting to DEVEL only value")
@@ -22,6 +33,7 @@ let operationMode = process.env.NODE_ENV;
 if (!([
     "production",
     "development",
+    "remotedevel",
     "unittest",
   ].includes(operationMode))
 ){
@@ -64,3 +76,7 @@ if (! emailAPIKey) {
   emailAPIKey = "pass"
 }
 module.exports.emailAPIKey = emailAPIKey;
+
+let shopifyAppSecrets = process.env.SHOPIFY_APP_SECRETS ? parseKeyValues(process.env.SHOPIFY_APP_SECRETS) : undefined;
+if (! shopifyAppSecrets) console.log("[!] No shopifyAppSecret specified. All shopifyAPI requests will be rejected.")
+module.exports.shopifyAppSecrets = shopifyAppSecrets;

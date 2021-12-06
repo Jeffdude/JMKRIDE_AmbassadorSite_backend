@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const jwt_secret = require('../environment.js').JWTSecret;
 const sessionModel = require('../auth/model.js');
-const { logInfo } = require('../modules/errors.js');
+const { logError, logInfo } = require('../modules/errors.js');
 
 exports.verifyRefreshBodyField = (req, res, next) => {
   if (req.body && req.body.refresh_token) {
@@ -26,7 +26,6 @@ exports.validRefreshNeeded = (req, res, next) => {
     return res.status(400).send({error: 'Invalid refresh token'});
   }
 };
-
 
 exports.validJWTNeeded = async (req, res, next) => {
   if (req.headers['authorization']) {

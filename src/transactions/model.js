@@ -4,15 +4,6 @@ const Schema = mongoose.Schema;
 
 /* ------------------- Model Definitions ------------------  */
 
-
-const bankInfoSchema = new Schema({
-  owner: {type: Schema.Types.ObjectId, ref: 'user'},
-});
-const bankInfo = mongoose.model(
-  'bankInfo',
-  bankInfoSchema,
-);
-
 /*
  * transactionSchema:
  *   transfer of (amount) exchange of ambassador points
@@ -79,42 +70,37 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({id, userId, populate = true}) => {
-  let query;
-  if(id) {
-    query = ReferralCode.find({_id: id});
-  } else if (userId) {
-    query = ReferralCode.find({owner: userId});
-  } else {
-    query = ReferralCode.find();
-  }
-  if(!populate) {
-    return query
-  }
-  return query.populate("owner").populate("usageCount");
+exports.getReferralCode = ({id, userId, code, populate = true}) => {
+  const query = ReferralCode.find({
+    ...id ? {_id: id} : {},
+    ...userId ? {owner: userId} : {},
+    ...code ? {code} : {},
+  })
+  return populate 
+    ? query.populate("owner usageCount")
+    : query;
 }
 
-exports.getTransactions = (
-  {any, to, from, submissionId, referralCodeId, populate = false}
-) => {
-  let query;
-  if(any){
-    query = Transaction.find().or([{destination: any}, {source: any}])
-  } else if(to){
-    query = Transaction.find({destination: to});
-  } else if (from){
-    query = Transaction.find({source: from})
-  } else if (submissionId) {
-    query = Transaction.find({submission: submissionId})
-  } else if (referralCodeId) {
-    query = Transaction.find({referralCode: referralCodeId})
-  } else {
-    query = Transaction.find()
-  }
-  if(populate){
-    return query.populate("source").populate("destination");
-  }
-  return query;
+exports.getTransactions = ({
+    eitherSubject,
+    destination,
+    source,
+    submissionId,
+    referralCodeId,
+    referralCodeOrderNumber,
+    populate = false,
+}) => {
+  let params = {};
+  if(eitherSubject) params.$or = [{destination: eitherSubject}, {source: eitherSubject}]
+  if(destination) params.destination = destination;
+  if(source) params.source = source;
+  if(submissionId) params.submission = submissionId;
+  if(referralCodeId) params.referralCode = referralCodeId;
+  if(referralCodeOrderNumber) params.referralCodeOrderNumber = referralCodeOrderNumber;
+  const query = Transaction.find(params);
+  return populate 
+    ? query.populate("source destination")
+    : query;
 }
 
 exports.getAllReferralCodes = () => 

@@ -8,10 +8,11 @@ exports.getTransactions = (req, res) =>
   controller_run(req,res)(
     () => transactionModel.getTransactions(
       {
-        any: req.query.userId,
+        eitherSubject: req.query.userId,
         submissionId: req.query.submissionId,
         referralCodeId: req.query.referralCodeId,
-        populate: req.query.populate,
+        referralCodeOrderNumber: req.query.referralCodeOrderNumber,
+        populate: (req.query.populate === 'true'),
       }
     ),
     (result) => res.status(200).send(result),
@@ -55,7 +56,8 @@ exports.getAllReferralCodes = (req, res) =>
 exports.createReferralCodeUsage = (req, res) => 
   controller_run(req, res)(
     () => transactionLib.createReferralCodeUsage({
-      code: req.body.code,
+      codeId: req.body.code,
+      code: req.body.codeName,
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
     }),
