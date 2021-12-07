@@ -80,6 +80,18 @@ exports.updatePartQuantity = (req, res) =>
     (result) => res.status(201).send({result})
   );
 
+exports.transferPartQuantity = (req, res) =>
+  controller_run(req, res)(
+    () => inventoryLib.transferPartQuantity({
+      partId: req.params.partId,
+      fromInventoryId: req.params.inventoryId,
+      toInventoryId: req.body.toInventoryId,
+      quantity: req.body.quantity,
+      actor: req.jwt.userId,
+    }),
+    (result) => res.status(201).send({result})
+  );
+
 exports.getCategory = (req, res) =>
   controller_run(req, res)(
     () => inventoryModel.getCategoryById(req.params.categoryId),
