@@ -61,6 +61,12 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateMandatoryBodyFields(['quantity']),
     InventoryController.updatePartQuantity
   ]);
+  app.post('/api/v1/part/id/:partId/inventory/id/:inventoryId/transfer', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
+    ValidationMiddleware.validateMandatoryBodyFields(['quantity', 'toInventoryId']),
+    InventoryController.transferPartQuantity
+  ]);
   app.patch('/api/v1/part/id/:partId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),

@@ -82,7 +82,22 @@ exports.updatePartQuantity = ({partId, inventoryId, quantity, actor, displayLogI
       actor, quantity, inventory: inventoryId,
       displayLogId,
     },
-  )
+  );
+
+exports.transferPartQuantity = ({partId, fromInventoryId, toInventoryId, quantity, actor}) =>
+  inventoryModel.createDisplayLog({
+    actor, quantity, subjectType: 'part', subject: partId,
+    action: actions.TRANSFER_QUANTITY,
+  }).then(result => 
+    Promise.all([
+      exports.updatePartQuantity({
+        partId, inventoryId: fromInventoryId, quantity: -quantity, displayLogId: result._id,
+      }),
+      exports.updatePartQuantity({
+        partId, inventoryId: toInventoryId, quantity, displayLogId: result._id,
+      }),
+    ])
+  );
 
 /* -------------------------- Categories ----------------------------------- */
 
