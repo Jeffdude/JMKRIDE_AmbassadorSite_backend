@@ -80,3 +80,7 @@ module.exports.emailAPIKey = emailAPIKey;
 let shopifyAppSecrets = process.env.SHOPIFY_APP_SECRETS ? parseKeyValues(process.env.SHOPIFY_APP_SECRETS) : undefined;
 if (! shopifyAppSecrets) console.log("[!] No shopifyAppSecret specified. All shopifyAPI requests will be rejected.")
 module.exports.shopifyAppSecrets = shopifyAppSecrets;
+
+let googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || undefined;
+if (! googleMapsApiKey) console.log("[!] No googleMapsApiKey specified.")
+module.exports.googleMapsApiKey = googleMapsApiKey;
