@@ -214,7 +214,7 @@ exports.updatePartQuantity = async ({ partId, inventoryId, quantity }) => {
   }
   part.quantityMap.set(
     stringInventoryId,
-    part.quantityMap.get(stringInventoryId) + quantity,
+    Number(part.quantityMap.get(stringInventoryId)) + Number(quantity),
   )
   return part.save({new: true});
 };

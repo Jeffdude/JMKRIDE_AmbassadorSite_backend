@@ -86,7 +86,7 @@ exports.transferPartQuantity = (req, res) =>
       partId: req.params.partId,
       fromInventoryId: req.params.inventoryId,
       toInventoryId: req.body.toInventoryId,
-      quantity: req.body.quantity,
+      quantity: Number(req.body.quantity),
       actor: req.jwt.userId,
     }),
     (result) => res.status(201).send({result})
