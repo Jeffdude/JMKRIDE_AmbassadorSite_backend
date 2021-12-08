@@ -91,10 +91,10 @@ exports.transferPartQuantity = ({partId, fromInventoryId, toInventoryId, quantit
   }).then(result => 
     Promise.all([
       exports.updatePartQuantity({
-        partId, inventoryId: fromInventoryId, quantity: -quantity, displayLogId: result._id,
+        partId, inventoryId: fromInventoryId, quantity: -quantity, displayLogId: result._id, actor,
       }),
       exports.updatePartQuantity({
-        partId, inventoryId: toInventoryId, quantity, displayLogId: result._id,
+        partId, inventoryId: toInventoryId, quantity, displayLogId: result._id, actor,
       }),
     ])
   );
