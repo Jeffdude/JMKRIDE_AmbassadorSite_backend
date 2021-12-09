@@ -15,6 +15,10 @@ class BaseUserModel {
     return User.findById(id);
   }
 
+  static getAllUsers(){
+    return User.find()
+  }
+
   static createUser(userData) {
     const user = new User(userData);
     return user.save();
@@ -77,6 +81,13 @@ class AmbassadorsiteUserModel extends BaseUserModel {
           }
         })
     });
+  }
+
+  static getAllUserLocations() {
+    return User.aggregate([
+      {$match: {location: {$exists: true}}},
+      {$group: {_id: '$location', count: {$count: {}}}}
+    ])
   }
 }
 

@@ -33,6 +33,7 @@ const genAmbassadorUserSchema = () => {
     ...{
       balance: Number,
       emailVerified: {type: Boolean, default: false},
+      location: {type: mongoose.Types.ObjectId, ref: 'location'},
     },
   }, {timestamps: true});
   ambassadorUserSchema.virtual('submissionCount', {
