@@ -1,15 +1,14 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
-const userModel = requite('../users/model.js');
 const locationConstants = require('./constants.js');
 
 
 const locationSchema = new Schema({
   country: {type: String, enum: locationConstants.allCountries},
-  zipcode: String,
-  latitude: Number,
-  longitude: Number,
+  zip: String,
+  lat: Number,
+  lng: Number,
 }, {
   toJSON: {virtuals: true},
   toObject: {virtuals: true},

@@ -3,9 +3,9 @@ const { Client } = require("@googlemaps/google-maps-services-js");
 
 const client = new Client({});
 
-exports.lookupLocation = ({country, zip, extraStrings}) => {
+exports.lookupLocation = async ({country, zip, extraStrings}) => {
   return client.geocode({params: {
     key: googleMapsApiKey,
-    address: country + " " + zip + (extraStrings ? (" " + extraStrings) : "")
-  }})
+    address: country + " zip code " + zip + (extraStrings ? (" " + extraStrings) : "")
+  }}).then(result => result.data.results.map(l => ({country, zip, ...l.geometry.location})))
 };

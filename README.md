@@ -11,6 +11,6 @@ Private tracker of our inventory across our many distribution locations
 
 ### AmbassadorSite
 
-External site for our amazing freeskate ambassadors
+External site for our amazing freeskate ambassadors, and FreeskaterFinder users
 
 TODO:
