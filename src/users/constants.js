@@ -8,6 +8,10 @@ exports.defaultStocktrackerUserSettings = {
   debug: false,
 };
 
+exports.socialLinkTypes = [
+  "facebook", "instagram", "reddit", "twitter", "tiktok"
+];
+
 exports.getAdminUser = () => {
   return constantModel.getByName('adminUser');
 };
