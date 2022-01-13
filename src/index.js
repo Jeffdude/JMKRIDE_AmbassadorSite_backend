@@ -7,6 +7,7 @@ const ChallengesRouter = require('./challenges/routes.js');
 const TransactionsRouter = require('./transactions/routes.js');
 const InventoryRouter = require('./inventory/routes.js');
 const LocationsRouter = require('./location/routes.js');
+const FriendsRouter = require('./friends/routes.js');
 
 const constantsLib = require('./constants/lib.js');
 
@@ -25,6 +26,7 @@ const processModeInitializers = {
    ChallengesRouter.configRoutes(app);
    TransactionsRouter.configRoutes(app);
    LocationsRouter.configRoutes(app);
+   FriendsRouter.configRoutes(app);
   },
 }
 

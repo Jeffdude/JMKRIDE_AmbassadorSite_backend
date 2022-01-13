@@ -39,6 +39,8 @@ const genAmbassadorUserSchema = () => {
         type: {type: String, enum: socialLinkTypes},
         link: String
       }],
+      bio: String,
+      friends: [{type: mongoose.Types.ObjectId, ref: 'user'}],
       location: {type: mongoose.Types.ObjectId, ref: 'location'},
     },
   }, {timestamps: true});
