@@ -56,7 +56,7 @@ exports.validJWTNeeded = async (req, res, next) => {
         }
       }
     } catch (err) {
-      logInfo("[!][403][validJWTNeeded] Unknown validJWTNeeded error:", err);
+      logInfo("[!][403][validJWTNeeded][" + req.originalUrl + "] Unknown validJWTNeeded error:", err);
       return res.status(403).send();
     }
   } else {

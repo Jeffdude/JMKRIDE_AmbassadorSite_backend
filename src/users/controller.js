@@ -16,12 +16,19 @@ const {
 class BaseUserController {
   static insert(req, res){
     return controller_run(req, res)(
-      () => userLib.createUser({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        password: req.body.password,
-      }),
+      () => userModel.findByEmail(req.body.email).then(
+        result => {
+          if(result && result.length) {
+            throw new Error("A user with that email already exists.")
+          }
+          return userLib.createUser({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            password: req.body.password,
+          });
+        }
+      ),
       (result) => res.status(201).send({id: result._id}),
     )
   }
