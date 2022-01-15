@@ -33,9 +33,9 @@ class BaseUserController {
     )
   }
 
-  static lookup(req, res) {
-    res.status(200).send({id: req.jwt.userId});
-  }
+  static lookup({version}) { return (req, res) => {
+    res.status(200).send(version < 2 ? {id: req.jwt.userId} : {result: {id: req.jwt.userId}});
+  }}
 
   static list({version}){ return (req, res) => {
     let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 50;
@@ -115,22 +115,31 @@ class AmbassadorsiteUserController extends BaseUserController {
     );
   }
 
-  static getById() { return (req, res) => {
-    userModel.findById(
-      req.params.userId,
-      {
-        populateSubmissionCount: false,
-        populateReferralCode: true,
-      }
-    )
-      .then((result) => {
-        let resultObject = result.toObject();
-        resultObject.permissionLevel = permissionValues[result.permissionLevel];
-        delete(resultObject.password);
-        delete(resultObject.__v);
-        res.status(200).send(resultObject);
-      });
-  }}
+  static getById({version}) { 
+    return (req, res) =>
+      controller_run(req, res)(
+        () => userModel.findById(
+          req.params.userId,
+          {
+            populateSubmissionCount: false,
+            populateReferralCode: true,
+          }
+        ).then((result) => {
+          if(!result) return;
+          let resultObject = result.toObject();
+          resultObject.permissionLevel = permissionValues[result.permissionLevel];
+          delete(resultObject.password);
+          delete(resultObject.__v);
+          return resultObject;
+        }),
+        (result) => {
+          if(version < 2) {
+            return res.status(200).send(result);
+          }
+          return res.status(200).send({result});
+        },
+      );
+  }
 }
 
 class StocktrackerUserController extends BaseUserController {

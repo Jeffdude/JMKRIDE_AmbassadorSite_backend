@@ -14,7 +14,12 @@ const baseUserRoutes = (app) => {
   app.get('/api/v1/users/self', [
     ValidationMiddleware.validJWTNeeded,
     DebugMiddleware.printJWT,
-    UsersController.lookup,
+    UsersController.lookup({version: 1}),
+  ]);
+  app.get('/api/v2/users/self', [
+    ValidationMiddleware.validJWTNeeded,
+    DebugMiddleware.printJWT,
+    UsersController.lookup({version: 2}),
   ]);
   app.get('/api/v1/users/all', [
     ValidationMiddleware.validJWTNeeded,
