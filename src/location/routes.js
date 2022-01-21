@@ -23,7 +23,7 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateMandatoryBodyFields(['country', 'zip']),
     locationController.lookupLocation
   ]);
-  app.post('/api/v1/location/create', [
+  app.post('/api/v1/location/save', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     ValidationMiddleware.validateMandatoryBodyFields(['lat', 'lng', 'country', 'zip']),

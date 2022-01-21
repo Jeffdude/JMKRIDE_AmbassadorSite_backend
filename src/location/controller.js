@@ -15,7 +15,7 @@ exports.lookupLocation = (req, res) =>
 
 exports.createLocationAndAddToUser = (req, res) =>
   controller_run(req, res)(
-    () => locationModel.createLocation({
+    () => locationModel.findOrCreateLocation({
       country: req.body.country,
       zip: req.body.zip,
       lat: req.body.lat,
