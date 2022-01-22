@@ -26,3 +26,9 @@ exports.createLocationAndAddToUser = (req, res) =>
     )),
     (result) => res.status(201).send({result})
   );
+
+exports.getAllLocations = (req, res) => 
+  controller_run(req,res)(
+    () => userModel.getAllLocations(),
+    (result) => res.status(200).send({result})
+  )

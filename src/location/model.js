@@ -30,5 +30,3 @@ exports.findOrCreateLocation = (locationData) =>
   Location.findOne(locationData).then(result =>
     result ? result : exports.createLocation(locationData)
   )
-
-exports.getAllLocations = () => Location.find().populate('userQuantity');

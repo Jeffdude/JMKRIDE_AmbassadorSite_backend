@@ -29,4 +29,9 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateMandatoryBodyFields(['lat', 'lng', 'country', 'zip']),
     locationController.createLocationAndAddToUser
   ]);
+  app.get('/api/v1/location/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    locationController.getAllLocations
+  ])
 }

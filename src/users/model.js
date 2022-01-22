@@ -45,6 +45,13 @@ class BaseUserModel {
   static removeById(userId) {
     return User.deleteMany({_id: userId});
   }
+
+  static getAllLocations() {
+    return User.aggregate([
+      {$match: {location: {$exists: true}}},
+      {$group: {_id: '$location', amount: {$sum: 1}}},
+    ])
+  }
 }
 
 
@@ -55,7 +62,8 @@ class AmbassadorsiteUserModel extends BaseUserModel {
     id, 
     {
       populateSubmissionCount = false,
-      populateReferralCode = false
+      populateReferralCode = false,
+      populateLocation = false,
     } = {}) {
       let user = User.findById(id);
       if(populateSubmissionCount) {
@@ -63,6 +71,9 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       }
       if(populateReferralCode) {
         user.populate('referralCode');
+      }
+      if(populateLocation) {
+        user.populate('location');
       }
       return user;
   }
