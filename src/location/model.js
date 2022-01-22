@@ -30,3 +30,6 @@ exports.findOrCreateLocation = (locationData) =>
   Location.findOne(locationData).then(result =>
     result ? result : exports.createLocation(locationData)
   )
+
+exports.populateLocations = (locations) => 
+  Location.populate(locations, {path: 'location', select: ['lat', 'lng', 'zip']})

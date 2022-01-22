@@ -1,5 +1,6 @@
 const mongoose = require('../modules/mongoose.js');
 const User = require('./schema.js');
+const locationModel = require('../location/model.js');
 const { processMode } = require('../environment.js');
 
 
@@ -49,8 +50,11 @@ class BaseUserModel {
   static getAllLocations() {
     return User.aggregate([
       {$match: {location: {$exists: true}}},
-      {$group: {_id: '$location', amount: {$sum: 1}}},
-    ])
+      {$group: {_id: '$location', users: {$addToSet: '$_id'}}},
+      {$addFields: {location: '$_id'}},
+      {$project: {_id: 0}}
+    ]).then(result => User.populate(result, {path: 'users', select: ['firstName', 'lastName']})
+    ).then(locationModel.populateLocations);
   }
 }
 
