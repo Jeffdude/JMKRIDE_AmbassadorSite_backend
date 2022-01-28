@@ -1,6 +1,7 @@
 const mongoose = require('../modules/mongoose.js');
 const User = require('./schema.js');
 const locationModel = require('../location/model.js');
+const userConstants = require('./constants.js');
 const { processMode } = require('../environment.js');
 
 
@@ -46,22 +47,19 @@ class BaseUserModel {
   static removeById(userId) {
     return User.deleteMany({_id: userId});
   }
-
-  static getAllLocations() {
-    return User.aggregate([
-      {$match: {location: {$exists: true}}},
-      {$group: {_id: '$location', users: {$addToSet: '$_id'}}},
-      {$addFields: {location: '$_id'}},
-      {$project: {_id: 0}}
-    ]).then(result => User.populate(result, {path: 'users', select: ['firstName', 'lastName']})
-    ).then(locationModel.populateLocations);
-  }
 }
 
 
 /* ------------------------ AmbassadorSite -------------------------- */
 
 class AmbassadorsiteUserModel extends BaseUserModel {
+  static createUser(userData) {
+    return userConstants.getAdminUser().then(adminUser => {
+      const user = new User(userData);
+      return user.save();
+    })
+  }
+
   static findById(
     id, 
     {
@@ -98,11 +96,23 @@ class AmbassadorsiteUserModel extends BaseUserModel {
     });
   }
 
-  static getAllUserLocations() {
+  static getAllLocations({ requesterUserId, pendingFriends, adminUserId }) {
+    console.log({ requesterUserId, pendingFriends, adminUserId })
     return User.aggregate([
       {$match: {location: {$exists: true}}},
-      {$group: {_id: '$location', count: {$count: {}}}}
-    ])
+      {$group: {_id: '$location', users: {$addToSet: '$_id'}}},
+      {$addFields: {location: '$_id'}},
+      {$project: {_id: 0}}
+    ]).then(result => User.populate(result, {path: 'users', select: ['firstName', 'lastName', 'bio', 'friends', 'socialLinks']})
+    ).then(result => {
+      result.forEach(location => location.users.forEach(user => {
+        const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
+        user.set('isPendingFriend', pendingFriends.includes(user._id), {strict: false});
+        user.set('isFriend', isFriend, {strict: false});
+        if(!isFriend) user.set('socialLinks', []); // don't leak socials to frontend
+      }))
+      return result;
+    }).then(locationModel.populateLocations)
   }
 }
 

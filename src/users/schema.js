@@ -40,6 +40,7 @@ const genAmbassadorUserSchema = () => {
         link: String
       }],
       bio: String,
+      profilePicUrl: String,
       friends: [{type: mongoose.Types.ObjectId, ref: 'user'}],
       location: {type: mongoose.Types.ObjectId, ref: 'location'},
     },

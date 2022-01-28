@@ -2,6 +2,8 @@ const { controller_run } = require('../modules/templates.js');
 const locationLib = require('./lib.js');
 const locationModel = require('./model.js');
 const userModel = require('../users/model.js');
+const userConstants = require('../users/constants.js');
+const friendModel = require('../friends/model.js');
 
 exports.lookupLocation = (req, res) =>
   controller_run(req, res)(
@@ -29,6 +31,14 @@ exports.createLocationAndAddToUser = (req, res) =>
 
 exports.getAllLocations = (req, res) => 
   controller_run(req,res)(
-    () => userModel.getAllLocations(),
+    () => friendModel.getPendingFriends(req.jwt.userId).then(
+      pendingFriends => userConstants.getAdminUser().then(
+        adminUser => userModel.getAllLocations({
+          requesterUserId: req.jwt.userId,
+          pendingFriends,
+          adminUserId: adminUser.id,
+        })
+      )
+    ),
     (result) => res.status(200).send({result})
   )
