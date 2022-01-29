@@ -40,5 +40,5 @@ exports.getAllLocations = (req, res) =>
         })
       )
     ),
-    (result) => res.status(200).send({result})
+    (result) => res.status(200).send({result}),
   )

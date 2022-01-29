@@ -1,7 +1,6 @@
 const mongoose = require('../modules/mongoose.js');
 const User = require('./schema.js');
 const locationModel = require('../location/model.js');
-const userConstants = require('./constants.js');
 const { processMode } = require('../environment.js');
 
 
@@ -54,10 +53,8 @@ class BaseUserModel {
 
 class AmbassadorsiteUserModel extends BaseUserModel {
   static createUser(userData) {
-    return userConstants.getAdminUser().then(adminUser => {
-      const user = new User(userData);
-      return user.save();
-    })
+    const user = new User(userData);
+    return user.save();
   }
 
   static findById(

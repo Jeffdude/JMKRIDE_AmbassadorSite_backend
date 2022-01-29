@@ -1,11 +1,9 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 
-const locationConstants = require('./constants.js');
-
 
 const locationSchema = new Schema({
-  country: {type: String, enum: locationConstants.allCountries},
+  country: String,
   zip: String,
   lat: Number,
   lng: Number,
@@ -32,4 +30,4 @@ exports.findOrCreateLocation = (locationData) =>
   )
 
 exports.populateLocations = (locations) => 
-  Location.populate(locations, {path: 'location', select: ['lat', 'lng', 'zip', 'country']})
+  Location.populate(locations, {path: 'location'})

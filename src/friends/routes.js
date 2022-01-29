@@ -15,12 +15,12 @@ exports.configRoutes = (app) => {
     ]),
     FriendsController.createRequest
   ]);
-  app.post('/api/v1/friends/request/incoming/get', [
+  app.get('/api/v1/friends/request/incoming', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
     FriendsController.getIncomingRequests
   ]);
-  app.post('/api/v1/friends/request/outgoing/get', [
+  app.get('/api/v1/friends/request/outgoing', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
     FriendsController.getOutgoingRequests
