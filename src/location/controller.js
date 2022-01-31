@@ -31,7 +31,7 @@ exports.createLocationAndAddToUser = (req, res) =>
 
 exports.getAllLocations = (req, res) => 
   controller_run(req,res)(
-    () => friendModel.getPendingFriends(req.jwt.userId).then(
+    () => friendModel.getPendingFriends({userId: req.jwt.userId}).then(
       pendingFriends => userConstants.getAdminUser().then(
         adminUser => userModel.getAllLocations({
           requesterUserId: req.jwt.userId,

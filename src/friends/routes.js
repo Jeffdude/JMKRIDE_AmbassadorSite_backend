@@ -10,9 +10,7 @@ exports.configRoutes = (app) => {
   app.post('/api/v1/friends/request/create', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
-    ValidationMiddleware.validateMandatoryBodyFields([
-      'fromUserId', 'toUserId',
-    ]),
+    ValidationMiddleware.validateMandatoryBodyFields(['toUserId']),
     FriendsController.createRequest
   ]);
   app.get('/api/v1/friends/request/incoming', [

@@ -94,7 +94,6 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static getAllLocations({ requesterUserId, pendingFriends, adminUserId }) {
-    console.log({ requesterUserId, pendingFriends, adminUserId })
     return User.aggregate([
       {$match: {location: {$exists: true}}},
       {$group: {_id: '$location', users: {$addToSet: '$_id'}}},
@@ -102,10 +101,13 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       {$project: {_id: 0}}
     ]).then(result => User.populate(result, {path: 'users', select: ['firstName', 'lastName', 'bio', 'friends', 'socialLinks']})
     ).then(result => {
+      const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
-        user.set('isPendingFriend', pendingFriends.includes(user._id), {strict: false});
+        user.set('outgoingPendingFriend', outgoingPendingFriends.includes(user._id.toString()), {strict: false});
+        user.set('incomingPendingFriend', incomingPendingFriends.includes(user._id.toString()), {strict: false});
         user.set('isFriend', isFriend, {strict: false});
+        user.set('friends', undefined)
         if(!isFriend) user.set('socialLinks', []); // don't leak socials to frontend
       }))
       return result;

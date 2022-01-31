@@ -6,7 +6,7 @@ const friendsModel = require('./model');
 exports.createRequest = (req, res) => 
   controller_run(req, res)(
     () => friendsModel.createRequest({
-      from: req.body.fromUserId,
+      from: req.jwt.userId,
       to: req.body.toUserId,
       memo: req.body.memo,
     }),
