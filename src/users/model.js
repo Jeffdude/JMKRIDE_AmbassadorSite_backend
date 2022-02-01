@@ -113,6 +113,10 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       return result;
     }).then(locationModel.populateLocations)
   }
+
+  static populateFriendRequests(results) {
+    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks']})
+  }
 }
 
 

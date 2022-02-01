@@ -1,6 +1,7 @@
 const mongoose = require('../modules/mongoose.js');
 const Schema = mongoose.Schema;
 const { ObjectId } = mongoose.Types;
+const userModel = require('../users/model.js')
 
 /* ------------------- Model Definitions ------------------  */
 
@@ -23,7 +24,7 @@ exports.createRequest = (requestData) => {
 }
 
 exports.getRequests = ({ status = requestStatus.pending, ...searchData}) => 
-  Request.find({status, ...searchData})
+  Request.find({status, ...searchData}).then(userModel.populateFriendRequests)
 
 exports.getOutgoingPendingFriends = ({userId}) =>
   Request.find({status: requestStatus.pending, from: userId})
