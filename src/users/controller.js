@@ -124,6 +124,7 @@ class AmbassadorsiteUserController extends BaseUserController {
             populateSubmissionCount: false,
             populateReferralCode: true,
             populateLocation: true,
+            populateFriends: true,
           }
         ).then((result) => {
           if(!result) return;

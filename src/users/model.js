@@ -63,6 +63,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       populateSubmissionCount = false,
       populateReferralCode = false,
       populateLocation = false,
+      populateFriends = false,
     } = {}) {
       let user = User.findById(id);
       if(populateSubmissionCount) {
@@ -73,6 +74,9 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       }
       if(populateLocation) {
         user.populate('location');
+      }
+      if(populateFriends) {
+        user.populate('friends', 'firstName lastName socialLinks location bio');
       }
       return user;
   }
@@ -116,6 +120,19 @@ class AmbassadorsiteUserModel extends BaseUserModel {
 
   static populateFriendRequests(results) {
     return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks']})
+  }
+
+  static async addFriends([ user1, user2 ]){
+    console.log({user1, user2})
+    return User.findOneAndUpdate(
+      {_id: user1},
+      {$addToSet: {friends: user2}}
+    ).then(result1 =>
+      User.findOneAndUpdate(
+        {_id: user2},
+        {$addToSet: {friends: user1}}
+      ).then(result2 => {console.log({result1, result2}); return [result1, result2]})
+    )
   }
 }
 

@@ -1,6 +1,7 @@
 const { controller_run } = require('../modules/templates.js');
 
 const friendsModel = require('./model');
+const userModel = require('../users/model')
 
 
 exports.createRequest = (req, res) => 
@@ -28,3 +29,16 @@ exports.getOutgoingRequests = (req, res) =>
     }),
     (result) => res.status(200).send({result}),
   )
+
+const modifyRequest = (status, thenFn = (result) => result) => (req, res) => 
+  controller_run(req,res)(
+    () => friendsModel.patchRequest(req.params.requestId, {status}).then(thenFn),
+    () => res.status(201).send({result: true})
+  )
+
+exports.rejectRequest = modifyRequest(friendsModel.requestStatus.rejected);
+
+exports.acceptRequest = (req, res) => modifyRequest(
+  friendsModel.requestStatus.accepted,
+  (result) => userModel.addFriends([req.jwt.userId, result.from])
+)(req, res)

@@ -23,4 +23,14 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
     FriendsController.getOutgoingRequests
   ]);
+  app.post('/api/v1/friends/request/accept/id/:requestId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
+    FriendsController.acceptRequest
+  ]);
+  app.post('/api/v1/friends/request/reject/id/:requestId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.USER),
+    FriendsController.rejectRequest
+  ]);
 }

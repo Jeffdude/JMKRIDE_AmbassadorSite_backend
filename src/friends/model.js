@@ -40,3 +40,6 @@ exports.getPendingFriends = ({userId}) =>
       incoming => ({outgoing, incoming})
     )
   )
+
+exports.patchRequest = (requestId, requestData) =>
+  Request.findOneAndUpdate({_id: requestId}, requestData)
