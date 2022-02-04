@@ -8,6 +8,14 @@ exports.defaultStocktrackerUserSettings = {
   debug: false,
 };
 
+const FFVisibility = {visible: 'VISIBLE', hidden: 'HIDDEN'}
+const FFPrivacy = {private: 'PRIVATE', public: 'PUBLIC'}
+
+exports.defaultAmbassadorsiteUserSettings = {
+  FFMapVisibility: FFVisibility.visible,
+  FFUserPrivacy: FFPrivacy.private,
+};
+
 exports.socialLinkTypes = [
   "facebook", "instagram", "reddit", "twitter", "tiktok"
 ];
