@@ -8,6 +8,7 @@ const TransactionsRouter = require('./transactions/routes.js');
 const InventoryRouter = require('./inventory/routes.js');
 const LocationsRouter = require('./location/routes.js');
 const FriendsRouter = require('./friends/routes.js');
+const NotificationsRouter = require('./notifications/routes.js');
 
 const constantsLib = require('./constants/lib.js');
 
@@ -16,17 +17,18 @@ const { logInfo } = require('./modules/errors.js');
 
 const processModeInitializers = {
  "stocktracker": (app) => {
-   AuthRouter.configRoutes(app);
-   UsersRouter.configRoutes(app);
-   InventoryRouter.configRoutes(app);
+    AuthRouter.configRoutes(app);
+    UsersRouter.configRoutes(app);
+    InventoryRouter.configRoutes(app);
  },
  "ambassadorsite": (app) => {
-   AuthRouter.configRoutes(app);
-   UsersRouter.configRoutes(app);
-   ChallengesRouter.configRoutes(app);
-   TransactionsRouter.configRoutes(app);
-   LocationsRouter.configRoutes(app);
-   FriendsRouter.configRoutes(app);
+    AuthRouter.configRoutes(app);
+    UsersRouter.configRoutes(app);
+    ChallengesRouter.configRoutes(app);
+    TransactionsRouter.configRoutes(app);
+    LocationsRouter.configRoutes(app);
+    FriendsRouter.configRoutes(app);
+    NotificationsRouter.configRoutes(app);
   },
 }
 

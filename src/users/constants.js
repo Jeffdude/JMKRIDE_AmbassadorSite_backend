@@ -9,7 +9,9 @@ exports.defaultStocktrackerUserSettings = {
 };
 
 const FFVisibility = {visible: 'VISIBLE', hidden: 'HIDDEN'}
+exports.FFVisibility = FFVisibility;
 const FFPrivacy = {private: 'PRIVATE', public: 'PUBLIC'}
+exports.FFPrivacy = FFPrivacy;
 
 exports.defaultAmbassadorsiteUserSettings = {
   FFMapVisibility: FFVisibility.visible,

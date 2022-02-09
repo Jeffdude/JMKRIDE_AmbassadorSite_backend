@@ -3,6 +3,7 @@ const User = require('./schema.js');
 const userConstants = require('./constants');
 const locationModel = require('../location/model.js');
 const { processMode } = require('../environment.js');
+const { permissionLevels } = require('../constants.js');
 
 
 /* ------------------------- Generics ------------------------------- */
@@ -48,7 +49,6 @@ class BaseUserModel {
     return User.deleteMany({_id: userId});
   }
 }
-
 
 /* ------------------------ AmbassadorSite -------------------------- */
 
@@ -99,22 +99,40 @@ class AmbassadorsiteUserModel extends BaseUserModel {
     });
   }
 
+  static userIsPublic(userId) {
+    return User.findById(userId).then(user => (
+      user.settings && user.settings.FFUserPrivacy === userConstants.FFPrivacy.public
+    ))
+  }
+
   static getAllLocations({ requesterUserId, pendingFriends, adminUserId }) {
     return User.aggregate([
-      {$match: {location: {$exists: true}}},
+      {$match: {
+        location: {$exists: true},
+        "settings.FFMapVisibility": {$not: {$eq: userConstants.FFVisibility.hidden}},
+      }},
       {$group: {_id: '$location', users: {$addToSet: '$_id'}}},
       {$addFields: {location: '$_id'}},
       {$project: {_id: 0}}
-    ]).then(result => User.populate(result, {path: 'users', select: ['firstName', 'lastName', 'bio', 'friends', 'socialLinks']})
-    ).then(result => {
+    ]).then(result => User.populate(result, {path: 'users', select: [
+      'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel'
+    ]})).then(result => {
       const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
         user.set('outgoingPendingFriend', outgoingPendingFriends.includes(user._id.toString()), {strict: false});
         user.set('incomingPendingFriend', incomingPendingFriends.includes(user._id.toString()), {strict: false});
         user.set('isFriend', isFriend, {strict: false});
+        user.set('isPublic', 
+          (!!user.settings && user.settings.FFUserPrivacy === userConstants.FFPrivacy.public),
+          {strict: false},
+        );
+        user.set('isAmbassador', user.permissionLevel >= permissionLevels.AMBASSADOR, {strict: false})
+        // do not leak sensitive things to frontend
+        if(!isFriend) user.set('socialLinks', []);
         user.set('friends', undefined)
-        if(!isFriend) user.set('socialLinks', []); // don't leak socials to frontend
+        user.set('settings', undefined)
+        user.set('permissionLevel', undefined)
       }))
       return result;
     }).then(locationModel.populateLocations)
