@@ -78,7 +78,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
         user.populate('location');
       }
       if(populateFriends) {
-        user.populate('friends', 'firstName lastName socialLinks location bio');
+        user.populate('friends', 'firstName lastName socialLinks location bio profileIconName');
       }
       return user;
   }
@@ -115,7 +115,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       {$addFields: {location: '$_id'}},
       {$project: {_id: 0}}
     ]).then(result => User.populate(result, {path: 'users', select: [
-      'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel'
+      'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel', 'profileIconName'
     ]})).then(result => {
       const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
       result.forEach(location => location.users.forEach(user => {
@@ -139,7 +139,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static populateFriendRequests(results) {
-    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks']})
+    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName']})
   }
 
   static async addFriends([ user1, user2 ]){
