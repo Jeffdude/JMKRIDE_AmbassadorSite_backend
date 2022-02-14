@@ -17,11 +17,6 @@ exports.ambassadorApplicationData = {
   award: 20,
   structure: [
     {
-      title: "Where do you live? (Just your city, state, and country)",
-      fieldType: "TEXT_SHORT",
-      required: true,
-    },
-    {
       title: "When did you start freeskating?",
       fieldType: "YEAR",
       required: true,

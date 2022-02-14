@@ -22,33 +22,30 @@ exports.createChallenge = (req, res) => {
   );
 }
 
-exports.getAmbassadorApplication = (req, res) => {
-  controller_run(req, res)(
-    challengeConstants.getAmbassadorApplication,
-    (result) => res.status(200).send(JSON.stringify(result.id)),
-  );
-}
-
 exports.getAmbassadorApplicationSubmission = (req, res) => {
   controller_run(req, res)(
     () => challengeConstants.getAmbassadorApplication()
       .then(result => challengeModel.getSubmissions(
         {challengeId: result.id, userId: req.jwt.userId}
       )),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send({ result }),
   );
 }
 
 exports.getChallenge = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.getChallenge(
-      {
-        submissionId: req.query.submissionId,
-        challengeId: req.query.challengeId,
-      },
-    ),
-    (result) => res.status(200).send(result),
+    () => challengeModel.getChallenge({challengeId: req.params.challengeId}),
+    (result) => res.status(200).send({ result }),
   );
+
+exports.getAmbassadorApplication = (req, res) =>
+  controller_run(req, res)(
+    () => challengeConstants.getAmbassadorApplication()
+      .then(({ id : challengeId }) => challengeModel.getChallenge({
+        challengeId, populateSubmissions: true, userId: req.jwt.userId
+      })),
+    (result) => res.status(200).send({result})
+  )
 
 exports.listChallenges = (req, res) => {
   let perPage = req.query.perpage ? Number(req.query.perpage) : 50;
@@ -70,7 +67,7 @@ exports.submitChallenge = (req, res) => {
       challengeId: req.params.challengeId,
       content: challengeLib.formatRequestContent(req.body),
     }),
-    (submission) => res.status(201).send({"id": submission._id}),
+    (submission) => res.status(201).send({result: submission._id}),
   );
 }
 
@@ -112,7 +109,7 @@ exports.listSubmissions = (req, res) => {
 exports.deleteSubmission = (req, res) =>
   controller_run(req, res)(
     () => challengeModel.deleteChallengeSubmissionById(req.params.submissionId),
-    () => res.status(200).send(),
+    () => res.status(200).send({result: true}),
   );
 
 exports.updateSubmission = (req, res) =>

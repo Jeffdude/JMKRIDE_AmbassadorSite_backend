@@ -24,6 +24,7 @@ const challengeFormFieldSchema = new Schema({
   fieldType: {type: String, enum: FIELD_TYPES},
   options: [String],
 });
+mongoose.model('challengeFormField', challengeFormFieldSchema)
 const challengeSchema = new Schema({
   title: String,
   shortDescription: String,
@@ -40,6 +41,7 @@ const challengeSubmissionFormFieldSchema = new Schema({
   field: {type: Schema.Types.ObjectId, ref: 'challengeFormField'},
   content: {type: Schema.Types.Mixed}
 });
+mongoose.model('challengeSubmissionFormField', challengeFormFieldSchema)
 const SUBMISSION_STATUS = ["PENDING", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'user'},
@@ -78,15 +80,25 @@ exports.getChallengeFields = () => FIELD_TYPES;
 exports.deleteChallengeById = (id) => Challenge.deleteOne({_id: id});
 exports.deleteChallengeSubmissionById = (id) => ChallengeSubmission.deleteOne({_id: id});
 
-exports.getChallenge = ({ challengeId, submissionId }) => {
-  if (challengeId) {
-    return Challenge.findById(challengeId);
-  } else if (submissionId) {
-    return ChallengeSubmission.findById(submissionId)
-      .then(submission => Challenge.findById(submission.challenge))
-  }
-  throw new Error("[getChallenge] Invalid Arguments:", challengeId, submissionId);
-}
+exports.getChallenge = ({ challengeId, submissionId, populateSubmissions, userId }) => (
+  (() => {
+    if (challengeId) {
+      return Challenge.findById(challengeId);
+    } else if (submissionId) {
+      return ChallengeSubmission.findById(submissionId)
+        .then(submission => Challenge.findById(submission.challenge))
+    }
+    throw new Error("[getChallenge] Invalid Arguments:", {challengeId, submissionId});
+  })().then(challenge => {
+    if(!populateSubmissions) return challenge;
+    return ChallengeSubmission.find(
+      {challenge: challenge._id, author: userId}
+    ).then(submissions => {
+      challenge.set('submissions', submissions, {strict: false})
+      return challenge
+    })
+  })
+)
 
 exports.createSubmission = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
@@ -101,34 +113,20 @@ exports.getSubmissions = (
     admin = false,
     populateAuthor = true,
     populateChallenge = false,
+    populateFields = false,
   }
 ) => {
-  let query;
-  if (submissionId) {
-    query = ChallengeSubmission.findById(submissionId);
-  } else if (challengeId && userId) {
-    query = ChallengeSubmission.find({
-      author: userId,
-      challenge: challengeId,
-    });
-  } else if (userId) {
-    query = ChallengeSubmission.find({
-      author: userId,
-    })
-  } else if (admin) {
-    query = ChallengeSubmission.find()
-  }
-
-  if(query !== undefined){
-    if(populateAuthor) {
-      query.populate('author');
-    }
-    if(populateChallenge) {
-      query.populate('challenge');
-    }
-    return query;
-  }
-  throw new Error("[getSubmissions] Invalid Arguments:", challengeId, submissionId);
+  return ChallengeSubmission.find({
+    _id: submissionId,
+    author: userId,
+    challenge: challengeId,
+  }).then(results =>
+    ChallengeSubmission.populate(results, [
+      populateAuthor ? 'author' : false,
+      populateChallenge ? 'challenge' : false,
+      populateFields ? 'content.field' : false
+    ].filter(i => i))
+  )
 }
 
 exports.getSubmissionCount = (userId) => 
@@ -177,4 +175,3 @@ exports.updateSubmission = ({submissionId, status, note }) =>
 
 exports.getPendingSubmissions = () => 
   ChallengeSubmission.find({status: "PENDING"}).populate('author').populate('challenge');
-
