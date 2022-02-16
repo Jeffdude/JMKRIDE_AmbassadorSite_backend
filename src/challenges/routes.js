@@ -36,6 +36,27 @@ exports.configRoutes = (app) => {
     ChallengeController.submitChallenge
   ]);
 
+  app.get('/api/v1/submissions/pending', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getPendingSubmissions
+  ])
+  app.get('/api/v1/submissions/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getSubmissions
+  ])
+  app.get('/api/v1/submission/id/:submissionId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getSubmissions
+  ])
+  app.post('/api/v1/submission/id/:submissionId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.updateSubmission
+  ])
+
   app.delete('/api/v1/submissions/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
