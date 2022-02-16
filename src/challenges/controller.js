@@ -22,16 +22,6 @@ exports.createChallenge = (req, res) => {
   );
 }
 
-exports.getAmbassadorApplicationSubmission = (req, res) => {
-  controller_run(req, res)(
-    () => challengeConstants.getAmbassadorApplication()
-      .then(result => challengeModel.getSubmissions(
-        {challengeId: result.id, userId: req.jwt.userId}
-      )),
-    (result) => res.status(200).send({ result }),
-  );
-}
-
 exports.getChallenge = (req, res) =>
   controller_run(req, res)(
     () => challengeModel.getChallenge({challengeId: req.params.challengeId}),
@@ -83,17 +73,12 @@ exports.submissionAllowed = (req, res) => {
 
 exports.getSubmissions = (req, res) => 
   controller_run(req, res)(
-    () => challengeModel.getSubmissions(
-       {
-         submissionId: req.query.submissionId,
-         challengeId: req.query.challengeId,
-         userId: req.query.userId,
-         populateAuthor: req.query.populateAuthor,
-         populateChallenge: req.query.populateChallenge,
-         admin: req.query.admin,
-       }
-    ),
-    (result) => res.status(200).send(result),
+    () => challengeModel.getSubmissions({
+      submissionId: req.params.submissionId,
+      populateAuthor: true,
+      populateChallenge: true,
+    }),
+    (result) => res.status(200).send({result}),
   );
 
 exports.listSubmissions = (req, res) => {
@@ -127,5 +112,5 @@ exports.updateSubmission = (req, res) =>
 exports.getPendingSubmissions = (req, res) => 
   controller_run(req, res)(
     () => challengeModel.getPendingSubmissions(),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send({result}),
   );

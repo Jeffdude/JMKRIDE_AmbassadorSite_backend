@@ -107,27 +107,23 @@ exports.createSubmission = (challengeSubmissionData) => {
 
 exports.getSubmissions = (
   {
-    submissionId,
-    challengeId,
-    userId,
-    admin = false,
+    submissionId : _id,
+    challengeId : challenge,
+    userId : author,
     populateAuthor = true,
     populateChallenge = false,
-    populateFields = false,
   }
-) => {
-  return ChallengeSubmission.find({
-    _id: submissionId,
-    author: userId,
-    challenge: challengeId,
-  }).then(results =>
+) => (
+  (() => {
+    if(_id) return ChallengeSubmission.find({_id})
+    return ChallengeSubmission.find({author, challenge})
+  })().then(results => 
     ChallengeSubmission.populate(results, [
       populateAuthor ? 'author' : false,
       populateChallenge ? 'challenge' : false,
-      populateFields ? 'content.field' : false
     ].filter(i => i))
   )
-}
+)
 
 exports.getSubmissionCount = (userId) => 
   ChallengeSubmission.find({author: userId}).then((result) => result.length);
