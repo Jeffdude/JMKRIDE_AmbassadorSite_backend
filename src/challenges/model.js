@@ -105,18 +105,21 @@ exports.createSubmission = (challengeSubmissionData) => {
   return submission.save();
 }
 
+
 exports.getSubmissions = (
   {
     submissionId : _id,
     challengeId : challenge,
     userId : author,
+    all = false,
     populateAuthor = true,
     populateChallenge = false,
   }
 ) => (
   (() => {
-    if(_id) return ChallengeSubmission.find({_id})
-    return ChallengeSubmission.find({author, challenge})
+    if(all) return ChallengeSubmission.find();
+    if(_id) return ChallengeSubmission.find({_id});
+    return ChallengeSubmission.find({author, challenge});
   })().then(results => 
     ChallengeSubmission.populate(results, [
       populateAuthor ? 'author' : false,

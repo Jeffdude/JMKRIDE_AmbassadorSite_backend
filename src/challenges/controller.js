@@ -71,13 +71,23 @@ exports.submissionAllowed = (req, res) => {
   );
 }
 
-exports.getSubmissions = (req, res) => 
+exports.getAllSubmissions = (req, res) => 
+  controller_run(req, res)(
+    () => challengeModel.getSubmissions({
+      all: true,
+      populateAuthor: true,
+      populateChallenge: true,
+    }),
+    (result) => res.status(200).send({result}),
+  );
+
+exports.getSubmission = (req, res) => 
   controller_run(req, res)(
     () => challengeModel.getSubmissions({
       submissionId: req.params.submissionId,
       populateAuthor: true,
       populateChallenge: true,
-    }),
+    }).then(results => results.length ? results[0] : {}),
     (result) => res.status(200).send({result}),
   );
 
@@ -106,7 +116,7 @@ exports.updateSubmission = (req, res) =>
         note: req.body.note,
       }
     ),
-    () => res.status(200).send()
+    () => res.status(200).send({result: true})
   );
 
 exports.getPendingSubmissions = (req, res) => 

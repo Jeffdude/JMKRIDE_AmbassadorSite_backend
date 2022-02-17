@@ -44,12 +44,12 @@ exports.configRoutes = (app) => {
   app.get('/api/v1/submissions/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
-    ChallengeController.getSubmissions
+    ChallengeController.getAllSubmissions
   ])
   app.get('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
-    ChallengeController.getSubmissions
+    ChallengeController.getSubmission
   ])
   app.post('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
@@ -57,7 +57,7 @@ exports.configRoutes = (app) => {
     ChallengeController.updateSubmission
   ])
 
-  app.delete('/api/v1/submissions/id/:submissionId', [
+  app.delete('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     ChallengeController.deleteSubmission
