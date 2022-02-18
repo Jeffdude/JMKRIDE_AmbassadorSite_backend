@@ -87,7 +87,7 @@ exports.getSubmission = (req, res) =>
       submissionId: req.params.submissionId,
       populateAuthor: true,
       populateChallenge: true,
-    }).then(results => results.length ? results[0] : {}),
+    }),
     (result) => res.status(200).send({result}),
   );
 

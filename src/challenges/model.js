@@ -108,7 +108,7 @@ exports.createSubmission = (challengeSubmissionData) => {
 
 exports.getSubmissions = (
   {
-    submissionId : _id,
+    submissionId,
     challengeId : challenge,
     userId : author,
     all = false,
@@ -118,7 +118,7 @@ exports.getSubmissions = (
 ) => (
   (() => {
     if(all) return ChallengeSubmission.find();
-    if(_id) return ChallengeSubmission.find({_id});
+    if(submissionId) return ChallengeSubmission.findById(submissionId);
     return ChallengeSubmission.find({author, challenge});
   })().then(results => 
     ChallengeSubmission.populate(results, [
