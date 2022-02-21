@@ -131,7 +131,7 @@ exports.getSubmissions = (
 exports.getSubmissionCount = (userId) => 
   ChallengeSubmission.find({author: userId}).then((result) => result.length);
 
-exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
+exports.listChallenges = (perPage, page, { excludeChallenges = [] } = {}) => {
   return new Promise((resolve, reject) => {
     Challenge.find({_id: {$nin: excludeChallenges}})
       .limit(perPage)

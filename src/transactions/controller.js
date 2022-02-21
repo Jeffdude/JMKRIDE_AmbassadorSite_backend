@@ -14,8 +14,21 @@ exports.getTransactions = (req, res) =>
         referralCodeOrderNumber: req.query.referralCodeOrderNumber,
         populate: (req.query.populate === 'true'),
       }
-    ),
-    (result) => res.status(200).send(result),
+    ).then(results => results.map(transaction => {
+      let {source, destination} = transaction;
+      if(req.query.populate) {
+        source = source._id;
+        destination = destination._id;
+      }
+      if(source.toString() === req.jwt.userId.toString()) transaction.set(
+        'delta', transaction.amount > 0 ? 'negative' : 'positive', {strict: false}
+      )
+      if(destination.toString() === req.jwt.userId.toString()) transaction.set(
+        'delta', transaction.amount > 0 ? 'positive' : 'negative', {strict: false}
+      )
+      return transaction;
+    })),
+    (result) => res.status(200).send({result}),
   );
 
 exports.recalculateBalance = (req, res) => 

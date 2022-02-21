@@ -99,7 +99,7 @@ exports.getTransactions = ({
   if(referralCodeOrderNumber) params.referralCodeOrderNumber = referralCodeOrderNumber;
   const query = Transaction.find(params);
   return populate 
-    ? query.populate("source destination")
+    ? query.populate("source destination", "firstName lastName")
     : query;
 }
 

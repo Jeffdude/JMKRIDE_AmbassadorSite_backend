@@ -78,25 +78,24 @@ class AmbassadorsiteUserModel extends BaseUserModel {
         user.populate('location');
       }
       if(populateFriends) {
-        user.populate('friends', 'firstName lastName socialLinks location bio profileIconName');
+        user.populate('friends', 'firstName lastName permissionLevel');
       }
       return user;
   }
 
   static list(perPage, page) {
-    return new Promise((resolve, reject) => {
-      User.find()
+    return User.find()
         .populate('submissionCount')
+        .populate('location')
+        .populate('friends')
         .limit(perPage)
         .skip(perPage * page)
-        .exec(function (err, users) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(users);
-          }
-        })
-    });
+        .then(results => results.map(user => {
+          user.set('password', null)
+          user.set('numFriends', user.friends.length, {strict: false})
+          user.set('friends', null)
+          return user;
+        }))
   }
 
   static userIsPublic(userId) {

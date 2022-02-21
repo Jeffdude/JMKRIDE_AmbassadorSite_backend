@@ -20,10 +20,10 @@ exports.configRoutes = (app) => {
   ]);
 
   /* Challenge Interface - USER & AMBASSADOR */
-  app.get('/api/v1/challenges/list', [
+  app.get('/api/v1/challenges/all', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
-    ChallengeController.listChallenges
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getAllChallenges
   ]);
   app.get('/api/v1/challenges/id/:challengeId', [
     ValidationMiddleware.validJWTNeeded,

@@ -24,7 +24,10 @@ exports.createChallenge = (req, res) => {
 
 exports.getChallenge = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.getChallenge({challengeId: req.params.challengeId}),
+    () => challengeModel.getChallenge({
+      challengeId: req.params.challengeId,
+      populateSubmissions: true, userId: req.jwt.userId
+    }),
     (result) => res.status(200).send({ result }),
   );
 
@@ -37,16 +40,13 @@ exports.getAmbassadorApplication = (req, res) =>
     (result) => res.status(200).send({result})
   )
 
-exports.listChallenges = (req, res) => {
+exports.getAllChallenges = (req, res) => {
   let perPage = req.query.perpage ? Number(req.query.perpage) : 50;
   let page = req.query.page ? Number(req.query.page) : 0;
 
-  controller_run(req, res)(
-    () => challengeConstants.getAmbassadorApplication()
-      .then(result =>
-        challengeModel.listChallenges(perPage, page, {excludeChallenges: [result.id]})
-      ),
-    (result) => res.status(200).send(result),
+  return controller_run(req, res)(
+    () => challengeModel.listChallenges(perPage, page),
+    (result) => res.status(200).send({ result }),
   );
 }
 

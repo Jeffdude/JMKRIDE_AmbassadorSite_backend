@@ -58,7 +58,7 @@ class BaseUserController {
   static getById({version}){ 
     return (req, res) => 
       controller_run(req, res)(
-        () => userModel.findById(req.params.userId).then((result) => {
+        () => userModel.findById(req.params.userId, {populateFriends: true}).then((result) => {
           if(!result) return;
           let resultObject = result.toObject();
           resultObject.permissionLevel = permissionValues[result.permissionLevel];
@@ -128,11 +128,9 @@ class AmbassadorsiteUserController extends BaseUserController {
           }
         ).then((result) => {
           if(!result) return;
-          let resultObject = result.toObject();
-          resultObject.permissionLevel = permissionValues[result.permissionLevel];
-          delete(resultObject.password);
-          delete(resultObject.__v);
-          return resultObject;
+          result.set('permissionLevel', permissionValues[result.permissionLevel], {strict: false});
+          result.set('password', null, {strict: false});
+          return result;
         }),
         (result) => {
           if(version < 2) {
