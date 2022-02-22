@@ -29,7 +29,7 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateMandatoryBodyFields(['userId']),
     TransactionController.recalculateUserBalance
   ]);
-  app.post('/api/v1/transactions/referralCodes/create', [
+  app.post('/api/v1/referralCodes/create', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -37,7 +37,7 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createReferralCode
   ]);
-  app.post('/api/v1/transactions/referralCodes/usage/create', [
+  app.post('/api/v1/referralCodes/usage/create', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -45,18 +45,18 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createReferralCodeUsage
   ]);
-  app.get('/api/v1/transactions/referralCodes/get', [
+  app.get('/api/v1/referralCodes/get', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     TransactionController.getReferralCodes
   ]);
-  app.get('/api/v1/transactions/referralCodes/get/all', [
+  app.get('/api/v1/referralCodes/get/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
-    TransactionController.getAllReferralCodes
+    TransactionController.getReferralCodes
   ]);
-  app.post('/shopifyAPI/v1/transactions/referralCodes/usage', [
+  app.post('/shopifyAPI/v1/referralCodes/usage', [
     ShopifyMiddleware.validShopifyHmac,
     (req, res, next) => {
       if(!req.body.discount_codes.length) return res.status(200).send();

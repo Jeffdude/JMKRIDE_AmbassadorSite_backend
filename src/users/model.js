@@ -78,7 +78,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
         user.populate('location');
       }
       if(populateFriends) {
-        user.populate('friends', 'firstName lastName permissionLevel');
+        user.populate('friends', 'firstName lastName permissionLevel socialLinks profileIconName');
       }
       return user;
   }

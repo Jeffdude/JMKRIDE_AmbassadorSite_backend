@@ -48,7 +48,7 @@ exports.configRoutes = (app) => {
   ])
   app.get('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     ChallengeController.getSubmission
   ])
   app.post('/api/v1/submission/id/:submissionId', [

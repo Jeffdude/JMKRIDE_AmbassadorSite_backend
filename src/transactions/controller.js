@@ -9,6 +9,7 @@ exports.getTransactions = (req, res) =>
     () => transactionModel.getTransactions(
       {
         eitherSubject: req.query.userId,
+        transactionId: req.query.transactionId,
         submissionId: req.query.submissionId,
         referralCodeId: req.query.referralCodeId,
         referralCodeOrderNumber: req.query.referralCodeOrderNumber,
@@ -59,12 +60,6 @@ exports.createReferralCode = (req, res) =>
     ),
     () => res.status(201).send(),
   );
-
-exports.getAllReferralCodes = (req, res) =>
-  controller_run(req, res)(
-    transactionModel.getAllReferralCodes,
-    (result) => res.status(200).send(result),
-  )
 
 exports.createReferralCodeUsage = (req, res) => 
   controller_run(req, res)(

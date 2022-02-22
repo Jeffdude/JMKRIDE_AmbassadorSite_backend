@@ -86,6 +86,7 @@ exports.getTransactions = ({
     destination,
     source,
     submissionId,
+    transactionId,
     referralCodeId,
     referralCodeOrderNumber,
     populate = false,
@@ -96,12 +97,10 @@ exports.getTransactions = ({
   if(source) params.source = source;
   if(submissionId) params.submission = submissionId;
   if(referralCodeId) params.referralCode = referralCodeId;
+  if(transactionId) params._id = transactionId;
   if(referralCodeOrderNumber) params.referralCodeOrderNumber = referralCodeOrderNumber;
   const query = Transaction.find(params);
   return populate 
     ? query.populate("source destination", "firstName lastName")
     : query;
 }
-
-exports.getAllReferralCodes = () => 
-  ReferralCode.find().select('code')
