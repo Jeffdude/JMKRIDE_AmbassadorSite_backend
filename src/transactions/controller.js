@@ -46,9 +46,16 @@ exports.getReferralCodes = (req, res) =>
         id: req.query.id,
       }
     ),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send({ result }),
   )
 
+exports.getReferralCodeOptions = (req, res) =>
+  controller_run(req, res)(
+    () => transactionModel.getReferralCode({}).then(
+      results => results.map(result => ({value: result._id, label: result.code}))
+    ),
+    (result) => res.status(200).send({ result }),
+  )
 exports.createReferralCode = (req, res) =>
   controller_run(req, res)(
     () => transactionModel.createReferralCode(
@@ -58,7 +65,7 @@ exports.createReferralCode = (req, res) =>
         owner: req.body.owner,
       }
     ),
-    () => res.status(201).send(),
+    () => res.status(201).send({result: true}),
   );
 
 exports.createReferralCodeUsage = (req, res) => 
@@ -69,7 +76,7 @@ exports.createReferralCodeUsage = (req, res) =>
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
     }),
-    () => res.status(201).send(),
+    () => res.status(201).send({result: true}),
   );
 
 exports.createAdminTransaction = (req, res) =>
@@ -79,11 +86,11 @@ exports.createAdminTransaction = (req, res) =>
       user: req.body.user,
       reason: req.body.reason,
     }),
-    () => res.status(201).send(),
+    () => res.status(201).send({result: true}),
   );
 
 exports.recalculateUserBalance = (req, res) =>
   controller_run(req, res)(
     () => transactionLib.calculateUserBalance(req.body.userId),
-    () => res.status(200).send(),
+    () => res.status(200).send({result: true}),
   );

@@ -10,6 +10,10 @@ const { permissionLevels } = require('../constants.js');
 
 class BaseUserModel {
 
+  static find(options) {
+    return User.find(options)
+  }
+
   static findByEmail(email) {
     return User.find({email: email});
   }
@@ -72,13 +76,13 @@ class AmbassadorsiteUserModel extends BaseUserModel {
         user.populate('submissionCount');
       }
       if(populateReferralCode) {
-        user.populate('referralCode');
+        user.populate({path: 'referralCode', populate: {path: 'usageCount'}});
       }
       if(populateLocation) {
         user.populate('location');
       }
       if(populateFriends) {
-        user.populate('friends', 'firstName lastName permissionLevel socialLinks profileIconName');
+        user.populate({path: 'friends', select: 'firstName lastName permissionLevel socialLinks profileIconName bio', populate: {path: 'location'}});
       }
       return user;
   }
@@ -138,7 +142,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static populateFriendRequests(results) {
-    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName']})
+    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName'], populate: {path: 'location'}})
   }
 
   static async addFriends([ user1, user2 ]){

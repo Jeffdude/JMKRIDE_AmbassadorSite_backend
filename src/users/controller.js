@@ -4,7 +4,7 @@ const userModel = require('./model.js');
 const userLib = require('./lib.js');
 const userConstants = require('./constants.js');
 const challengeModel = require('../challenges/model.js');
-const { permissionValues } = require('../constants.js');
+const { permissionLevels, permissionValues } = require('../constants.js');
 const { processMode } = require('../environment.js');
 
 const { controller_run } = require('../modules/templates.js');
@@ -139,6 +139,15 @@ class AmbassadorsiteUserController extends BaseUserController {
           return res.status(200).send({result});
         },
       );
+  }
+
+  static getAmbassadorUserOptions(req, res){
+    return controller_run(req, res)(
+      () => userModel.find({permissionLevel: permissionLevels.AMBASSADOR}).then(
+        results => results.map(result => ({value: result._id, label: result.fullName}))
+      ),
+      (result) => res.status(201).send({result}),
+    )
   }
 }
 

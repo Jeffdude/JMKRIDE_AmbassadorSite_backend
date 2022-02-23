@@ -66,6 +66,11 @@ const ambassadorsiteRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
     UsersController.getSubmissionCountById
   ]);
+  app.get('/api/v1/users/ambassador-options', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
+    UsersController.getAmbassadorUserOptions
+  ]);
 }
 
 const stockTrackerRoutes = (app) => {

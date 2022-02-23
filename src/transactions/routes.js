@@ -56,6 +56,11 @@ exports.configRoutes = (app) => {
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     TransactionController.getReferralCodes
   ]);
+  app.get('/api/v1/referralCodes/options', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    TransactionController.getReferralCodeOptions
+  ]);
   app.post('/shopifyAPI/v1/referralCodes/usage', [
     ShopifyMiddleware.validShopifyHmac,
     (req, res, next) => {

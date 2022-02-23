@@ -55,6 +55,7 @@ referralCodeSchema.virtual('usageCount', {
   count: true,
 }, {timestamps: true});
 referralCodeSchema.set('toJSON', {virtuals: true})
+referralCodeSchema.set('toObject', {virtuals: true});
 const ReferralCode = mongoose.model('referralCode', referralCodeSchema);
 
 
