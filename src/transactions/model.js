@@ -71,10 +71,10 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({id, userId, code, populate = true}) => {
+exports.getReferralCode = ({_id, owner, code, populate = true}) => {
   const query = ReferralCode.find({
-    ...id ? {_id: id} : {},
-    ...userId ? {owner: userId} : {},
+    ..._id ? {_id} : {},
+    ...owner ? {owner} : {},
     ...code ? {code} : {},
   })
   return populate 
@@ -90,7 +90,7 @@ exports.getTransactions = ({
     transactionId,
     referralCodeId,
     referralCodeOrderNumber,
-    populate = false,
+    populate = true,
 }) => {
   let params = {};
   if(eitherSubject) params.$or = [{destination: eitherSubject}, {source: eitherSubject}]

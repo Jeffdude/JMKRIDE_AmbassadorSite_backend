@@ -48,7 +48,6 @@ exports.configRoutes = (app) => {
   ])
   app.get('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     ChallengeController.getSubmission
   ])
   app.post('/api/v1/submission/id/:submissionId', [
@@ -59,7 +58,6 @@ exports.configRoutes = (app) => {
 
   app.delete('/api/v1/submission/id/:submissionId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     ChallengeController.deleteSubmission
   ])
 

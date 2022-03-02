@@ -1,26 +1,28 @@
 const transactionModel = require('./model.js');
 const transactionLib = require('./lib.js');
 
+const { permissionLevels } = require('../constants.js')
 const { controller_run } = require('../modules/templates.js');
+const { logError } = require('../modules/errors.js');
 
-
-exports.getTransactions = (req, res) => 
-  controller_run(req,res)(
-    () => transactionModel.getTransactions(
-      {
+/*{
         eitherSubject: req.query.userId,
         transactionId: req.query.transactionId,
         submissionId: req.query.submissionId,
         referralCodeId: req.query.referralCodeId,
         referralCodeOrderNumber: req.query.referralCodeOrderNumber,
         populate: (req.query.populate === 'true'),
-      }
-    ).then(results => results.map(transaction => {
+      }*/
+
+exports.getTransactions = getTarget => (req, res) => 
+  controller_run(req,res)(
+    () => transactionModel.getTransactions(getTarget(req))
+    .then(results => results.map(transaction => {
       let {source, destination} = transaction;
-      if(req.query.populate) {
-        source = source._id;
-        destination = destination._id;
-      }
+
+      source = source._id;
+      destination = destination._id;
+
       if(source.toString() === req.jwt.userId.toString()) transaction.set(
         'delta', transaction.amount > 0 ? 'negative' : 'positive', {strict: false}
       )
@@ -29,7 +31,20 @@ exports.getTransactions = (req, res) =>
       )
       return transaction;
     })),
-    (result) => res.status(200).send({result}),
+    (result) => {
+      if(!result.map(transaction => ([
+        transaction.source._id.toString(), transaction.destination._id.toString()
+      ])).every(actors => (
+        actors.includes(req.jwt.userId.toString()) || req.jwt.permissionLevel == permissionLevels.ADMIN
+      ))) {
+        logError(
+          "[!][403][transactions/controller][getTransactions] Failed: ",
+          {result, userId: req.jwt.userId, permissionLevel: req.jwt.permissionLevel}
+        );
+        return res.status(403).send();
+      }
+      return res.status(200).send({result})
+    },
   );
 
 exports.recalculateBalance = (req, res) => 
@@ -38,15 +53,29 @@ exports.recalculateBalance = (req, res) =>
     () => res.status(200).send(),
   )
 
-exports.getReferralCodes = (req, res) =>
+exports.getAllReferralCodes = (req, res) => 
   controller_run(req, res)(
-    () => transactionModel.getReferralCode(
-      {
-        userId: req.query.userId,
-        id: req.query.id,
+    () => transactionModel.getReferralCode({}),
+    () => res.status(200).send(),
+  )
+
+exports.getReferralCodes = getTarget => (req, res) =>
+  controller_run(req, res)(
+    () => transactionModel.getReferralCode(getTarget(req)),
+    (results) => {
+      if(!(
+        results.map(result => result.owner._id.toString()).every(id => (
+          id === req.jwt.userId.toString() || req.jwt.permissionLevel == permissionLevels.ADMIN
+        ))
+      )){
+        logError(
+          "[!][403][transactions/controller][getReferralCodes] Failed: ",
+          {results, userId: req.jwt.userId, permissionLevel: req.jwt.permissionLevel}
+        );
+        return res.status(403).send();
       }
-    ),
-    (result) => res.status(200).send({ result }),
+      return res.status(200).send({ result: results })
+    },
   )
 
 exports.getReferralCodeOptions = (req, res) =>

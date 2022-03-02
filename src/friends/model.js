@@ -23,20 +23,24 @@ exports.createRequest = (requestData) => {
   return request.save();
 }
 
+exports.getRequestById = (requestId) => {
+  return Request.findById(requestId);
+}
+
 exports.getRequests = ({ status = requestStatus.pending, ...searchData}) => 
   Request.find({status, ...searchData}).then(userModel.populateFriendRequests)
 
-exports.getOutgoingPendingFriends = ({userId}) =>
-  Request.find({status: requestStatus.pending, from: userId})
+const getOutgoingPendingFriends = ({userId}) =>
+  Request.find({status: {$in: [requestStatus.pending, requestStatus.rejected]}, from: userId})
     .then(results => results.map(request => request.to.toString()))
 
-exports.getIncomingPendingFriends = ({userId}) =>
+const getIncomingPendingFriends = ({userId}) =>
   Request.find({status: requestStatus.pending, to: userId})
     .then(results => results.map(request => request.from.toString()))
 
 exports.getPendingFriends = ({userId}) =>
-  exports.getOutgoingPendingFriends({userId}).then(
-    outgoing => exports.getIncomingPendingFriends({userId}).then(
+  getOutgoingPendingFriends({userId}).then(
+    outgoing => getIncomingPendingFriends({userId}).then(
       incoming => ({outgoing, incoming})
     )
   )

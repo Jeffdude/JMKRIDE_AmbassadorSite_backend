@@ -3,6 +3,8 @@ const challengeLib = require('./lib.js');
 const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
+const { permissionLevels } = require('../constants.js');
+const { logError } = require('../modules/errors.js');
 
 
 exports.getChallengeFields = (req, res) => {
@@ -83,12 +85,22 @@ exports.getAllSubmissions = (req, res) =>
 
 exports.getSubmission = (req, res) => 
   controller_run(req, res)(
-    () => challengeModel.getSubmissions({
-      submissionId: req.params.submissionId,
+    () => challengeModel.getSubmissionById(req.params.submissionId, {
       populateAuthor: true,
       populateChallenge: true,
     }),
-    (result) => res.status(200).send({result}),
+    (result) => { 
+      if(!(
+        result.author._id.toString() === req.jwt.userId.toString() || req.jwt.permissionLevel == permissionLevels.ADMIN
+      )){
+        logError(
+          "[!][403][challenges/controller][getSubmission] Failed: ",
+          {result, userId: req.jwt.userId, permissionLevel: req.jwt.permissionLevel}
+        );
+        return res.status(403).send();
+      }
+      return res.status(200).send({result});
+    },
   );
 
 exports.listSubmissions = (req, res) => {
@@ -103,8 +115,13 @@ exports.listSubmissions = (req, res) => {
 
 exports.deleteSubmission = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.deleteChallengeSubmissionById(req.params.submissionId),
-    () => res.status(200).send({result: true}),
+    () => challengeModel.getSubmissionById(req.params.submissionId).then(submission => {
+      if(submission.author.toString() === req.jwt.userId.toString() || req.jwt.permissionLevel == permissionLevels.ADMIN){
+        return challengeModel.deleteChallengeSubmissionById(req.params.submissionId)
+      }
+      return
+    }),
+    (result) => res.status(result ? 200 : 403).send({result: !!result}),
   );
 
 exports.updateSubmission = (req, res) =>

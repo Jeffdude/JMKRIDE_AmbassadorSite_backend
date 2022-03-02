@@ -106,27 +106,17 @@ exports.createSubmission = (challengeSubmissionData) => {
 }
 
 
-exports.getSubmissions = (
-  {
-    submissionId,
-    challengeId : challenge,
-    userId : author,
-    all = false,
-    populateAuthor = true,
+exports.getSubmissionById = (submissionId, {
+    populateAuthor = false,
     populateChallenge = false,
-  }
-) => (
-  (() => {
-    if(all) return ChallengeSubmission.find();
-    if(submissionId) return ChallengeSubmission.findById(submissionId);
-    return ChallengeSubmission.find({author, challenge});
-  })().then(results => 
+  } = {},
+) => ChallengeSubmission.findById(submissionId)
+  .then(results => 
     ChallengeSubmission.populate(results, [
       populateAuthor ? 'author' : false,
       populateChallenge ? 'challenge' : false,
     ].filter(i => i))
   )
-)
 
 exports.getSubmissionCount = (userId) => 
   ChallengeSubmission.find({author: userId}).then((result) => result.length);

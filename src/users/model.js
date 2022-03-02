@@ -4,6 +4,7 @@ const userConstants = require('./constants');
 const locationModel = require('../location/model.js');
 const { processMode } = require('../environment.js');
 const { permissionLevels } = require('../constants.js');
+const { logError, logInfo } = require('../modules/errors.js');
 
 
 /* ------------------------- Generics ------------------------------- */
@@ -121,6 +122,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel', 'profileIconName'
     ]})).then(result => {
       const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
+      console.log({incomingPendingFriends})
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
         user.set('outgoingPendingFriend', outgoingPendingFriends.includes(user._id.toString()), {strict: false});
@@ -146,7 +148,10 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static async addFriends([ user1, user2 ]){
-    console.log({user1, user2})
+    logInfo("[<3] Adding friends: ", {user1, user2})
+    if(user1 === user2){
+      throw new Error('Something weird happened. I attempted to add a user as their own friend.')
+    }
     return User.findOneAndUpdate(
       {_id: user1},
       {$addToSet: {friends: user2}}

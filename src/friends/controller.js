@@ -2,7 +2,8 @@ const { controller_run } = require('../modules/templates.js');
 
 const friendsModel = require('./model');
 const notificationsModel = require('../notifications/model');
-const userModel = require('../users/model')
+const userModel = require('../users/model');
+const { logError } = require('../modules/errors.js');
 
 
 exports.createRequest = (req, res) => 
@@ -45,8 +46,20 @@ exports.getOutgoingRequests = (req, res) =>
 
 const modifyRequest = (status, thenFn = (result) => result) => (req, res) => 
   controller_run(req,res)(
-    () => friendsModel.patchRequest(req.params.requestId, {status}).then(thenFn),
-    () => res.status(201).send({result: true})
+    () => friendsModel.getRequestById(req.params.requestId).then(request => {
+      if(request.to.toString() !== req.jwt.userId.toString()) {
+        logError(
+          "[!][403][modifyRequest][" + req.originalUrl + "] Unauthorized: ",
+          {to: request.to, requester: req.jwt.userId}
+        );
+        return false;
+      }
+      return friendsModel.patchRequest(req.params.requestId, {status}).then(thenFn)
+    }),
+    (result) => {
+      if(!result) return res.status(403).send()
+      return res.status(201).send({result: true})
+    }
   )
 
 exports.rejectRequest = modifyRequest(friendsModel.requestStatus.rejected);

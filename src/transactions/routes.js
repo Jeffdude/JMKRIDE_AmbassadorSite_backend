@@ -9,10 +9,25 @@ const TransactionController = require('./controller.js');
 
 exports.configRoutes = (app) => {
   /* Transactions endpoints */
-  app.get('/api/v1/transactions/get', [
+  app.get('/api/v1/transactions/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
+    TransactionController.getTransactions(req => ({eitherSubject: req.params.userId}))
+  ]);
+  app.get('/api/v1/transactions/referralCode/id/:referralCodeId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getTransactions(req => ({referralCodeId: req.params.referralCodeId}))
+  ]);
+  app.get('/api/v1/transactions/id/:transactionId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getTransactions(req => ({transactionId: req.params.transactionId}))
+  ]);
+  app.get('/api/v1/transactions/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     TransactionController.getTransactions
   ]);
   app.post('/api/v1/transactions/admin/create', [
@@ -45,16 +60,21 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createReferralCodeUsage
   ]);
-  app.get('/api/v1/referralCodes/get', [
+  app.get('/api/v1/referralCodes/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-    TransactionController.getReferralCodes
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
+    TransactionController.getReferralCodes(req => ({owner: req.params.userId}))
   ]);
-  app.get('/api/v1/referralCodes/get/all', [
+  app.get('/api/v1/referralCodes/id/:referralCodeId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getReferralCodes(req => ({_id: req.params.referralCodeId}))
+  ]);
+  app.get('/api/v1/referralCodes/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
-    TransactionController.getReferralCodes
+    TransactionController.getAllReferralCodes
   ]);
   app.get('/api/v1/referralCodes/options', [
     ValidationMiddleware.validJWTNeeded,
