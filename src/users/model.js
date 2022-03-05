@@ -122,7 +122,6 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel', 'profileIconName'
     ]})).then(result => {
       const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
-      console.log({incomingPendingFriends})
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
         user.set('outgoingPendingFriend', outgoingPendingFriends.includes(user._id.toString()), {strict: false});
