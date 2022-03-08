@@ -8,14 +8,11 @@ const { logInfo, logError } = require('../modules/errors.js');
 const fixAmount = (amount) => parseFloat(parseFloat(amount).toFixed(2));
 
 const createTransactionAndRecalculateBalance = (transactionData) => {
-  const transactionPromise = transactionModel.createTransaction(transactionData)
-  // TODO this will break 
-  // if any other source/destination type is used other than 'user'
-  transactionPromise.then(() => {
+  return transactionModel.createTransaction(transactionData).then(transaction => {
     exports.calculateUserBalance(transactionData.source);
     exports.calculateUserBalance(transactionData.destination);
+    return transaction;
   });
-  return transactionPromise;
 }
 
 
@@ -49,7 +46,7 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
 
 exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => {
   const adminUser = await userConstants.getAdminUser();
-  const referralCode = (await transactionModel.getReferralCode({id: codeId, code}))[0]
+  const referralCode = (await transactionModel.getReferralCode({_id: codeId, code}))[0]
   if(!referralCode){
     logError('[!] Referral Code not found: ' + JSON.stringify({id: codeId, code}))
   }

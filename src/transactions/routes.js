@@ -28,7 +28,7 @@ exports.configRoutes = (app) => {
   app.get('/api/v1/transactions/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
-    TransactionController.getTransactions
+    TransactionController.getTransactions(() => ({}))
   ]);
   app.post('/api/v1/transactions/admin/create', [
     ValidationMiddleware.validJWTNeeded,

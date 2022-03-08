@@ -75,11 +75,7 @@ exports.submissionAllowed = (req, res) => {
 
 exports.getAllSubmissions = (req, res) => 
   controller_run(req, res)(
-    () => challengeModel.getSubmissions({
-      all: true,
-      populateAuthor: true,
-      populateChallenge: true,
-    }),
+    () => challengeModel.getAllSubmissions(),
     (result) => res.status(200).send({result}),
   );
 

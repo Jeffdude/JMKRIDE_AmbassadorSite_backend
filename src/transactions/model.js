@@ -92,16 +92,6 @@ exports.getTransactions = ({
     referralCodeOrderNumber,
     populate = true,
 }) => {
-  console.log({
-    eitherSubject,
-    destination,
-    source,
-    submissionId,
-    transactionId,
-    referralCodeId,
-    referralCodeOrderNumber,
-    populate,
-  })
   let params = {};
   if(eitherSubject) params.$or = [{destination: eitherSubject}, {source: eitherSubject}]
   if(destination) params.destination = destination;

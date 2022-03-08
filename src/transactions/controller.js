@@ -17,9 +17,7 @@ const { logError } = require('../modules/errors.js');
 exports.getTransactions = getTarget => (req, res) => 
   controller_run(req,res)(
     () => transactionModel.getTransactions(getTarget(req))
-    .then(results => {
-      console.log({results})
-      return results.map(transaction => {
+    .then(results => results.map(transaction => {
       let {source, destination} = transaction;
 
       source = source._id;
@@ -32,7 +30,7 @@ exports.getTransactions = getTarget => (req, res) =>
         'delta', transaction.amount > 0 ? 'positive' : 'negative', {strict: false}
       )
       return transaction;
-    })}),
+    })),
     (result) => {
       if(!result.map(transaction => ([
         transaction.source._id.toString(), transaction.destination._id.toString()
@@ -58,7 +56,7 @@ exports.recalculateBalance = (req, res) =>
 exports.getAllReferralCodes = (req, res) => 
   controller_run(req, res)(
     () => transactionModel.getReferralCode({}),
-    () => res.status(200).send(),
+    (result) => res.status(200).send({result}),
   )
 
 exports.getReferralCodes = getTarget => (req, res) =>
@@ -103,11 +101,10 @@ exports.createReferralCodeUsage = (req, res) =>
   controller_run(req, res)(
     () => transactionLib.createReferralCodeUsage({
       codeId: req.body.code,
-      code: req.body.codeName,
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
     }),
-    () => res.status(201).send({result: true}),
+    (result) => res.status(201).send({result}),
   );
 
 exports.createAdminTransaction = (req, res) =>

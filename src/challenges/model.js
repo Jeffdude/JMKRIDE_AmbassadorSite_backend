@@ -106,6 +106,8 @@ exports.createSubmission = (challengeSubmissionData) => {
 }
 
 
+exports.getAllSubmissions = () => ChallengeSubmission.find().populate('author challenge')
+
 exports.getSubmissionById = (submissionId, {
     populateAuthor = false,
     populateChallenge = false,
