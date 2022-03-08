@@ -17,7 +17,9 @@ const { logError } = require('../modules/errors.js');
 exports.getTransactions = getTarget => (req, res) => 
   controller_run(req,res)(
     () => transactionModel.getTransactions(getTarget(req))
-    .then(results => results.map(transaction => {
+    .then(results => {
+      console.log({results})
+      return results.map(transaction => {
       let {source, destination} = transaction;
 
       source = source._id;
@@ -30,7 +32,7 @@ exports.getTransactions = getTarget => (req, res) =>
         'delta', transaction.amount > 0 ? 'positive' : 'negative', {strict: false}
       )
       return transaction;
-    })),
+    })}),
     (result) => {
       if(!result.map(transaction => ([
         transaction.source._id.toString(), transaction.destination._id.toString()
