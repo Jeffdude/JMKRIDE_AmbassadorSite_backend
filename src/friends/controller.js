@@ -36,14 +36,6 @@ exports.getIncomingRequests = (req, res) =>
     (result) => res.status(200).send({result}),
   )
 
-exports.getOutgoingRequests = (req, res) =>
-  controller_run(req,res)(
-    () => friendsModel.getRequests({
-      from: req.jwt.userId,
-    }),
-    (result) => res.status(200).send({result}),
-  )
-
 const modifyRequest = (status, thenFn = (result) => result) => (req, res) => 
   controller_run(req,res)(
     () => friendsModel.getRequestById(req.params.requestId).then(request => {

@@ -24,7 +24,6 @@ const challengeFormFieldSchema = new Schema({
   fieldType: {type: String, enum: FIELD_TYPES},
   options: [String],
 });
-mongoose.model('challengeFormField', challengeFormFieldSchema)
 const challengeSchema = new Schema({
   title: String,
   shortDescription: String,
@@ -41,7 +40,6 @@ const challengeSubmissionFormFieldSchema = new Schema({
   field: {type: Schema.Types.ObjectId, ref: 'challengeFormField'},
   content: {type: Schema.Types.Mixed}
 });
-mongoose.model('challengeSubmissionFormField', challengeFormFieldSchema)
 const SUBMISSION_STATUS = ["PENDING", "APPROVED", "DENIED"];
 const challengeSubmissionSchema = new Schema({
   author: {type: Schema.Types.ObjectId, ref: 'user'},
@@ -126,21 +124,6 @@ exports.getSubmissionCount = (userId) =>
 exports.listChallenges = (perPage, page, { excludeChallenges = [] } = {}) => {
   return new Promise((resolve, reject) => {
     Challenge.find({_id: {$nin: excludeChallenges}})
-      .limit(perPage)
-      .skip(perPage * page)
-      .exec(function (err, challenges) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(challenges);
-        }
-      })
-  })
-}
-
-exports.listSubmissions = (perPage, page, { excludeSubmissions = [] }) => {
-  return new Promise((resolve, reject) => {
-    ChallengeSubmission.find({_id: {$nin: excludeSubmissions}})
       .limit(perPage)
       .skip(perPage * page)
       .exec(function (err, challenges) {

@@ -78,9 +78,7 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
         logError(
           "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication][" + req.originalUrl + "] " +
           "Failed auth of user:",
-          user_permission_level, 
-          req.params,
-          req.query,
+          {permissionLevel: user_permission_level, params: req.params, query: req.query},
         );
         return res.status(403).send();
       })
@@ -89,9 +87,7 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
     logError(
       "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication][" + req.originalUrl + "] " +
       "Failed auth of none:",
-      user_permission_level, 
-      req.params,
-      req.query,
+      {permissionLevel: user_permission_level, params: req.params, query: req.query},
     );
     return res.status(403).send();
   }

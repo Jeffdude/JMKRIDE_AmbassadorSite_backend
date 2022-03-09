@@ -36,15 +36,8 @@ exports.markAllNotificationsRead = (userId) =>
   Notification.updateMany({subject: userId, seen: false}, {seen: true})
 
 exports.getLatestNotifications = (userId) =>
-  // return 10 latest notifs (if <10 unread, add most recent read until 10 is reached)
-  Notification.find({subject: userId, seen: false}).then(results => {
-    if(results.length < 10){
-      return Notification.find({subject: userId, seen: true}).sort({createdAt: 'desc'}).limit(10 - results.length)
-        .then(readResults => results.concat(readResults));
-    } else {
-      return results;
-    }
-  }).then(results => Notification.populate(results, {path: 'actor', select: ['firstName', 'lastName']}))
+  Notification.find({subject: userId, seen: false})
+  .then(results => Notification.populate(results, {path: 'actor', select: ['firstName', 'lastName']}))
 
 exports.createFriendRequestCreatedNotification = ({fromUserId, toUserId}) =>
   createNotification({

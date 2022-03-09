@@ -19,14 +19,14 @@ locationSchema.virtual('userQuantity', {
 });
 const Location = mongoose.model('location', locationSchema);
 
-exports.createLocation = (locationData) => {
+const createLocation = (locationData) => {
   const location = new Location(locationData);
   return location.save();
 }
 
 exports.findOrCreateLocation = (locationData) =>
   Location.findOne(locationData).then(result =>
-    result ? result : exports.createLocation(locationData)
+    result ? result : createLocation(locationData)
   )
 
 exports.populateLocations = (locations) => 

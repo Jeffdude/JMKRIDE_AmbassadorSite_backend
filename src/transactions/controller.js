@@ -19,6 +19,7 @@ exports.getTransactions = getTarget => (req, res) =>
     () => transactionModel.getTransactions(getTarget(req))
     .then(results => results.map(transaction => {
       let {source, destination} = transaction;
+      if(!(source && destination)) return transaction
 
       source = source._id;
       destination = destination._id;
@@ -33,7 +34,7 @@ exports.getTransactions = getTarget => (req, res) =>
     })),
     (result) => {
       if(!result.map(transaction => ([
-        transaction.source._id.toString(), transaction.destination._id.toString()
+        transaction.source ? transaction.source._id.toString() : '', transaction.destination._id.toString()
       ])).every(actors => (
         actors.includes(req.jwt.userId.toString()) || req.jwt.permissionLevel == permissionLevels.ADMIN
       ))) {

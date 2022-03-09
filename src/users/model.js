@@ -4,16 +4,12 @@ const userConstants = require('./constants');
 const locationModel = require('../location/model.js');
 const { processMode } = require('../environment.js');
 const { permissionLevels } = require('../constants.js');
-const { logError, logInfo } = require('../modules/errors.js');
+const { logInfo } = require('../modules/errors.js');
 
 
 /* ------------------------- Generics ------------------------------- */
 
 class BaseUserModel {
-
-  static find(options) {
-    return User.find(options)
-  }
 
   static findByEmail(email) {
     return User.find({email: email});
@@ -34,8 +30,8 @@ class BaseUserModel {
 
   static list(perPage, page) {
     return User.find()
-      .limit(perPage)
       .skip(perPage * page)
+      .limit(perPage)
   }
 
   static setUserSettings(userId, settingsData) {
@@ -86,6 +82,10 @@ class AmbassadorsiteUserModel extends BaseUserModel {
         user.populate({path: 'friends', select: 'firstName lastName permissionLevel socialLinks profileIconName bio', populate: {path: 'location'}});
       }
       return user;
+  }
+
+  static getAmbassadors(){
+    return User.find({permissionLevel: permissionLevels.AMBASSADOR})
   }
 
   static list(perPage, page) {

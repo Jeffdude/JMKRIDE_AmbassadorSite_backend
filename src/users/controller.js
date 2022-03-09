@@ -4,7 +4,7 @@ const userModel = require('./model.js');
 const userLib = require('./lib.js');
 const userConstants = require('./constants.js');
 const challengeModel = require('../challenges/model.js');
-const { permissionLevels, permissionValues } = require('../constants.js');
+const { permissionValues } = require('../constants.js');
 const { processMode } = require('../environment.js');
 
 const { controller_run } = require('../modules/templates.js');
@@ -33,12 +33,14 @@ class BaseUserController {
     )
   }
 
-  static lookup({version}) { return (req, res) => {
-    res.status(200).send(version < 2 ? {id: req.jwt.userId} : {result: {id: req.jwt.userId}});
-  }}
+  static lookup({version}) { 
+    return (req, res) => {
+      res.status(200).send(version < 2 ? {id: req.jwt.userId} : {result: {id: req.jwt.userId}});
+    }
+  }
 
   static list({version}){ return (req, res) => {
-    let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 50;
+    let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 1000;
     let page = 0;
     if (req.query) {
       if (req.query.page) {
@@ -58,7 +60,7 @@ class BaseUserController {
   static getById({version}){ 
     return (req, res) => 
       controller_run(req, res)(
-        () => userModel.findById(req.params.userId, {populateFriends: true}).then((result) => {
+        () => userModel.findById(req.params.userId).then((result) => {
           if(!result) return;
           let resultObject = result.toObject();
           resultObject.permissionLevel = permissionValues[result.permissionLevel];
@@ -143,7 +145,7 @@ class AmbassadorsiteUserController extends BaseUserController {
 
   static getAmbassadorUserOptions(req, res){
     return controller_run(req, res)(
-      () => userModel.find({permissionLevel: permissionLevels.AMBASSADOR}).then(
+      () => userModel.getAmbassadors().then(
         results => results.map(result => ({value: result._id, label: result.fullName}))
       ),
       (result) => res.status(201).send({result}),
