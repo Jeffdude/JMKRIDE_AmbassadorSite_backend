@@ -110,6 +110,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static getAllLocations({ requesterUserId, pendingFriends, adminUserId }) {
+    const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
     return User.aggregate([
       {$match: {
         location: {$exists: true},
@@ -121,7 +122,6 @@ class AmbassadorsiteUserModel extends BaseUserModel {
     ]).then(result => User.populate(result, {path: 'users', select: [
       'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel', 'profileIconName'
     ]})).then(result => {
-      const { incoming : incomingPendingFriends, outgoing : outgoingPendingFriends} = pendingFriends;
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
         user.set('outgoingPendingFriend', outgoingPendingFriends.includes(user._id.toString()), {strict: false});
@@ -148,7 +148,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
 
   static async addFriends([ user1, user2 ]){
     logInfo("[<3] Adding friends: ", {user1, user2})
-    if(user1 === user2){
+    if(user1.toString() === user2.toString()){
       throw new Error('Something weird happened. I attempted to add a user as their own friend.')
     }
     return User.findOneAndUpdate(
@@ -158,7 +158,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       User.findOneAndUpdate(
         {_id: user2},
         {$addToSet: {friends: user1}}
-      ).then(result2 => {console.log({result1, result2}); return [result1, result2]})
+      ).then(result2 => ([result1, result2]))
     )
   }
 }
