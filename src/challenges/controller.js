@@ -3,6 +3,8 @@ const challengeLib = require('./lib.js');
 const challengeConstants = require('./constants.js');
 
 const { controller_run } = require('../modules/templates.js');
+const { permissionLevels } = require('../constants.js');
+const { logError } = require('../modules/errors.js');
 
 
 exports.getChallengeFields = (req, res) => {
@@ -22,44 +24,31 @@ exports.createChallenge = (req, res) => {
   );
 }
 
-exports.getAmbassadorApplication = (req, res) => {
-  controller_run(req, res)(
-    challengeConstants.getAmbassadorApplication,
-    (result) => res.status(200).send(JSON.stringify(result.id)),
-  );
-}
-
-exports.getAmbassadorApplicationSubmission = (req, res) => {
-  controller_run(req, res)(
-    () => challengeConstants.getAmbassadorApplication()
-      .then(result => challengeModel.getSubmissions(
-        {challengeId: result.id, userId: req.jwt.userId}
-      )),
-    (result) => res.status(200).send(result),
-  );
-}
-
 exports.getChallenge = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.getChallenge(
-      {
-        submissionId: req.query.submissionId,
-        challengeId: req.query.challengeId,
-      },
-    ),
-    (result) => res.status(200).send(result),
+    () => challengeModel.getChallenge({
+      challengeId: req.params.challengeId,
+      populateSubmissions: true, userId: req.jwt.userId
+    }),
+    (result) => res.status(200).send({ result }),
   );
 
-exports.listChallenges = (req, res) => {
+exports.getAmbassadorApplication = (req, res) =>
+  controller_run(req, res)(
+    () => challengeConstants.getAmbassadorApplication()
+      .then(({ id : challengeId }) => challengeModel.getChallenge({
+        challengeId, populateSubmissions: true, userId: req.jwt.userId
+      })),
+    (result) => res.status(200).send({result})
+  )
+
+exports.getAllChallenges = (req, res) => {
   let perPage = req.query.perpage ? Number(req.query.perpage) : 50;
   let page = req.query.page ? Number(req.query.page) : 0;
 
-  controller_run(req, res)(
-    () => challengeConstants.getAmbassadorApplication()
-      .then(result =>
-        challengeModel.listChallenges(perPage, page, {excludeChallenges: [result.id]})
-      ),
-    (result) => res.status(200).send(result),
+  return controller_run(req, res)(
+    () => challengeModel.listChallenges(perPage, page),
+    (result) => res.status(200).send({ result }),
   );
 }
 
@@ -70,7 +59,7 @@ exports.submitChallenge = (req, res) => {
       challengeId: req.params.challengeId,
       content: challengeLib.formatRequestContent(req.body),
     }),
-    (submission) => res.status(201).send({"id": submission._id}),
+    (submission) => res.status(201).send({result: submission._id}),
   );
 }
 
@@ -84,19 +73,30 @@ exports.submissionAllowed = (req, res) => {
   );
 }
 
-exports.getSubmissions = (req, res) => 
+exports.getAllSubmissions = (req, res) => 
   controller_run(req, res)(
-    () => challengeModel.getSubmissions(
-       {
-         submissionId: req.query.submissionId,
-         challengeId: req.query.challengeId,
-         userId: req.query.userId,
-         populateAuthor: req.query.populateAuthor,
-         populateChallenge: req.query.populateChallenge,
-         admin: req.query.admin,
-       }
-    ),
-    (result) => res.status(200).send(result),
+    () => challengeModel.getAllSubmissions(),
+    (result) => res.status(200).send({result}),
+  );
+
+exports.getSubmission = (req, res) => 
+  controller_run(req, res)(
+    () => challengeModel.getSubmissionById(req.params.submissionId, {
+      populateAuthor: true,
+      populateChallenge: true,
+    }),
+    (result) => { 
+      if(!(
+        result.author._id.toString() === req.jwt.userId.toString() || req.jwt.permissionLevel == permissionLevels.ADMIN
+      )){
+        logError(
+          "[!][403][challenges/controller][getSubmission] Failed: ",
+          {result, userId: req.jwt.userId, permissionLevel: req.jwt.permissionLevel}
+        );
+        return res.status(403).send();
+      }
+      return res.status(200).send({result});
+    },
   );
 
 exports.listSubmissions = (req, res) => {
@@ -111,8 +111,13 @@ exports.listSubmissions = (req, res) => {
 
 exports.deleteSubmission = (req, res) =>
   controller_run(req, res)(
-    () => challengeModel.deleteChallengeSubmissionById(req.params.submissionId),
-    () => res.status(200).send(),
+    () => challengeModel.getSubmissionById(req.params.submissionId).then(submission => {
+      if(submission.author.toString() === req.jwt.userId.toString() || req.jwt.permissionLevel == permissionLevels.ADMIN){
+        return challengeModel.deleteChallengeSubmissionById(req.params.submissionId)
+      }
+      return
+    }),
+    (result) => res.status(result ? 200 : 403).send({result: !!result}),
   );
 
 exports.updateSubmission = (req, res) =>
@@ -124,11 +129,11 @@ exports.updateSubmission = (req, res) =>
         note: req.body.note,
       }
     ),
-    () => res.status(200).send()
+    () => res.status(200).send({result: true})
   );
 
 exports.getPendingSubmissions = (req, res) => 
   controller_run(req, res)(
     () => challengeModel.getPendingSubmissions(),
-    (result) => res.status(200).send(result),
+    (result) => res.status(200).send({result}),
   );

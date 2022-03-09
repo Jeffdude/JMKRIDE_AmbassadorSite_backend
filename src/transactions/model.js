@@ -55,6 +55,7 @@ referralCodeSchema.virtual('usageCount', {
   count: true,
 }, {timestamps: true});
 referralCodeSchema.set('toJSON', {virtuals: true})
+referralCodeSchema.set('toObject', {virtuals: true});
 const ReferralCode = mongoose.model('referralCode', referralCodeSchema);
 
 
@@ -70,10 +71,10 @@ exports.createReferralCode = (referralCodeData) => {
   return referralCode.save();
 }
 
-exports.getReferralCode = ({id, userId, code, populate = true}) => {
+exports.getReferralCode = ({_id, owner, code, populate = true}) => {
   const query = ReferralCode.find({
-    ...id ? {_id: id} : {},
-    ...userId ? {owner: userId} : {},
+    ..._id ? {_id} : {},
+    ...owner ? {owner} : {},
     ...code ? {code} : {},
   })
   return populate 
@@ -86,9 +87,10 @@ exports.getTransactions = ({
     destination,
     source,
     submissionId,
+    transactionId,
     referralCodeId,
     referralCodeOrderNumber,
-    populate = false,
+    populate = true,
 }) => {
   let params = {};
   if(eitherSubject) params.$or = [{destination: eitherSubject}, {source: eitherSubject}]
@@ -96,12 +98,10 @@ exports.getTransactions = ({
   if(source) params.source = source;
   if(submissionId) params.submission = submissionId;
   if(referralCodeId) params.referralCode = referralCodeId;
+  if(transactionId) params._id = transactionId;
   if(referralCodeOrderNumber) params.referralCodeOrderNumber = referralCodeOrderNumber;
-  const query = Transaction.find(params);
+  const query = Transaction.find(params).sort({createdAt: -1});
   return populate 
-    ? query.populate("source destination")
+    ? query.populate("source destination", "firstName lastName")
     : query;
 }
-
-exports.getAllReferralCodes = () => 
-  ReferralCode.find().select('code')

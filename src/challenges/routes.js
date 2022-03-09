@@ -20,12 +20,12 @@ exports.configRoutes = (app) => {
   ]);
 
   /* Challenge Interface - USER & AMBASSADOR */
-  app.get('/api/v1/challenges/list', [
+  app.get('/api/v1/challenges/all', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
-    ChallengeController.listChallenges
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getAllChallenges
   ]);
-  app.get('/api/v1/challenges', [
+  app.get('/api/v1/challenges/id/:challengeId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
     ChallengeController.getChallenge
@@ -36,45 +36,34 @@ exports.configRoutes = (app) => {
     ChallengeController.submitChallenge
   ]);
 
-  /* Submissions Interface - USER & AMBASSADOR */
-  app.get('/api/v1/challenges/submissions_allowed/id/:challengeId', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
-    ChallengeController.submissionAllowed
-  ]);
-  app.get('/api/v1/challenges/submissions', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.mustBeAmbassadorUnlessThisIsAmbassadorApplication,
-    ChallengeController.getSubmissions
-  ]);
-  app.delete('/api/v1/challenges/submissions/id/:submissionId', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-    ChallengeController.deleteSubmission
-  ]);
-  app.get('/api/v1/challenges/submissions/all', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.AMBASSADOR),
-    ChallengeController.listSubmissions
-  ]);
-  app.post('/api/v1/challenges/submissions/update/id/:submissionId', [
-    ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
-    ChallengeController.updateSubmission
-  ]);
-  app.get('/api/v1/challenges/submissions/pending', [
+  app.get('/api/v1/submissions/pending', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
     ChallengeController.getPendingSubmissions
-  ]);
+  ])
+  app.get('/api/v1/submissions/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.getAllSubmissions
+  ])
+  app.get('/api/v1/submission/id/:submissionId', [
+    ValidationMiddleware.validJWTNeeded,
+    ChallengeController.getSubmission
+  ])
+  app.post('/api/v1/submission/id/:submissionId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ChallengeController.updateSubmission
+  ])
+
+  app.delete('/api/v1/submission/id/:submissionId', [
+    ValidationMiddleware.validJWTNeeded,
+    ChallengeController.deleteSubmission
+  ])
 
   /* Ambassador Application */
-  app.get('/api/v1/challenges/ambassador-application', [
+  app.get('/api/v1/challenges/ambassadorApplication', [
     ValidationMiddleware.validJWTNeeded,
     ChallengeController.getAmbassadorApplication
-  ]);
-  app.get('/api/v1/challenges/submissions/ambassador-application', [
-    ValidationMiddleware.validJWTNeeded,
-    ChallengeController.getAmbassadorApplicationSubmission
   ]);
 }

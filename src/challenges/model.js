@@ -78,80 +78,52 @@ exports.getChallengeFields = () => FIELD_TYPES;
 exports.deleteChallengeById = (id) => Challenge.deleteOne({_id: id});
 exports.deleteChallengeSubmissionById = (id) => ChallengeSubmission.deleteOne({_id: id});
 
-exports.getChallenge = ({ challengeId, submissionId }) => {
-  if (challengeId) {
-    return Challenge.findById(challengeId);
-  } else if (submissionId) {
-    return ChallengeSubmission.findById(submissionId)
-      .then(submission => Challenge.findById(submission.challenge))
-  }
-  throw new Error("[getChallenge] Invalid Arguments:", challengeId, submissionId);
-}
+exports.getChallenge = ({ challengeId, submissionId, populateSubmissions, userId }) => (
+  (() => {
+    if (challengeId) {
+      return Challenge.findById(challengeId);
+    } else if (submissionId) {
+      return ChallengeSubmission.findById(submissionId)
+        .then(submission => Challenge.findById(submission.challenge))
+    }
+    throw new Error("[getChallenge] Invalid Arguments:", {challengeId, submissionId});
+  })().then(challenge => {
+    if(!populateSubmissions) return challenge;
+    return ChallengeSubmission.find(
+      {challenge: challenge._id, author: userId}
+    ).then(submissions => {
+      challenge.set('submissions', submissions, {strict: false})
+      return challenge
+    })
+  })
+)
 
 exports.createSubmission = (challengeSubmissionData) => {
   const submission = new ChallengeSubmission(challengeSubmissionData);
   return submission.save();
 }
 
-exports.getSubmissions = (
-  {
-    submissionId,
-    challengeId,
-    userId,
-    admin = false,
-    populateAuthor = true,
-    populateChallenge = false,
-  }
-) => {
-  let query;
-  if (submissionId) {
-    query = ChallengeSubmission.findById(submissionId);
-  } else if (challengeId && userId) {
-    query = ChallengeSubmission.find({
-      author: userId,
-      challenge: challengeId,
-    });
-  } else if (userId) {
-    query = ChallengeSubmission.find({
-      author: userId,
-    })
-  } else if (admin) {
-    query = ChallengeSubmission.find()
-  }
 
-  if(query !== undefined){
-    if(populateAuthor) {
-      query.populate('author');
-    }
-    if(populateChallenge) {
-      query.populate('challenge');
-    }
-    return query;
-  }
-  throw new Error("[getSubmissions] Invalid Arguments:", challengeId, submissionId);
-}
+exports.getAllSubmissions = () => ChallengeSubmission.find().populate('author challenge')
+
+exports.getSubmissionById = (submissionId, {
+    populateAuthor = false,
+    populateChallenge = false,
+  } = {},
+) => ChallengeSubmission.findById(submissionId)
+  .then(results => 
+    ChallengeSubmission.populate(results, [
+      populateAuthor ? 'author' : false,
+      populateChallenge ? 'challenge' : false,
+    ].filter(i => i))
+  )
 
 exports.getSubmissionCount = (userId) => 
   ChallengeSubmission.find({author: userId}).then((result) => result.length);
 
-exports.listChallenges = (perPage, page, { excludeChallenges = [] }) => {
+exports.listChallenges = (perPage, page, { excludeChallenges = [] } = {}) => {
   return new Promise((resolve, reject) => {
     Challenge.find({_id: {$nin: excludeChallenges}})
-      .limit(perPage)
-      .skip(perPage * page)
-      .exec(function (err, challenges) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(challenges);
-        }
-      })
-  })
-}
-
-exports.listSubmissions = (perPage, page, { excludeSubmissions = [] }) => {
-  return new Promise((resolve, reject) => {
-    ChallengeSubmission.find({_id: {$nin: excludeSubmissions}})
       .limit(perPage)
       .skip(perPage * page)
       .exec(function (err, challenges) {
@@ -177,4 +149,3 @@ exports.updateSubmission = ({submissionId, status, note }) =>
 
 exports.getPendingSubmissions = () => 
   ChallengeSubmission.find({status: "PENDING"}).populate('author').populate('challenge');
-

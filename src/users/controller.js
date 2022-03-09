@@ -16,22 +16,31 @@ const {
 class BaseUserController {
   static insert(req, res){
     return controller_run(req, res)(
-      () => userLib.createUser({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        password: req.body.password,
-      }),
+      () => userModel.findByEmail(req.body.email).then(
+        result => {
+          if(result && result.length) {
+            throw new Error("A user with that email already exists.")
+          }
+          return userLib.createUser({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            password: req.body.password,
+          });
+        }
+      ),
       (result) => res.status(201).send({id: result._id}),
     )
   }
 
-  static lookup(req, res) {
-    res.status(200).send({id: req.jwt.userId});
+  static lookup({version}) { 
+    return (req, res) => {
+      res.status(200).send(version < 2 ? {id: req.jwt.userId} : {result: {id: req.jwt.userId}});
+    }
   }
 
   static list({version}){ return (req, res) => {
-    let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 50;
+    let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 1000;
     let page = 0;
     if (req.query) {
       if (req.query.page) {
@@ -108,22 +117,40 @@ class AmbassadorsiteUserController extends BaseUserController {
     );
   }
 
-  static getById() { return (req, res) => {
-    userModel.findById(
-      req.params.userId,
-      {
-        populateSubmissionCount: false,
-        populateReferralCode: true,
-      }
+  static getById({version}) { 
+    return (req, res) =>
+      controller_run(req, res)(
+        () => userModel.findById(
+          req.params.userId,
+          {
+            populateSubmissionCount: false,
+            populateReferralCode: true,
+            populateLocation: true,
+            populateFriends: true,
+          }
+        ).then((result) => {
+          if(!result) return;
+          result.set('permissionLevel', permissionValues[result.permissionLevel], {strict: false});
+          result.set('password', null, {strict: false});
+          return result;
+        }),
+        (result) => {
+          if(version < 2) {
+            return res.status(200).send(result);
+          }
+          return res.status(200).send({result});
+        },
+      );
+  }
+
+  static getAmbassadorUserOptions(req, res){
+    return controller_run(req, res)(
+      () => userModel.getAmbassadors().then(
+        results => results.map(result => ({value: result._id, label: result.fullName}))
+      ),
+      (result) => res.status(201).send({result}),
     )
-      .then((result) => {
-        let resultObject = result.toObject();
-        resultObject.permissionLevel = permissionValues[result.permissionLevel];
-        delete(resultObject.password);
-        delete(resultObject.__v);
-        res.status(200).send(resultObject);
-      });
-  }}
+  }
 }
 
 class StocktrackerUserController extends BaseUserController {

@@ -9,11 +9,26 @@ const TransactionController = require('./controller.js');
 
 exports.configRoutes = (app) => {
   /* Transactions endpoints */
-  app.get('/api/v1/transactions/get', [
+  app.get('/api/v1/transactions/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-    TransactionController.getTransactions
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
+    TransactionController.getTransactions(req => ({eitherSubject: req.params.userId}))
+  ]);
+  app.get('/api/v1/transactions/referralCode/id/:referralCodeId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getTransactions(req => ({referralCodeId: req.params.referralCodeId}))
+  ]);
+  app.get('/api/v1/transactions/id/:transactionId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getTransactions(req => ({transactionId: req.params.transactionId}))
+  ]);
+  app.get('/api/v1/transactions/all', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    TransactionController.getTransactions(() => ({}))
   ]);
   app.post('/api/v1/transactions/admin/create', [
     ValidationMiddleware.validJWTNeeded,
@@ -29,7 +44,7 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validateMandatoryBodyFields(['userId']),
     TransactionController.recalculateUserBalance
   ]);
-  app.post('/api/v1/transactions/referralCodes/create', [
+  app.post('/api/v1/referralCodes/create', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -37,7 +52,7 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createReferralCode
   ]);
-  app.post('/api/v1/transactions/referralCodes/usage/create', [
+  app.post('/api/v1/referralCodes/usage/create', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     ValidationMiddleware.validateMandatoryBodyFields([
@@ -45,18 +60,28 @@ exports.configRoutes = (app) => {
     ]),
     TransactionController.createReferralCodeUsage
   ]);
-  app.get('/api/v1/transactions/referralCodes/get', [
+  app.get('/api/v1/referralCodes/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
-    TransactionController.getReferralCodes
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
+    TransactionController.getReferralCodes(req => ({owner: req.params.userId}))
   ]);
-  app.get('/api/v1/transactions/referralCodes/get/all', [
+  app.get('/api/v1/referralCodes/id/:referralCodeId', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.AMBASSADOR),
+    TransactionController.getReferralCodes(req => ({_id: req.params.referralCodeId}))
+  ]);
+  app.get('/api/v1/referralCodes/all', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
     TransactionController.getAllReferralCodes
   ]);
-  app.post('/shopifyAPI/v1/transactions/referralCodes/usage', [
+  app.get('/api/v1/referralCodes/options', [
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(permissionLevels.ADMIN),
+    TransactionController.getReferralCodeOptions
+  ]);
+  app.post('/shopifyAPI/v1/referralCodes/usage', [
     ShopifyMiddleware.validShopifyHmac,
     (req, res, next) => {
       if(!req.body.discount_codes.length) return res.status(200).send();

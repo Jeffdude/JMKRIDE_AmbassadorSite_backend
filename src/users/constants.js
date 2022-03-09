@@ -8,6 +8,20 @@ exports.defaultStocktrackerUserSettings = {
   debug: false,
 };
 
+const FFVisibility = {visible: 'VISIBLE', hidden: 'HIDDEN'}
+exports.FFVisibility = FFVisibility;
+const FFPrivacy = {private: 'PRIVATE', public: 'PUBLIC'}
+exports.FFPrivacy = FFPrivacy;
+
+exports.defaultAmbassadorsiteUserSettings = {
+  FFMapVisibility: FFVisibility.visible,
+  FFUserPrivacy: FFPrivacy.private,
+};
+
+exports.socialLinkTypes = [
+  "facebook", "instagram", "reddit", "twitter", "tiktok"
+];
+
 exports.getAdminUser = () => {
   return constantModel.getByName('adminUser');
 };

@@ -4,6 +4,8 @@ const Schema = mongoose.Schema;
 const { permissionLevels } = require('../constants.js');
 const { processMode } = require('../environment.js');
 
+const { socialLinkTypes } = require('./constants.js');
+
 
 /* ------------------------- Generics ------------------------------- */
 
@@ -33,6 +35,14 @@ const genAmbassadorUserSchema = () => {
     ...{
       balance: Number,
       emailVerified: {type: Boolean, default: false},
+      socialLinks: [{
+        type: {type: String, enum: socialLinkTypes},
+        link: String
+      }],
+      bio: String,
+      profileIconName: String,
+      friends: [{type: mongoose.Types.ObjectId, ref: 'user'}],
+      location: {type: mongoose.Types.ObjectId, ref: 'location'},
     },
   }, {timestamps: true});
   ambassadorUserSchema.virtual('submissionCount', {

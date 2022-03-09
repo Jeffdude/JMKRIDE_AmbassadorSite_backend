@@ -7,7 +7,6 @@ const {
 
 const challengeConstants = require('../challenges/constants.js');
 const challengeModel = require('../challenges/model.js');
-const transactionModel = require('../transactions/model.js');
 
 
 exports.minimumPermissionLevelRequired = (required_permission_level) => {
@@ -17,7 +16,7 @@ exports.minimumPermissionLevelRequired = (required_permission_level) => {
       return next();
     } else {
       logError(
-        "[!][403][minimumPermissionLevelRequired] Permission Level Failed: " +
+        "[!][403][minimumPermissionLevelRequired][" + req.originalUrl + "] Permission Level Failed: " +
         user_permission_level + " < " + required_permission_level + "."
       );
       return res.status(403).send();
@@ -77,69 +76,39 @@ exports.mustBeAmbassadorUnlessThisIsAmbassadorApplication = (req, res, next) => 
           return next()
         }
         logError(
-          "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication] " +
+          "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication][" + req.originalUrl + "] " +
           "Failed auth of user:",
-          user_permission_level, 
-          req.params,
-          req.query,
+          {permissionLevel: user_permission_level, params: req.params, query: req.query},
         );
         return res.status(403).send();
       })
       .catch(sendAndPrintErrorFn(res))
   } else { 
     logError(
-      "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication] " +
+      "[!][403][mustBeAmbassadorUnlessThisIsAmbassadorApplication][" + req.originalUrl + "] " +
       "Failed auth of none:",
-      user_permission_level, 
-      req.params,
-      req.query,
+      {permissionLevel: user_permission_level, params: req.params, query: req.query},
     );
     return res.status(403).send();
   }
 };
 
-exports.onlySameUserOrAdminCanDoThisAction = (req, res, next) => {
-  const getTarget = async (req) => {
-    if ( req.params && req.params.userId) {
-      return req.params.userId;
-    } else if (req.query.userId) {
-      return req.query.userId;
-    } else if (req.params.submissionId || req.query.submissionId) {
-      let submissionId = req.params.submissionId 
-        ? req.params.submissionId 
-        : req.query.submissionId;
-      let submission = await challengeModel.getSubmissions(
-        {submissionId: submissionId, populateAuthor: false}
-      )
-      return submission.author.toString();
-    } else if (req.query.id || req.query.referralCodeId) {
-      let referralCodeId = req.query.referralCodeId 
-        ? req.query.referralCodeId 
-        : req.query.id;
-      let referralCode = await transactionModel.getReferralCode(
-        {id: referralCodeId, populate: false}
-      )
-      return referralCode[0].owner.toString();
-    }
+exports.onlySameUserOrAdminCanDoThisAction = getTarget => (req, res, next) => {
+  const target = getTarget(req);
+  if (Array.isArray(target))
+    if(target.map(t => t.toString()).includes(req.jwt.userId.toString()))
+      return next();
+  if (target.toString() === req.jwt.userId.toString()) {
+    return next();
+  } else if (req.jwt.permissionLevel == permissionLevels.ADMIN) {
+    return next();
+  } else {
+    logError(
+      "[!][403][onlySameUserOrAdminCanDoThisAction][" + req.originalUrl + "] Failed: ",
+      {target, requestUser: req.jwt.userId}
+    );
+    return res.status(403).send();
   }
-  getTarget(req).then(
-    (target) => {
-      if (target === req.jwt.userId) {
-        return next();
-      } else if (req.jwt.permissionLevel == permissionLevels.ADMIN) {
-        return next();
-      } else {
-        logError(
-          "[!][403][onlySameUserOrAdminCanDoThisAction] Failed: " +
-          target,
-          req.params,
-          req.query,
-        );
-        return res.status(403).send();
-      }
-    }
-  )
-  .catch(sendAndPrintErrorFn(res))
 };
 
 exports.sameUserCantDoThisAction = (req, res, next) => {
@@ -149,7 +118,7 @@ exports.sameUserCantDoThisAction = (req, res, next) => {
     return next();
   } else {
     logError(
-      "[!][403][sameUserCantDoThisAction] Failed: " +
+      "[!][403][sameUserCantDoThisAction][" + req.originalUrl + "] Failed: " +
       req.params,
       userId,
     );

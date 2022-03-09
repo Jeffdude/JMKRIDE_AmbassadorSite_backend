@@ -14,7 +14,12 @@ const baseUserRoutes = (app) => {
   app.get('/api/v1/users/self', [
     ValidationMiddleware.validJWTNeeded,
     DebugMiddleware.printJWT,
-    UsersController.lookup,
+    UsersController.lookup({version: 1}),
+  ]);
+  app.get('/api/v2/users/self', [
+    ValidationMiddleware.validJWTNeeded,
+    DebugMiddleware.printJWT,
+    UsersController.lookup({version: 2}),
   ]);
   app.get('/api/v1/users/all', [
     ValidationMiddleware.validJWTNeeded,
@@ -28,23 +33,23 @@ const baseUserRoutes = (app) => {
   ]);
   app.get('/api/v1/users/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
     UsersController.getById({version: 1})
   ]);
   app.get('/api/v2/users/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
     UsersController.getById({version: 2})
   ]);
   app.patch('/api/v1/users/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
     UsersController.patchById
   ]);
   app.post('/api/v1/user-settings/user/id/:userId', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
+    PermissionMiddleware.onlySameUserOrAdminCanDoThisAction(req => req.params.userId),
     UsersController.setUserSettings
   ]);
   app.delete('/api/v1/users/id/:userId', [
@@ -56,10 +61,10 @@ const baseUserRoutes = (app) => {
 }
 
 const ambassadorsiteRoutes = (app) => {
-  app.get('/api/v1/users/submission_count/id/:userId', [
+  app.get('/api/v1/users/ambassador-options', [
     ValidationMiddleware.validJWTNeeded,
-    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.USER),
-    UsersController.getSubmissionCountById
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    UsersController.getAmbassadorUserOptions
   ]);
 }
 
