@@ -100,7 +100,7 @@ exports.getTransactions = ({
   if(referralCodeId) params.referralCode = referralCodeId;
   if(transactionId) params._id = transactionId;
   if(referralCodeOrderNumber) params.referralCodeOrderNumber = referralCodeOrderNumber;
-  const query = Transaction.find(params);
+  const query = Transaction.find(params).sort({createdAt: -1});
   return populate 
     ? query.populate("source destination", "firstName lastName")
     : query;
