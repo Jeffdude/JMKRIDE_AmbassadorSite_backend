@@ -81,6 +81,10 @@ let shopifyAppSecrets = process.env.SHOPIFY_APP_SECRETS ? parseKeyValues(process
 if (! shopifyAppSecrets) console.log("[!] No shopifyAppSecret specified. All shopifyAPI requests will be rejected.")
 module.exports.shopifyAppSecrets = shopifyAppSecrets;
 
-let googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || undefined;
-if (! googleMapsApiKey) console.log("[!] No googleMapsApiKey specified.")
-module.exports.googleMapsApiKey = googleMapsApiKey;
+let googleMapsServerApiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY || undefined;
+if (! googleMapsServerApiKey) console.log("[!] No googleMapsServerApiKey specified.")
+module.exports.googleMapsServerApiKey = googleMapsServerApiKey;
+
+let googleMapsClientApiKey = process.env.GOOGLE_MAPS_CLIENT_API_KEY || undefined;
+if (! googleMapsClientApiKey) console.log("[!] No googleMapsClientApiKey specified.")
+module.exports.googleMapsClientApiKey = googleMapsClientApiKey;
