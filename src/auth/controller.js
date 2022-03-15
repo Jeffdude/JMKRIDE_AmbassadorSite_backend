@@ -142,6 +142,15 @@ exports.resetPasswordWithPassword = (req, res) =>
     () => res.status(202).send({result: "success"}),
   );
 
+exports.resetPasswordWithToken = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.resetPasswordWithToken({
+      tokenKey: req.params.tokenKey,
+      newPassword: req.body.password,
+    }),
+    () => res.status(202).send({result: "success"}),
+  )
+
 exports.resetUserPassword = (req, res) =>
   controller_run(req, res)(
     () => authLib.resetPasswordAdmin({
@@ -150,3 +159,9 @@ exports.resetUserPassword = (req, res) =>
     }),
     () => res.status(202).send({result: "success"}),
   );
+
+exports.createPasswordResetToken = (req, res) =>
+  controller_run(req, res)(
+    () => authLib.createPasswordResetToken({userId: req.body.userId}),
+    (result) => res.status(201).send({result}),
+  )

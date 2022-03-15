@@ -51,6 +51,20 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     AuthController.resetPasswordWithPassword
   ]);
+  app.post('/api/v1/auth/token/password_reset',[
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ValidationMiddleware.validateMandatoryBodyFields(['userId']),
+    AuthController.createPasswordResetToken
+  ])
+  app.post('/api/v1/auth/reset_password/token/:tokenKey', [
+    AuthController.resetPasswordWithToken
+  ]);
+  app.post('/api/v1/auth/send_reset_password_email',
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    AuthController.resetUserPassword
+  )
   app.post('/api/v1/auth/reset_password/admin', [
     ValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),

@@ -98,8 +98,8 @@ exports.createToken = (tokenData) => {
   return newToken.save();
 }
 
-exports.deleteToken = ({id, userId, type}) => 
-  tokenModel.findOneAndDelete({_id: id, owner: userId, type: type})
+exports.deleteToken = (params) => 
+  tokenModel.findOneAndDelete(params)
 
 exports.findTokenByKey = (tokenKey) => 
-  tokenModel.findOne({key: tokenKey})
+  tokenModel.findOne({key: tokenKey}).populate('owner', 'firstName lastName')
