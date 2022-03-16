@@ -21,7 +21,6 @@ exports.configRoutes = (app) => {
   app.post('/api/v1/auth/refresh', [
     ValidationMiddleware.validateCleanBodyFields(['refresh_token']),
     ValidationMiddleware.validJWTNeeded,
-    ValidationMiddleware.verifyRefreshBodyField,
     ValidationMiddleware.validRefreshNeeded,
     DebugMiddleware.printBody,
     AuthController.login
@@ -47,9 +46,20 @@ exports.configRoutes = (app) => {
     ValidationMiddleware.validJWTNeeded,
     AuthController.createAndSendEmailVerificationToken
   ]);
-  app.post('/api/v1/auth/reset_password/password', [
+  app.post('/api/v1/auth/password/password_reset', [
     ValidationMiddleware.validJWTNeeded,
+    ValidationMiddleware.validateMandatoryBodyFields(['oldPassword', 'newPassword']),
     AuthController.resetPasswordWithPassword
+  ]);
+  app.post('/api/v1/auth/token/password_reset',[
+    ValidationMiddleware.validJWTNeeded,
+    PermissionMiddleware.minimumPermissionLevelRequired(PERMISSION_LEVELS.ADMIN),
+    ValidationMiddleware.validateMandatoryBodyFields(['userId']),
+    AuthController.createPasswordResetToken
+  ])
+  app.post('/api/v1/auth/reset_password/token/:tokenKey', [
+    ValidationMiddleware.validateMandatoryBodyFields(['password']),
+    AuthController.resetPasswordWithToken
   ]);
   app.post('/api/v1/auth/reset_password/admin', [
     ValidationMiddleware.validJWTNeeded,

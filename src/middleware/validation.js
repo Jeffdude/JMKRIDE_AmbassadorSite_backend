@@ -5,14 +5,6 @@ const jwt_secret = require('../environment.js').JWTSecret;
 const sessionModel = require('../auth/model.js');
 const { logError, logInfo } = require('../modules/errors.js');
 
-exports.verifyRefreshBodyField = (req, res, next) => {
-  if (req.body && req.body.refresh_token) {
-    return next();
-  } else {
-    return res.status(400).send({error: 'need to pass refresh_token field'});
-  }
-};
-
 exports.validRefreshNeeded = (req, res, next) => {
   let refresh_token = Buffer.from(req.body.refresh_token, 'base64').toString();
   let refresh_id = req.jwt.userId + jwt_secret;
