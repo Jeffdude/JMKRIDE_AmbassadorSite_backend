@@ -73,7 +73,7 @@ exports.resetPasswordWithPassword = ({userId, oldPassword, newPassword}) =>
 
 exports.resetPasswordWithToken = ({tokenKey, newPassword}) => 
   authModel.findTokenByKey(tokenKey).then(validateToken(TOKEN_TYPE.passwordReset)).then(token => {
-    if(!token){
+    if(!token || !token.owner){
       throw new Error("[!][resetPasswordWithToken] Invalid Token. Failing")
     } else {
       userLib.updatePassword(token.owner._id, newPassword)

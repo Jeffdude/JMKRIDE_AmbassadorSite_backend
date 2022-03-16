@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer');
 
 const { emailAPIKey } = require('../environment.js');
-const { logInfo } = require('./errors.js')
 
 const host = "smtp.sendgrid.net";
 const username = "apikey";
