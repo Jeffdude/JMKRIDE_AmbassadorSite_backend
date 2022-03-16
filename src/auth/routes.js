@@ -21,7 +21,6 @@ exports.configRoutes = (app) => {
   app.post('/api/v1/auth/refresh', [
     ValidationMiddleware.validateCleanBodyFields(['refresh_token']),
     ValidationMiddleware.validJWTNeeded,
-    ValidationMiddleware.verifyRefreshBodyField,
     ValidationMiddleware.validRefreshNeeded,
     DebugMiddleware.printBody,
     AuthController.login
