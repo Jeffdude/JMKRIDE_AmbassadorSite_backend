@@ -106,6 +106,9 @@ exports.createSubmission = (challengeSubmissionData) => {
 
 exports.getAllSubmissions = () => ChallengeSubmission.find().populate('author challenge')
 
+exports.userHasSubmittedChallenge = ({challengeId, userId}) =>
+  ChallengeSubmission.find({challenge: challengeId, author: userId}).then(res => res.length > 0)
+
 exports.getSubmissionById = (submissionId, {
     populateAuthor = false,
     populateChallenge = false,

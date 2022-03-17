@@ -21,8 +21,7 @@ exports.formatRequestContent = (content) => {
 
 exports.submissionsAllowed = async ({ challengeId, userId }) => {
   const hasSubmission = (challengeId, userId) => 
-    challengeModel.getSubmissions({challengeId: challengeId, userId: userId})
-      .then(res => res.length >= 1)
+    challengeModel.userHasSubmittedChallenge({challengeId: challengeId, userId: userId})
 
   const challenge = await challengeModel.getChallenge({challengeId: challengeId})
   if(!challenge.allowMultipleSubmissions){
@@ -71,7 +70,7 @@ exports.createSubmission = ({userId, challengeId, content}) => {
 exports.updateSubmission = ({submissionId, status, note}) => {
 
   const approveSubmission = async (submissionId) => {
-    let submission = await challengeModel.getSubmissions({submissionId: submissionId, populateAuthor: false});
+    let submission = await challengeModel.getSubmissionById(submissionId);
     let challenge = await challengeModel.getChallenge({submissionId: submissionId});
     let ambassadorApplication = await challengeConstants.getAmbassadorApplication();
     if (challenge._id.toString() === ambassadorApplication.id.toString()) {
