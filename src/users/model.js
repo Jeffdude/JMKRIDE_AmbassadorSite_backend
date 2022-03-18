@@ -143,7 +143,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static populateFriendRequests(results) {
-    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName'], populate: {path: 'location'}})
+    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName', 'skaterSince'], populate: {path: 'location'}})
   }
 
   static async addFriends([ user1, user2 ]){
