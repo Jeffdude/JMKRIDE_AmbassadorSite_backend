@@ -3,7 +3,7 @@ const { loggingLevels } = require('./constants.js');
 module.exports = {
   port: 3600,
   jwt_options: {
-    expiresIn: "2d",
+    expiresIn: "5d",
   },
   loggingLevel: {
     ambassadorsite: {
