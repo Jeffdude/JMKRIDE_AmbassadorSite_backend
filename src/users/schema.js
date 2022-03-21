@@ -41,6 +41,7 @@ const genAmbassadorUserSchema = () => {
       }],
       bio: String,
       profileIconName: String,
+      skaterSince: Date,
       friends: [{type: mongoose.Types.ObjectId, ref: 'user'}],
       location: {type: mongoose.Types.ObjectId, ref: 'location'},
     },

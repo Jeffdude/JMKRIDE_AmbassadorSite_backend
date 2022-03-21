@@ -120,7 +120,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
       {$addFields: {location: '$_id'}},
       {$project: {_id: 0}}
     ]).then(result => User.populate(result, {path: 'users', select: [
-      'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'settings', 'permissionLevel', 'profileIconName'
+      'firstName', 'lastName', 'bio', 'friends', 'socialLinks', 'skaterSince', 'settings', 'permissionLevel', 'profileIconName'
     ]})).then(result => {
       result.forEach(location => location.users.forEach(user => {
         const isFriend = (requesterUserId == adminUserId || user.friends.includes(requesterUserId));
@@ -143,7 +143,7 @@ class AmbassadorsiteUserModel extends BaseUserModel {
   }
 
   static populateFriendRequests(results) {
-    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName'], populate: {path: 'location'}})
+    return User.populate(results, {path: 'from', select: ['firstName', 'lastName', 'bio', 'socialLinks', 'profileIconName', 'skaterSince'], populate: {path: 'location'}})
   }
 
   static async addFriends([ user1, user2 ]){
