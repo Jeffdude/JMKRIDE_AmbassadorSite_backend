@@ -37,7 +37,7 @@ exports.markAllNotificationsRead = (userId) =>
 
 exports.getLatestNotifications = (userId) =>
   Notification.find({subject: userId, seen: false})
-  .then(results => Notification.populate(results, {path: 'actor', select: ['firstName', 'lastName']}))
+  .then(results => Notification.populate(results, {path: 'actor', select: ['firstName', 'lastName', 'profileIconName']}))
 
 exports.createFriendRequestCreatedNotification = ({fromUserId, toUserId}) =>
   createNotification({
