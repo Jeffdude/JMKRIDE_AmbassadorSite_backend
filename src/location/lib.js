@@ -3,19 +3,34 @@ const { Client } = require("@googlemaps/google-maps-services-js");
 
 const client = new Client({});
 
+const isValidBoundingBox = (bounds) => {
+  const height = Math.abs(bounds.northeast.lat - bounds.southwest.lat)
+  const width = Math.abs(bounds.northeast.lng - bounds.southwest.lng)
+  return height > 0.01 && width > 0.01
+}
+
 exports.lookupLocation = async ({country, zip, extraStrings}) => {
   return client.geocode({params: {
     key: googleMapsServerApiKey,
     address: country + " zip code " + zip + (extraStrings ? (" " + extraStrings) : "")
-  }}).then(result => {
-    let corrected_country;
-    if(result.data.results.length){
-      result.data.results[0].address_components.forEach(
-        ({long_name, types}) => {if(types.includes('country')) corrected_country = long_name}
-      )
-      return result.data.results.map(l => ({country: corrected_country, zip, bounds: l.geometry.bounds, ...l.geometry.location}))
-    } else {
-      return {error: 'No Results Found'};
+  }}).then(googleResult => {
+    if(googleResult.data.results.length){
+      const result = googleResult.data.results.find(obj => obj.types.includes('postal_code'));
+      if(!result) return {error: 'No results Found'}
+
+      const { long_name: country } = result.address_components.find(({types}) => types.includes('country'))
+      if(!country) return {error: 'No results Found'}
+
+      if(!isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
+
+      return ({
+        country,
+        zip,
+        bounds: result.geometry.bounds,
+        formatted_address: result.formatted_address,
+        ...result.geometry.location
+      })
     }
+    return {error: 'No Results Found'};
   });
 };
