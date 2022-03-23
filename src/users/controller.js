@@ -24,7 +24,7 @@ class BaseUserController {
           return userLib.createUser({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            email: req.body.email,
+            email: req.body.email.toLowerCase(),
             password: req.body.password,
           });
         }
