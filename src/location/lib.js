@@ -21,7 +21,7 @@ exports.lookupLocation = async ({country, zip, extraStrings}) => {
       const { long_name: country } = result.address_components.find(({types}) => types.includes('country'))
       if(!country) return {error: 'No results Found'}
 
-      if(!isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
+      if(result.geometry.bounds && !isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
 
       return ({
         country,
