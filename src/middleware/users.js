@@ -28,10 +28,11 @@ exports.hasAuthValidFields = (req, res, next) => {
 };
 
 exports.passwordAndUserMatch = (req, res, next) => {
-  UserModel.findByEmail(req.body.email)
+  const email = req.body.email.toLowerCase()
+  UserModel.findByEmail(email)
     .then((user)=>{
       if(!user[0]){
-        logError("[!][403][passwordAndUserMatch] Failed to find user with email: " + req.body.email);
+        logError("[!][403][passwordAndUserMatch] Failed to find user with email: " + email);
         res.status(403).send({});
       }else{
         let passwordFields = user[0].password.split('$');
@@ -48,7 +49,7 @@ exports.passwordAndUserMatch = (req, res, next) => {
           return next();
         } else {
           logError(
-            "[!][403][passwordAndUserMatch] Hash and PW didn't match for user " + req.body.email + ":",
+            "[!][403][passwordAndUserMatch] Hash and PW didn't match for user " + email + ":",
             req.body.password,
             hash,
             "[redacted]",
