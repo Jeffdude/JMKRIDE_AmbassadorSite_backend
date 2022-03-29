@@ -6,8 +6,10 @@ const client = new Client({});
 const isValidBoundingBox = (bounds) => {
   const height = Math.abs(bounds.northeast.lat - bounds.southwest.lat)
   const width = Math.abs(bounds.northeast.lng - bounds.southwest.lng)
-  return height > 0.01 && width > 0.01
+  return height > 0.03 && width > 0.03
 }
+
+const boundsExceptionCountries = ['Singapore']
 
 exports.lookupLocation = async ({country, zip, extraStrings}) => {
   return client.geocode({params: {
@@ -20,6 +22,8 @@ exports.lookupLocation = async ({country, zip, extraStrings}) => {
 
       const { long_name: country } = result.address_components.find(({types}) => types.includes('country'))
       if(!country) return {error: 'No results Found'}
+
+      if(!result.geometry.bounds && !boundsExceptionCountries.includes(country)) return {error: 'Defined Area Is Too Specific'}
 
       if(result.geometry.bounds && !isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
 
