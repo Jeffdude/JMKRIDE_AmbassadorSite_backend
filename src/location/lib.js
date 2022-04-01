@@ -6,7 +6,7 @@ const client = new Client({});
 const isValidBoundingBox = (bounds) => {
   const height = Math.abs(bounds.northeast.lat - bounds.southwest.lat)
   const width = Math.abs(bounds.northeast.lng - bounds.southwest.lng)
-  return height > 0.03 && width > 0.03
+  return height > 0.01 && width > 0.01
 }
 
 const boundsExceptionCountries = ['Singapore']
