@@ -29,6 +29,7 @@ const processModeInitializers = {
     LocationsRouter.configRoutes(app);
     FriendsRouter.configRoutes(app);
     NotificationsRouter.configRoutes(app);
+    app.use('/clusters', express.static('./src/assets/clusters'));
   },
 }
 
