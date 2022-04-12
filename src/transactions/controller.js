@@ -102,6 +102,7 @@ exports.createReferralCodeUsage = (req, res) =>
   controller_run(req, res)(
     () => transactionLib.createReferralCodeUsage({
       codeId: req.body.code,
+      code: req.body.codeName,
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
     }),

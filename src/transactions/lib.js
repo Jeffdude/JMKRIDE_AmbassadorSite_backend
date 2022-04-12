@@ -48,9 +48,9 @@ exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => 
   const adminUser = await userConstants.getAdminUser();
   const referralCode = (await transactionModel.getReferralCode({_id: codeId, code}))[0]
   if(!referralCode){
-    logError('[!] Referral Code not found: ' + JSON.stringify({id: codeId, code}))
+    throw new Error('[!] Referral Code not found: ' + JSON.stringify({id: codeId, code}))
   }
-  const transaction = (await transactionModel.getTransactions({referralCodeId: code, referralCodeOrderNumber: orderNumber}))
+  const transaction = (await transactionModel.getTransactions({referralCodeId: referralCode._id, referralCodeOrderNumber: orderNumber}))
   if(transaction.length) {
     logInfo("[&] Referal Code Usage already recorded for order #" + orderNumber + ". ID: " + transaction[0]._id.toString());
     return true;
@@ -69,7 +69,7 @@ exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => 
     destinationType: 'user',
     destination: referralCode.owner._id,
     amount: fixAmount(points),
-    referralCode: referralCode,
+    referralCode: referralCode._id,
     referralCodeOrderNumber: orderNumber,
     reason: "Referral Code Usage: '" + referralCode.code + "' on order #" + orderNumber,
   });
