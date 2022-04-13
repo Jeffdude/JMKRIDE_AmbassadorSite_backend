@@ -11,6 +11,7 @@ const notificationReason = {
   challengeStatusChanged: 'CHALLENGE_STATUS_CHANGED',
   referralCodeUsed: 'REFERRAL_CODE_USED'
 }
+exports.notificationReason = notificationReason;
 
 const notificationSchema = new Schema({
   subject: {type: ObjectId, ref: 'user'}, // the receiver of the notification
