@@ -1,6 +1,7 @@
 const userModel = require('../users/model.js');
 const transactionModel = require('./model.js');
 
+const notificationModel = require('../notifications/model.js');
 const userConstants = require('../users/constants.js');
 const config = require('../config.js');
 const { logInfo, logError } = require('../modules/errors.js');
@@ -41,6 +42,14 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
     amount: fixAmount(challenge.award),
     submission: submissionId,
     reason: "Submission Approval: " + submissionId.toString(),
+  }).then(result => {
+    notificationModel.createNotification({
+      reason: notificationModel.notificationReason.challengeStatusChanged,
+      subject: to,
+      payload: submissionId,
+      seen: false,
+    });
+    return result;
   });
 }
 
@@ -72,6 +81,14 @@ exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => 
     referralCode: referralCode._id,
     referralCodeOrderNumber: orderNumber,
     reason: "Referral Code Usage: '" + referralCode.code + "' on order #" + orderNumber,
+  }).then(result => {
+    notificationModel.createNotification({
+      reason: notificationModel.notificationReason.referralCodeUsed,
+      subject: referralCode.owner._id,
+      payload: referralCode._id,
+      seen: false,
+    });
+    return result;
   });
 }
 

@@ -11,6 +11,7 @@ const notificationReason = {
   challengeStatusChanged: 'CHALLENGE_STATUS_CHANGED',
   referralCodeUsed: 'REFERRAL_CODE_USED'
 }
+exports.notificationReason = notificationReason;
 
 const notificationSchema = new Schema({
   subject: {type: ObjectId, ref: 'user'}, // the receiver of the notification
@@ -28,6 +29,7 @@ const createNotification = (notificationData) => {
   const notification = new Notification(notificationData);
   return notification.save();
 }
+exports.createNotification = createNotification;
 
 exports.markNotificationRead = (notificationId) =>
   Notification.findOneAndUpdate({_id: notificationId}, {seen: true})
