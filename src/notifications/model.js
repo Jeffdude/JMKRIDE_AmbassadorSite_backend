@@ -29,6 +29,7 @@ const createNotification = (notificationData) => {
   const notification = new Notification(notificationData);
   return notification.save();
 }
+exports.createNotification = createNotification;
 
 exports.markNotificationRead = (notificationId) =>
   Notification.findOneAndUpdate({_id: notificationId}, {seen: true})
