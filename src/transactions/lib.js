@@ -53,10 +53,13 @@ exports.createChallengeAwardTransaction = async ({to, challenge, submissionId}) 
   });
 }
 
-exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber}) => {
+exports.createReferralCodeUsage = async ({codeId, code, total, orderNumber, allowUnknownCode = false}) => {
   const adminUser = await userConstants.getAdminUser();
   const referralCode = (await transactionModel.getReferralCode({_id: codeId, code}))[0]
   if(!referralCode){
+    if(allowUnknownCode){
+      return true;
+    }
     throw new Error('[!] Referral Code not found: ' + JSON.stringify({id: codeId, code}))
   }
   const transaction = (await transactionModel.getTransactions({referralCodeId: referralCode._id, referralCodeOrderNumber: orderNumber}))

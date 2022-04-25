@@ -91,6 +91,7 @@ exports.configRoutes = (app) => {
       codeName: i => i.discount_codes.length ? i.discount_codes[0].code : undefined,
       total: i => i.total_price,
       orderNumber: i => i.order_number,
+      allowUnknownCode: true,
     }),
     ValidationMiddleware.validateMandatoryBodyFields([
       'codeName', 'total', 'orderNumber'
