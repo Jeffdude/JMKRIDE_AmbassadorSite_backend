@@ -93,7 +93,6 @@ exports.createReferralCode = (req, res) =>
         code: req.body.code,
         percent: req.body.percent,
         owner: req.body.owner,
-        allowUnknownCode: req.body.allowUnknownCode, // for shopify endpoint
       }
     ),
     () => res.status(201).send({result: true}),
@@ -106,6 +105,7 @@ exports.createReferralCodeUsage = (req, res) =>
       code: req.body.codeName,
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
+      allowUnknownCode: req.body.allowUnknownCode, // for shopify endpoint
     }),
     (result) => res.status(201).send({result}),
   );
