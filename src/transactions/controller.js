@@ -105,6 +105,7 @@ exports.createReferralCodeUsage = (req, res) =>
       code: req.body.codeName,
       total: Number(req.body.total),
       orderNumber: Number(req.body.orderNumber),
+      allowUnknownCode: req.body.allowUnknownCode, // for shopify endpoint
     }),
     (result) => res.status(201).send({result}),
   );
