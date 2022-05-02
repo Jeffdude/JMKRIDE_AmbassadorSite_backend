@@ -4,7 +4,7 @@ const transactionModel = require('./model.js');
 const notificationModel = require('../notifications/model.js');
 const userConstants = require('../users/constants.js');
 const config = require('../config.js');
-const { logInfo, logError } = require('../modules/errors.js');
+const { logInfo } = require('../modules/errors.js');
 
 const fixAmount = (amount) => parseFloat(parseFloat(amount).toFixed(2));
 
