@@ -9,7 +9,7 @@ const isValidBoundingBox = (bounds) => {
   return height > 0.01 && width > 0.01
 }
 
-const boundsExceptionCountries = ['Singapore']
+const boundsExceptionCountries = ['Singapore', 'Ireland']
 
 exports.lookupLocation = async ({country, zip, extraStrings}) => {
   return client.geocode({params: {
