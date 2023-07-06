@@ -15,7 +15,7 @@ exports.FFPrivacy = FFPrivacy;
 
 exports.defaultAmbassadorsiteUserSettings = {
   FFMapVisibility: FFVisibility.visible,
-  FFUserPrivacy: FFPrivacy.private,
+  FFUserPrivacy: FFPrivacy.public,
 };
 
 exports.socialLinkTypes = [
