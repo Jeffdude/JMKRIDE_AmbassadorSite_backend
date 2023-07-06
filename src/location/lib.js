@@ -9,7 +9,7 @@ const isValidBoundingBox = (bounds) => {
   return height > 0.01 && width > 0.01
 }
 
-const boundsExceptionCountries = ['Singapore', 'Ireland', 'Poland']
+// const boundsExceptionCountries = ['Singapore', 'Ireland', 'Poland']
 
 exports.lookupLocation = async ({country, zip, extraStrings}) => {
   return client.geocode({params: {
@@ -25,9 +25,10 @@ exports.lookupLocation = async ({country, zip, extraStrings}) => {
       const { long_name: google_zip } = result.address_components.find(({types}) => types.includes('postal_code'))
       if(!google_zip) return {error: 'No results Found'}
 
-      if(!result.geometry.bounds && !boundsExceptionCountries.includes(google_country)) return {error: 'Defined Area Is Too Specific'}
-
-      if(result.geometry.bounds && !isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
+      /*
+       * if(!result.geometry.bounds && !boundsExceptionCountries.includes(google_country)) return {error: 'Defined Area Is Too Specific'}
+       * if(result.geometry.bounds && !isValidBoundingBox(result.geometry.bounds)) return {error: 'Defined Area Is Too Specific'}
+       */
 
       return ({
         country: google_country,
