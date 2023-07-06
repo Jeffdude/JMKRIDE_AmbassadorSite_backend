@@ -1,9 +1,9 @@
 branch-defaults:
-  ambassadorsite:
-    environment: ambassadorSite-1
   ambassador-shopify-endpoint-CU-1xghu5h:
     application_name: Backend
     environment: ambassadorSite-test
+  ambassadorsite:
+    environment: ambassadorSite-1
   master:
     environment: ambassadorSiteBackend
     group_suffix: null
@@ -12,7 +12,7 @@ branch-defaults:
 global:
   application_name: Stocktracker-backend
   branch: stocktracker
-  default_ec2_keyname: null
+  default_ec2_keyname: aws-eb2
   default_platform: Node.js
   default_region: us-east-2
   include_git_submodules: true
