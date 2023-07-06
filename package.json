@@ -49,7 +49,6 @@
     "mocha": "^8.2.1",
     "run-sequence": "^2.2.1",
     "sinon": "^9.2.1",
-    "sinon-mongoose": "^2.3.0",
     "sinon-promise": "^0.1.3"
   }
 }
