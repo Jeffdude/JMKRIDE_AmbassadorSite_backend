@@ -61,10 +61,10 @@ const genAllParts = () => {
       color => !(["Brown", "Chrome", "Silver", "Sakura", "Gold"].includes(color))
     ),
     "Truck": colors.filter(
-      color => !(["Brown"].includes(color))
+      color => !(["Brown", "ForestGreen"].includes(color))
     ),
     "Deck": colors.filter(
-      color => !(["Brown"].includes(color))
+      color => !(["Brown", "ForestGreen"].includes(color))
     ),
   }
 
