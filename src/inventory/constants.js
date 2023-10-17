@@ -25,6 +25,7 @@ const colors = [ // Order from custom tool
   "Orange",
   "Lavender",
   "Green",
+  "ForestGreen",
   "Marine",
   "Violet",
   "Mint",
