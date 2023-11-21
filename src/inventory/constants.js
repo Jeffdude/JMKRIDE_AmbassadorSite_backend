@@ -58,7 +58,7 @@ module.exports.getDefaultDefaultCSSetId = () => constantModel.getByName(
 const genAllParts = () => {
   const partTypeToPartColors = {
     "Wheel": colors.filter(
-      color => !(["Brown", "Chrome", "Silver", "Sakura", "Gold"].includes(color))
+      color => !(["Brown", "Chrome", "Silver", "Sakura", "Gold", "ForestGreen"].includes(color))
     ),
     "Truck": colors.filter(
       color => !(["Brown", "ForestGreen"].includes(color))
